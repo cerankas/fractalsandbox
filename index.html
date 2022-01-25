@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html style="overflow:hidden;">
+
+  <head>
+    <meta name="title" content="Fractal Sandbox">
+    <meta name="description" content="Interactive fractal generator">
+    <meta name="author" content="Szymon Ceranka">
+    <link href="style.css" rel="stylesheet" type="text/css"/>
+    <script src="tweakpane.min.js"></script>
+    <script src="script.js"></script>
+  </head>
+
+  <body style="overflow:hidden;">
+    <a id="download" download="fractalsandbox.jpg" href="" style="display:none"></a>
+    <div id="mainDiv">
+      <div id="mainPaneDiv" style="position:absolute; top:8px; right:8px; width:280px; height:auto; margin:0px; padding:0px;"></div>
+      <canvas id="canvasFrac"></canvas><canvas id="canvasForm"></canvas>
+      <div id="canvasColorDiv" style="position:absolute; height:20px; left:8px; right:8px; bottom:8px; display:none;">
+        <canvas id="canvasColor"></canvas>
+      </div>
+    </div>
+    <div id="fractalSelectorDiv" style="overflow-y:scroll; height:100%; display:none;">
+      <div id="loadPaneDiv" style="position:absolute; top:8px; right:8px; width:280px; height:auto;"></div>
+    </div>
+  </body>
+
+</html>
