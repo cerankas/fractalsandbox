@@ -26,11 +26,9 @@ const parameters = {
   colorPosition: 3,
 };
 
-const formTabSize = 0x4000;
-//const formTabSize = 20;
 const fractalPaletteLength = 1000;
 
-const myRandomMaxSize = 5e8;
+const myRandomMaxSize = 100000000;
 let myRandomPrepared = 0;
 let myRandom = undefined;
 function prepareRandom(size) {
@@ -40,12 +38,13 @@ function prepareRandom(size) {
     size = myRandomMaxSize;
   if (myRandomPrepared < size) {
     for (let i = myRandomPrepared; i < size; i++)
-      myRandom[i] = Math.random() * formTabSize;
+      myRandom[i] = Math.random() * Formula.formTabSize;
     myRandomPrepared = size;
   }
 }
 
 class Formula {
+  static get formTabSize() { return 0x4000; }
   constructor(a, b, c, d, e, f, p) {
     if (arguments.length == 0) {
       this.a = .9;
@@ -126,6 +125,12 @@ class Formula {
     }
     this.fromPoints(p);
   }
+  getRotation() { 
+    let a1 = Math.atan2(this.c, this.a) * 180 / Math.PI;
+    let a2 = Math.atan2(-this.b, this.d) * 180 / Math.PI;
+    let a3 = Math.atan2(this.d, this.b) * 180 / Math.PI - 90;
+    return [a1, a2, a3];
+  }
 }
 
 class Fractal {
@@ -163,9 +168,9 @@ class Fractal {
       formula.p = formula.getArea() / area;
     this.x = 0;
     this.y = 0;
-    this.formtab = new Uint8Array(formTabSize);
-    for (let i = 0, f = -1, v = 0; i < formTabSize; i++) {
-      if (i / formTabSize >= v) {
+    this.formtab = new Uint8Array(Formula.formTabSize);
+    for (let i = 0, f = -1, v = 0; i < Formula.formTabSize; i++) {
+      if (i / Formula.formTabSize >= v) {
         v += this.formulas[++f].p;
       }
       this.formtab[i] = f;
@@ -190,7 +195,7 @@ class Fractal {
     let ptr = points.length;
     let x = this.x, y = this.y;
     while (ptr) {
-      const f = this.formulas[this.formtab[(Math.random() * formTabSize) | 0]];
+      const f = this.formulas[this.formtab[(Math.random() * Formula.formTabSize) | 0]];
       const xx = f.a * x + f.b * y + f.e;
       const yy = f.c * x + f.d * y + f.f;
       y = points[--ptr] = yy;
@@ -251,13 +256,14 @@ class Viewport {
     this.shifty = sy + fy * this.scale + this.manualShifty;
   }
   prepare(fractal) {
+    //this.t1 = 0; this.t2 = 0; this.t3 = 0; this.t4 = 0;
     this.drawnPointsCount = 0;
     this.tabmax = 0;
     this.width  = this.ctx.canvas.width;
     this.height = this.ctx.canvas.height;
     this.tab = new Int32Array(this.width * this.height);
     this.maxpoints = 100 * getViewArea(this);
-    const numpoints = (getViewArea(this) / 2) | 0;
+    const numpoints = 5 * getViewArea(this);
     if (this.points == undefined || this.points.length != 2 * numpoints)
       this.points = new Float64Array(2 * numpoints); // two coordinates per point
     if (this.imageData == undefined || this.imageData.width != this.width || this.imageData.height != this.height)
@@ -313,7 +319,8 @@ class Viewport {
         this.redrawPalette();
       }
       if (!this.finishStatsShown) {
-        document.title = Math.floor(this.drawnPointsCount / 1000000) + ' mln points ' + (getMilliseconds() - this.fractal.startMilliseconds) + ' ms';
+        document.title = Math.floor(this.drawnPointsCount / 1000000) + ' mp ' + (getMilliseconds() - this.fractal.startMilliseconds) + ' ms';
+        //document.title = (getMilliseconds() - this.fractal.startMilliseconds) + ' ms ' + (this.t1 + this.t2 + this.t3) + ' ' + this.t1 + ' ' + this.t2 + ' ' + this.t3;
         this.finishStatsShown = true;
       }
       return;
@@ -323,9 +330,15 @@ class Viewport {
     if (this.autoScaleRequired) {
       this.doAutoScale();
     }
+    //let tt1 = getMilliseconds();
+    //this.t1 += tt1 - startms;
     this.doSumPoints();
+    //let tt2 = getMilliseconds();
+    //this.t2 += tt2 - tt1; 
     this.doCalculateColors();
     this.doPutImageData();
+    //let tt3 = getMilliseconds();
+    //this.t3 += tt3 - tt2;
     this.drawnPointsCount += this.points.length / 2;
     document.title = Math.floor((this.points.length / 2 )/ (getMilliseconds() - startms));
   }
@@ -459,6 +472,7 @@ function selectNearestColor(p) {
   }
 }
 
+let lastForm = '';
 function onPointerMove(e) {
   if (e.target.id == 'canvasForm') {
     let mousePoint = viewForm.fromScreen([e.offsetX, e.offsetY]);
@@ -479,6 +493,12 @@ function onPointerMove(e) {
       return;
     }
     drawFormulas();
+    const form = (selectedFormula != null) ? JSON.stringify(fractal.formulas[selectedFormula.formula]) : '';
+    if (form != '' && form != lastForm) {
+      lastForm = form;
+      let r = fractal.formulas[selectedFormula.formula].getRotation();
+      console.log(r[0], r[1], r[2])
+    }
   }
   if (e.target.id == 'canvasFrac' && drag.state == 'viewfrac') {
     viewFrac.manualShiftx = drag.startPoint[0] + e.offsetX;
