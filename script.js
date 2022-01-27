@@ -6,6 +6,9 @@
 
 'use strict';
 
+//import { Formula } from './modules/formula.js';
+//import { FractalComputer } from './modules/fractal-computer.js';
+
 let mainPane, loadPane;
 //let userPane, userButton, sessionId;
 
@@ -27,111 +30,6 @@ const parameters = {
 };
 
 const fractalPaletteLength = 1000;
-
-const myRandomMaxSize = 100000000;
-let myRandomPrepared = 0;
-let myRandom = undefined;
-function prepareRandom(size) {
-  if (myRandom == undefined)
-    myRandom = new Int16Array(myRandomMaxSize);
-  if (size > myRandomMaxSize)
-    size = myRandomMaxSize;
-  if (myRandomPrepared < size) {
-    for (let i = myRandomPrepared; i < size; i++)
-      myRandom[i] = Math.random() * Formula.formTabSize;
-    myRandomPrepared = size;
-  }
-}
-
-class Formula {
-  static get formTabSize() { return 0x4000; }
-  constructor(a, b, c, d, e, f, p) {
-    if (arguments.length == 0) {
-      this.a = .9;
-      this.b = 0;
-      this.c = 0;
-      this.d = .9;
-      this.e = 0;
-      this.f = 0;
-      this.p = .81;
-    }
-    if (arguments.length == 1) {
-      [a, b, c, d, e, f, p] = a.split(' ');
-      this.a = parseFloat(a);
-      this.b = parseFloat(b);
-      this.c = parseFloat(c);
-      this.d = parseFloat(d);
-      this.e = parseFloat(e);
-      this.f = parseFloat(f);
-      this.p = parseFloat(p);
-    }
-    if (arguments.length > 1) {
-      this.a = a;
-      this.b = b;
-      this.c = c;
-      this.d = d;
-      this.e = e;
-      this.f = f;
-      this.p = p;
-    }
-  }
-  clone() {
-    return new Formula(this.a, this.b, this.c, this.d, this.e, this.f, this.p);
-  }
-  toString() {
-    return this.a + ' ' + this.b + ' ' + this.c + ' ' +  this.d + ' ' + this.e + ' ' + this.f + ' ' + this.p;
-  }
-  iterate(point) {
-    return [
-      this.a * point[0] + this.b * point[1] + this.e,
-      this.c * point[0] + this.d * point[1] + this.f
-    ];
-  }
-  fromPoints(points) {
-    this.a = points[2][0] - points[0][0];
-    this.b = points[1][0] - points[0][0];
-    this.c = points[2][1] - points[0][1];
-    this.d = points[1][1] - points[0][1];
-    this.e = points[0][0];
-    this.f = points[0][1];
-  }
-  getPoints() {
-    return [
-      this.iterate([0, 0]),
-      this.iterate([0, 1]),
-      this.iterate([1, 0]),
-      this.iterate([-1, 0])
-    ];
-  }
-  getArea() {
-    return Math.pow(Math.abs(this.b * this.c - this.a * this.d), parameters.balanceFactor);
-  }
-  setPoint(dx, dy, n) {
-    function sp(n) {
-      p[n][0] += dx;
-      p[n][1] += dy;
-    }
-    let p = this.getPoints();
-    if (!n)
-      for (let i in p)
-        sp(i);
-    if (n === 1)
-      sp(1);
-    if (n > 1) {
-      sp(n);
-      dx = -dx;
-      dy = -dy;
-      sp(5 - n);
-    }
-    this.fromPoints(p);
-  }
-  getRotation() { 
-    let a1 = Math.atan2(this.c, this.a) * 180 / Math.PI;
-    let a2 = Math.atan2(-this.b, this.d) * 180 / Math.PI;
-    let a3 = Math.atan2(this.d, this.b) * 180 / Math.PI - 90;
-    return [a1, a2, a3];
-  }
-}
 
 class Fractal {
   constructor() {
@@ -227,6 +125,7 @@ class Viewport {
     this.forceRedrawPalette = false;
     this.finishStatsShown = false;
     this.fractalString = '';
+    this.fractalComputer = new FractalComputer();
   }
   toScreen(p) {
     return [p[0] * this.scale + this.shiftx, -p[1] * this.scale + this.shifty];
@@ -274,10 +173,12 @@ class Viewport {
       this.fractal = fractal;
       this.fractalString = this.fractal.toString();
     }
-    this.fractal.prepare();
+    //this.fractal.prepare();
+    this.fractalComputer.initialize(this.fractal.formulas);
   }
   doCalculatePoints() {
-    this.fractal.calculate(this.points, this.drawnPointsCount);
+    //this.fractal.calculate(this.points, this.drawnPointsCount);
+    this.fractalComputer.compute(this.points);
   }
   doAutoScale() {
     this.autoScaleRequired = false;
@@ -319,7 +220,7 @@ class Viewport {
         this.redrawPalette();
       }
       if (!this.finishStatsShown) {
-        document.title = Math.floor(this.drawnPointsCount / 1000000) + ' mp ' + (getMilliseconds() - this.fractal.startMilliseconds) + ' ms';
+        document.title = Math.floor(this.drawnPointsCount / 1000000) + ' mp ' + (getMilliseconds() - this.fractalComputer.startms) + ' ms';
         //document.title = (getMilliseconds() - this.fractal.startMilliseconds) + ' ms ' + (this.t1 + this.t2 + this.t3) + ' ' + this.t1 + ' ' + this.t2 + ' ' + this.t3;
         this.finishStatsShown = true;
       }
@@ -484,7 +385,6 @@ function onPointerMove(e) {
       let dx = mousePoint[0] - drag.startPoint[0];
       let dy = mousePoint[1] - drag.startPoint[1];
       fractal.formulas[selectedFormula.formula].setPoint(dx,dy,selectedFormula.point);
-      drawMainFractal();
     }
     if (drag.state == 'viewform') {
       viewForm.manualShiftx = drag.startPoint[0] + e.offsetX;
@@ -497,7 +397,7 @@ function onPointerMove(e) {
     if (form != '' && form != lastForm) {
       lastForm = form;
       let r = fractal.formulas[selectedFormula.formula].getRotation();
-      console.log(r[0], r[1], r[2])
+      //console.log(r[0], r[1], r[2])
     }
   }
   if (e.target.id == 'canvasFrac' && drag.state == 'viewfrac') {
@@ -534,10 +434,10 @@ function onWindowPointerMove(e) {
 let dragFormula;
 
 function onPointerDown(e) {
-  function leftMouseButtonClicked() { return e.button == 0; }
-  function rightMouseButtonClicked() { return e.button == 2; }
+  const leftButton = e.button == 0;
+  const rightButton = e.button == 2;
   if (e.target.id == 'canvasForm') {
-    if (leftMouseButtonClicked()) {
+    if (leftButton) {
       let mousePoint = viewForm.fromScreen([e.offsetX, e.offsetY]);
       selectNearestFormula(mousePoint);
       if (selectedFormula) {
@@ -551,24 +451,24 @@ function onPointerDown(e) {
         drag.startPoint[1] = viewForm.manualShifty - e.offsetY;
       }
     }
-    if (rightMouseButtonClicked()) {
+    if (rightButton) {
       viewForm.resetManual();
       resizeFormulas();
     }
   }
   if (e.target.id == 'canvasFrac') {
-    if (leftMouseButtonClicked()) {
+    if (leftButton) {
       drag.state = 'viewfrac';
       drag.startPoint[0] = viewFrac.manualShiftx - e.offsetX;
       drag.startPoint[1] = viewFrac.manualShifty - e.offsetY;
     }
-    if (rightMouseButtonClicked()) {
+    if (rightButton) {
       viewFrac.resetManual();
       drawMainFractal();
     }
   }
   if (e.target.id == 'canvasColor') {
-    if (leftMouseButtonClicked()) {
+    if (leftButton()) {
       selectNearestColor([e.offsetX, e.offsetY]);
       if (selectedColor != null) {
         drag.state = 'color';
@@ -612,7 +512,6 @@ function onWheel(e) {
   if (e.target.id == 'canvasFrac') {
     zoomView(viewFrac);
     doZoomFrac = true;
-    //drawMainFractal();
   }
 }
 
@@ -848,6 +747,8 @@ function windowKeyPress(e) {
 function drawMainFractal() {
   viewFrac.prepare(fractal);
 }
+
+let invalidatedLastFractal = false;
 
 function computeInBackground() {
   if (doZoomFrac) {
