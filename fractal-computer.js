@@ -1,5 +1,4 @@
-//import { Formula } from './formula.js';
-//import { Fractal } from 'fractal.mjs';
+// FractalComputer
 
 const FORMULA_TABLE_SIZE = 0x4000;
 const RANDOM_ARRAY_SIZE = 5000000;
@@ -7,7 +6,7 @@ const RANDOM_ARRAY_SIZE = 5000000;
 const randomSamplesArray = new Int16Array(RANDOM_ARRAY_SIZE);
 const formulaRandomizerArray = new Int16Array(FORMULA_TABLE_SIZE);
 
-function initializeModule() {
+function initializeRandom() {
   for (let i = 0; i < RANDOM_ARRAY_SIZE; i++) {
     randomSamplesArray[i] = (Math.random() * FORMULA_TABLE_SIZE) | 0;
   }
@@ -69,6 +68,4 @@ class FractalComputer {
   }
 }
 
-initializeModule();
-
-//export { FractalComputer };
+initializeRandom();

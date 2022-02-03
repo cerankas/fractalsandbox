@@ -1,4 +1,4 @@
-//export { Formula };
+// Formula
 
 class Formula {
   //    static fromCoefficients(a, b, c, d, e, f, p)
@@ -92,11 +92,74 @@ class Formula {
   }
 
   getRotation() { 
-    let a1 = Math.atan2(this.c, this.a) * 180 / Math.PI;
-    let a2 = Math.atan2(-this.b, this.d) * 180 / Math.PI;
-    let a3 = Math.atan2(this.d, this.b) * 180 / Math.PI - 90;
-    return [a1, a2, a3];
+    //let rx = Math.atan2(this.c, this.a) * 180 / Math.PI;
+    //let ry = Math.atan2(this.d, this.b) * 180 / Math.PI - 90;
+    let rx = getVectorAngle([this.a, this.c]);
+    let ry = getVectorAngle([this.b, this.d]); - 90;
+    return [rx, ry];
   }
 
+  getScale() { 
+    let sx = Math.sqrt(this.a * this.a + this.c * this.c);
+    let sy = Math.sqrt(this.b * this.b + this.d * this.d);
+    return [sx, sy];
+  }
+
+  setRotation(rx, ry) {
+    let s = this.getScale();
+    [this.a, this.c] = rotateVector([s[0], 0], rx);
+    [this.b, this.d] = rotateVector([0, s[1]], ry);
+  }
+
+  setScale(sx, sy) {
+    const r = this.getRotation();
+    [this.a, this.c] = rotateVector([sx, 0], r[0]);
+    [this.b, this.d] = rotateVector([0, sy], r[1]);
+  }
+
+  rotate(rx, ry) {
+    [this.a, this.c] = rotateVector([this.a, this.c], rx);
+    [this.b, this.d] = rotateVector([this.b, this.d], ry);
+  }
+
+  scale(sx, sy) {
+    this.a *= sx;
+    this.c *= sx;
+    this.b *= sy;
+    this.d *= sy;
+  }
 }
-  
+
+function rotateVector(vector, angle) {
+  angle *= Math.PI / 180;
+  const sin = Math.sin(angle);
+  const cos = Math.cos(angle);
+  return [
+    vector[0] * cos - vector[1] * sin,
+    vector[0] * sin + vector[1] * cos
+  ];
+}
+
+function getVectorAngle(vector) {
+  return Math.atan2(vector[1], vector[0]) * 180 / Math.PI;
+}
+
+function getVectorRotation(vector1, vector2) {
+  const radius = getVectorRotation(vector2) - getVectorRotation(vector1);
+  if (radius >   180) radius -= 180;
+  if (radius <= -180) radius += 180;
+  return radius;
+}
+
+function getVectorLength(vector) {
+  return Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+}
+
+function getVectorScale(vector1, vector2) {
+  const length1 = getVectorLength(vector1);
+  return getVectorLength(vector2) / (length1 != 0 ? length1 : 1);
+}
+
+function drawFormulas(ctx, formulas) {
+    
+}
