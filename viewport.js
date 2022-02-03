@@ -46,7 +46,6 @@ class Viewport {
     this.shifty = sy + fy * this.scale + this.manualShifty;
   }
   prepare(fractal) {
-    //this.t1 = 0; this.t2 = 0; this.t3 = 0; this.t4 = 0;
     this.drawnPointsCount = 0;
     this.tabmax = 0;
     this.width  = this.ctx.canvas.width;
@@ -64,11 +63,9 @@ class Viewport {
       this.fractal = fractal;
       this.fractalString = this.fractal.toString();
     }
-    //this.fractal.prepare();
     this.fractalComputer.initialize(this.fractal.formulas);
   }
   doCalculatePoints() {
-    //this.fractal.calculate(this.points, this.drawnPointsCount);
     this.fractalComputer.compute(this.points);
   }
   doAutoScale() {
@@ -90,7 +87,7 @@ class Viewport {
   }
   doCalculateColors() {
     const palData = new Int32Array(this.imageData.data.buffer);
-    const palmul = (fractalPaletteLength - 1) / this.tabmax;
+    const palmul = (FRACTAL_PALETTE_LENGTH - 1) / this.tabmax;
     const thisTabLength = this.tab.length;
     for (let i = 0; i < thisTabLength; i++) {
       palData[i] = fractalPalette[(this.tab[i] * palmul) | 0];
@@ -110,7 +107,6 @@ class Viewport {
       }
       if (!this.finishStatsShown) {
         document.title = Math.floor(this.drawnPointsCount / 1000000) + ' mp ' + (getMilliseconds() - this.fractalComputer.startms) + ' ms';
-        //document.title = (getMilliseconds() - this.fractal.startMilliseconds) + ' ms ' + (this.t1 + this.t2 + this.t3) + ' ' + this.t1 + ' ' + this.t2 + ' ' + this.t3;
         this.finishStatsShown = true;
       }
       return;
@@ -120,15 +116,9 @@ class Viewport {
     if (this.autoScaleRequired) {
       this.doAutoScale();
     }
-    //let tt1 = getMilliseconds();
-    //this.t1 += tt1 - startms;
     this.doSumPoints();
-    //let tt2 = getMilliseconds();
-    //this.t2 += tt2 - tt1; 
     this.doCalculateColors();
     this.doPutImageData();
-    //let tt3 = getMilliseconds();
-    //this.t3 += tt3 - tt2;
     this.drawnPointsCount += this.points.length / 2;
     document.title = Math.floor((this.points.length / 2 )/ (getMilliseconds() - startms));
   }

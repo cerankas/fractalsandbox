@@ -1,5 +1,5 @@
 // FractalEditor
-
+/*
 class FractalEditor {
   constructor(view) {
     this.view = view;
@@ -39,9 +39,7 @@ class FractalEditor {
 
   }
 }
-
-
-
+*/
 function drawCage(view) {
   let p1 = view.toScreen([-1,-1]);
   let p2 = view.toScreen([0,0]);
@@ -93,4 +91,20 @@ function drawFormulas(view = viewForm) {
     ctx.arc(p[0], p[1], 2, 0, 2 * Math.PI);
     ctx.stroke();
   }
+}
+
+function addFormula() {
+  fractal.formulas.push(new Formula());
+  windowResize();
+  histor.store();
+}
+
+function removeFormula(sel) {
+  if (sel != null && fractal.formulas.length > 2) {
+    fractal.formulas.splice(sel.formula,1);
+    windowResize();
+    histor.store();
+  }
+  selectedFormula = null;
+  lastSelectedFormula = null;
 }

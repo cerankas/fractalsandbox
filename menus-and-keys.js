@@ -37,7 +37,7 @@ function initializeMainPane() {
   mainPane.addButton({title: 'Remove triangle [-]'}).on('click', () => { removeFormula(lastSelectedFormula); });
   mainPane.addInput(parameters, 'balanceFactor', { label: 'Total balance', min: .1, max: 3, step: .01 }).on('change', drawMainFractal);
   mainPane.addButton({title: 'Draw infinitely [I]'}).on('click', () => { viewFrac.infinite = !viewFrac.infinite; });
-  mainPane.addButton({title: 'Edit colors [C]'}).on('click', toggleColorEditor);
+  mainPane.addButton({title: 'Edit colors [C]'}).on('click', togglePaletteEditor);
 }
 
 function initializeLoadPane() {
@@ -48,15 +48,15 @@ function initializeLoadPane() {
 }
 
 function initializeUserPane() {
-  //userPane = new Tweakpane.Pane();
-  //userPane.hidden = true;
-  //mainPane.addInput(parameters, 'email');
-  //mainPane.addInput(parameters, 'password');
-  //mainPane.addInput(parameters, 'nickname');
-  //mainPane.addButton({title: 'login'}).on('click', () => { sendXHR('action=login&email=' + parameters.email + '&password=' + parameters.password); });
-  //mainPane.addButton({title: 'logout'}).on('click', () => { sendXHR('action=logout'); });
-  //mainPane.addButton({title: 'register'}).on('click', () => { sendXHR('action=register&email=' + parameters.email + '&password=' + parameters.password + '&nickname=' + parameters.nickname); });
-  //mainPane.addButton({title: 'reset password'}).on('click', () => { sendXHR('action=reset&email=' + parameters.email); });
+  userPane = new Tweakpane.Pane();
+  userPane.hidden = true;
+  mainPane.addInput(parameters, 'email');
+  mainPane.addInput(parameters, 'password');
+  mainPane.addInput(parameters, 'nickname');
+  mainPane.addButton({title: 'login'}).on('click', () => { sendXHR('action=login&email=' + parameters.email + '&password=' + parameters.password); });
+  mainPane.addButton({title: 'logout'}).on('click', () => { sendXHR('action=logout'); });
+  mainPane.addButton({title: 'register'}).on('click', () => { sendXHR('action=register&email=' + parameters.email + '&password=' + parameters.password + '&nickname=' + parameters.nickname); });
+  mainPane.addButton({title: 'reset password'}).on('click', () => { sendXHR('action=reset&email=' + parameters.email); });
 }
 
 function documentKeyDown(e) {
@@ -102,7 +102,7 @@ function windowKeyPress(e) {
     viewFrac.infinite = !viewFrac.infinite;
   }
   if (c == 'c') {
-    toggleColorEditor();
+    togglePaletteEditor();
   }
   if (c == 'a') {
     addColor();

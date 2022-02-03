@@ -34,13 +34,12 @@ class FractalComputer {
     this.x = 0;
     this.y = 0;
     this.randomXor = 0;
-    /*let area = 0;
-    let probabilities = [];
+    let area = 0;
     for (let formula of formulas) {
       area += formula.getArea();
     }
     for (let formula of formulas)
-      formula.p = formula.getArea() / area;*/
+      formula.p = formula.getArea() / area;
     for (let i = 0, formulaIndex = -1, accumulatedWeight = 0; i < FORMULA_TABLE_SIZE; i++) {
       if (i / FORMULA_TABLE_SIZE >= accumulatedWeight) {
         accumulatedWeight += formulas[++formulaIndex].p;

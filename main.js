@@ -1,27 +1,4 @@
-// Fractal Sandbox by Szymon Ceranka
-//
-//  print function with reference to affiliated cloud printing services
-
-'use strict';
-
-let fractal;
-let fractalPalette = [];
-let paletteKeys = [];
-
-let selectedFormula = null;
-let lastSelectedFormula = null;
-
-let selectedColor = null;
-let lastSelectedColor = 0;
-
-let drag = {
-  state: false, // false, formula, viewform, viewfrac, color, colorpicker
-  startPoint: [0, 0]
-};
-
-let viewFrac, viewForm;
-
-
+// Main
 
 function findNearestPoint(points, p, distanceThreshold) {
   function pointDistance(p1, p2) { let dx = p1[0] - p2[0], dy = p1[1] - p2[1]; return dx * dx + dy * dy; }
@@ -81,7 +58,7 @@ function onPointerMove(e) {
       lastForm = form;
       //let r = fractal.formulas[selectedFormula.formula].getRotation();
       let r = fractal.formulas[selectedFormula.formula].getScale();
-      console.log(r[0], r[1], r[2])
+      //console.log(r[0], r[1], r[2])
     }
   }
   if (e.target.id == 'canvasFrac' && drag.state == 'viewfrac') {
@@ -91,7 +68,7 @@ function onPointerMove(e) {
   }
   if (e.target.id == 'canvasColor' && !drag.state) {
     selectNearestColor([e.offsetX, e.offsetY]);
-    drawColorEditor();
+    drawPaletteEditor();
   }
 }
 
@@ -107,7 +84,7 @@ function onWindowPointerMove(e) {
     }
     p.index = newIndex;
     fractalPalette = createPaletteFromKeys(paletteKeys);
-    drawColorEditor();
+    drawPaletteEditor();
     viewFrac.setForceRedrawPalette();
   }
   if (drag.state && e.buttons == 0) {
@@ -199,8 +176,6 @@ function onWheel(e) {
   }
 }
 
-
-
 function resizeFormulas(view = viewForm) {
   if (view.manualScale == 1 && view.manualShiftx == 0 && view.manualShifty == 0) {
     let points = fractal.formulaPoints().concat([[-1, -1], [1, 1]]);
@@ -212,7 +187,6 @@ function resizeFormulas(view = viewForm) {
   }
   drawFormulas(view);
 }
-
 
 function setupCanvas(id) {
   const c = document.getElementById(id);
@@ -239,23 +213,7 @@ function windowResize() {
   setWidthHeight('canvasForm', width, height);
   drawMainFractal();
   resizeFormulas();
-  drawColorEditor();
-}
-
-function addFormula() {
-  fractal.formulas.push(new Formula());
-  windowResize();
-  histor.store();
-}
-
-function removeFormula(sel) {
-  if (sel != null && fractal.formulas.length > 2) {
-    fractal.formulas.splice(sel.formula,1);
-    windowResize();
-    histor.store();
-  }
-  selectedFormula = null;
-  lastSelectedFormula = null;
+  drawPaletteEditor();
 }
 
 function drawMainFractal() {

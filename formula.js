@@ -92,8 +92,6 @@ class Formula {
   }
 
   getRotation() { 
-    //let rx = Math.atan2(this.c, this.a) * 180 / Math.PI;
-    //let ry = Math.atan2(this.d, this.b) * 180 / Math.PI - 90;
     let rx = getVectorAngle([this.a, this.c]);
     let ry = getVectorAngle([this.b, this.d]); - 90;
     return [rx, ry];
@@ -158,8 +156,4 @@ function getVectorLength(vector) {
 function getVectorScale(vector1, vector2) {
   const length1 = getVectorLength(vector1);
   return getVectorLength(vector2) / (length1 != 0 ? length1 : 1);
-}
-
-function drawFormulas(ctx, formulas) {
-    
 }
