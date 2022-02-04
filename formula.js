@@ -1,8 +1,6 @@
 // Formula
 
 class Formula {
-  //    static fromCoefficients(a, b, c, d, e, f, p)
-
   constructor(a, b, c, d, e, f, p) {
     if (arguments.length == 0) {
       this.a = .9;

@@ -33,7 +33,6 @@ function selectNearestColor(p) {
   }
 }
 
-let lastForm = '';
 function onPointerMove(e) {
   if (e.target.id == 'canvasForm') {
     let mousePoint = viewForm.fromScreen([e.offsetX, e.offsetY]);
@@ -53,13 +52,6 @@ function onPointerMove(e) {
       return;
     }
     drawFormulas();
-    const form = (selectedFormula != null) ? JSON.stringify(fractal.formulas[selectedFormula.formula]) : '';
-    if (form != '' && form != lastForm) {
-      lastForm = form;
-      //let r = fractal.formulas[selectedFormula.formula].getRotation();
-      let r = fractal.formulas[selectedFormula.formula].getScale();
-      //console.log(r[0], r[1], r[2])
-    }
   }
   if (e.target.id == 'canvasFrac' && drag.state == 'viewfrac') {
     viewFrac.manualShiftx = drag.startPoint[0] + e.offsetX;
@@ -91,8 +83,6 @@ function onWindowPointerMove(e) {
     drag.state = false;
   }
 }
-
-let dragFormula;
 
 function onPointerDown(e) {
   const leftButton = e.button == 0;
@@ -145,14 +135,11 @@ function onPointerUp(e) {
       resizeFormulas();
     }
     if (['formula', 'color', 'colorpicker'].includes(drag.state)) {
-      histor.store();
+      globalHistory.store();
     }
     drag.state = false;
   }
 }
-
-let doZoomForm = false;
-let doZoomFrac = false;
 
 function onWheel(e) {
   function zoomView(view) {
@@ -259,7 +246,7 @@ function loadFractal(fract) {
   viewForm.resetManual();
   fractal = new Fractal(fract);
   windowResize();
-  histor.store();
+  globalHistory.store();
 }
 
 function toggleDisplay(id) {
@@ -276,6 +263,9 @@ function jsMain() {
   window.onresize = windowResize;
   window.onkeypress = windowKeyPress;
   document.onkeydown = documentKeyDown;
+
+  globalHistory = new cHistory();
+  paletteEditor = new cPaletteEditor();
 
   initializeMainPane();
   initializeLoadPane();

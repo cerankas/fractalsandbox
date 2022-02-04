@@ -96,14 +96,14 @@ function drawFormulas(view = viewForm) {
 function addFormula() {
   fractal.formulas.push(new Formula());
   windowResize();
-  histor.store();
+  globalHistory.store();
 }
 
 function removeFormula(sel) {
   if (sel != null && fractal.formulas.length > 2) {
     fractal.formulas.splice(sel.formula,1);
     windowResize();
-    histor.store();
+    globalHistory.store();
   }
   selectedFormula = null;
   lastSelectedFormula = null;

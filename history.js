@@ -40,5 +40,3 @@ class cHistory {
   }
 
 }
-
-let histor = new cHistory();

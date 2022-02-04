@@ -18,3 +18,32 @@ let drag = {
 };
 
 let viewFrac, viewForm;
+
+let dragFormula;
+
+let doZoomForm = false;
+let doZoomFrac = false;
+
+let mainPane, loadPane;
+//let userPane, userButton, sessionId;
+
+const parameters = {
+  balanceFactor: 1,
+
+  //email: '',
+  //password: '',
+  //nickname: '',
+
+  tileSize: 200,
+  tileDetail: 10,
+
+  formulaIndex: 1,
+
+  colorIndex: 1,
+  colorValue: {r: 0, g:0 , b: 0},
+  colorPosition: 3,
+};
+
+let globalHistory;
+
+let paletteEditor;

@@ -1,24 +1,4 @@
-// Tweakpane
-
-let mainPane, loadPane;
-//let userPane, userButton, sessionId;
-
-const parameters = {
-  balanceFactor: 1,
-
-  //email: '',
-  //password: '',
-  //nickname: '',
-
-  tileSize: 200,
-  tileDetail: 10,
-
-  formulaIndex: 1,
-
-  colorIndex: 1,
-  colorValue: {r: 0, g:0 , b: 0},
-  colorPosition: 3,
-};
+// Menus and Keys
 
 function toggleMainPane() {
   mainPane.hidden = ~mainPane.hidden;
@@ -31,8 +11,8 @@ function initializeMainPane() {
   mainPane.addButton({title: 'Save fractal [S]'}).on('click', saveFractal);
   mainPane.addButton({title: 'Download image [D]'}).on('click', downloadImage);
   //mainPane.addButton({title: 'Download movie [V]'}).on('click', downloadMovie);
-  mainPane.addButton({title: 'Undo [Z]'}).on('click', () => { histor.back(); });
-  mainPane.addButton({title: 'Redo [Y]'}).on('click', () => { histor.forward(); });
+  mainPane.addButton({title: 'Undo [Z]'}).on('click', () => { globalHistory.back(); });
+  mainPane.addButton({title: 'Redo [Y]'}).on('click', () => { globalHistory.forward(); });
   mainPane.addButton({title: 'Add triangle [+]'}).on('click', addFormula);
   mainPane.addButton({title: 'Remove triangle [-]'}).on('click', () => { removeFormula(lastSelectedFormula); });
   mainPane.addInput(parameters, 'balanceFactor', { label: 'Total balance', min: .1, max: 3, step: .01 }).on('change', drawMainFractal);
@@ -47,7 +27,7 @@ function initializeLoadPane() {
   loadPane.addInput(parameters, 'tileDetail', { label: 'Tile detail', min: 1, max: 10, step: 1 }).on('change', () => { fractalSelector.update(); });
 }
 
-function initializeUserPane() {
+/*function initializeUserPane() {
   userPane = new Tweakpane.Pane();
   userPane.hidden = true;
   mainPane.addInput(parameters, 'email');
@@ -57,7 +37,7 @@ function initializeUserPane() {
   mainPane.addButton({title: 'logout'}).on('click', () => { sendXHR('action=logout'); });
   mainPane.addButton({title: 'register'}).on('click', () => { sendXHR('action=register&email=' + parameters.email + '&password=' + parameters.password + '&nickname=' + parameters.nickname); });
   mainPane.addButton({title: 'reset password'}).on('click', () => { sendXHR('action=reset&email=' + parameters.email); });
-}
+}*/
 
 function documentKeyDown(e) {
   if (e.keyCode == 27) { // Esc
@@ -87,10 +67,10 @@ function windowKeyPress(e) {
     downloadImage();
   }
   if (c == 'z') {
-    histor.back();
+    globalHistory.back();
   }
   if (c == 'y') {
-    histor.forward();
+    globalHistory.forward();
   }
   if (c == '+' || c == '=') {
     addFormula();

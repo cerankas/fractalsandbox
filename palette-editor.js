@@ -17,8 +17,6 @@ class cPaletteEditor {
   }
 }
 
-let paletteEditor = new cPaletteEditor();
-
 function drawPaletteEditor() {
   localStorage.lastpalette = JSON.stringify(paletteKeys);
   const id = 'canvasColor';
@@ -66,7 +64,7 @@ function addColorAt(index) {
   fractalPalette = createPaletteFromKeys(paletteKeys);
   drawPaletteEditor();
   viewFrac.setForceRedrawPalette();
-  histor.store();
+  globalHistory.store();
 }
 
 function addColor() {
@@ -86,7 +84,7 @@ function removeColor() {
     fractalPalette = createPaletteFromKeys(paletteKeys);
     drawPaletteEditor();
     viewFrac.setForceRedrawPalette();
-    histor.store();
+    globalHistory.store();
     }
 }
 
