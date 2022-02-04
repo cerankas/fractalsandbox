@@ -1,6 +1,6 @@
 // PaletteEditor
 
-class cPaletteEditor {
+class PaletteEditor {
   constructor() {
     this.maxx = 0;
   }
@@ -102,7 +102,7 @@ function togglePaletteEditor() {
     }
 }
 
-function initializePaletteEditor() {
+function initializePaletteEditorPaneFunctions() {
   paletteEditor.colorPicker = mainPane.addInput(parameters, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
     let p = paletteKeys[lastSelectedColor];
     p.r = parameters.colorValue.r;

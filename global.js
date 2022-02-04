@@ -47,3 +47,5 @@ const parameters = {
 let globalHistory;
 
 let paletteEditor;
+
+let fractalSelector;

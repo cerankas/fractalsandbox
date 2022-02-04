@@ -265,21 +265,23 @@ function jsMain() {
   document.onkeydown = documentKeyDown;
 
   globalHistory = new cHistory();
-  paletteEditor = new cPaletteEditor();
-
-  initializeMainPane();
-  initializeLoadPane();
+  paletteEditor = new PaletteEditor();
+  fractalSelector = new FractalSelector();
 
   initializePalette();
-  initializePaletteEditor();
 
   setupCanvas('canvasColor');
-  viewFrac = new Viewport(setupCanvas('canvasFrac'));
+  viewFrac = new FractalViewer(setupCanvas('canvasFrac'));
   viewForm = new Viewport(setupCanvas('canvasForm'), .6);
   
   let initFract = '-.653 .458 .270 .685 .374 .513#-.151 -.382 -.123 .239 .278 .426#.051 -.434 -.067 -.211 .597 .689#-.047 .725 .183 .147 .023 .231'; // fern fractal
   loadFractal(localStorage.lastFractal || initFract);
   computeInBackground();
+
+  initializeMainPane();
+  initializeLoadPane();
+
+  initializePaletteEditorPaneFunctions();
 }
 
 window.onload = jsMain;

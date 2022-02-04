@@ -1,8 +1,8 @@
 // FractalEditor
 /*
-class FractalEditor {
-  constructor(view) {
-    this.view = view;
+class FractalEditor extends Viewport {
+  constructor(ctx, zoom) {
+    super(ctx, zoom);
     this.state = null;
     this.formulas = [];
     this.referenceFormulas = [];

@@ -16,7 +16,7 @@ class FractalSelectorItem {
     this.canvas.setAttribute('onClick', 'loadFractal(\'' + this.value + '\');');
     div.appendChild(this.canvas);
     this.canvas = document.getElementById(this.key);
-    this.viewPort = new Viewport(this.canvas.getContext('2d'));
+    this.viewPort = new FractalViewer(this.canvas.getContext('2d'));
     this.viewPort.prepare(new Fractal(this.value));
     this.viewPort.draw();
     this.detail = 1;
@@ -104,5 +104,3 @@ class FractalSelector {
     }
   }
 }
-
-const fractalSelector = new FractalSelector();
