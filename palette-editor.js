@@ -63,7 +63,7 @@ function addColorAt(index) {
   paletteKeys.splice(i, 0, new cPaletteKey(index, rgb & 0xff, (rgb >> 8) & 0xff, (rgb >> 16) & 0xff));
   fractalPalette = createPaletteFromKeys(paletteKeys);
   drawPaletteEditor();
-  viewFrac.setForceRedrawPalette();
+  globalFractalViewer.setForceRedrawPalette();
   globalHistory.store();
 }
 
@@ -83,7 +83,7 @@ function removeColor() {
     }
     fractalPalette = createPaletteFromKeys(paletteKeys);
     drawPaletteEditor();
-    viewFrac.setForceRedrawPalette();
+    globalFractalViewer.setForceRedrawPalette();
     globalHistory.store();
     }
 }
@@ -102,6 +102,21 @@ function togglePaletteEditor() {
     }
 }
 
+function selectNearestColor(p) {
+  const points = [];
+  for (let key of paletteKeys) {
+    points.push([globalPaletteEditor.getX(key.index), 10]);
+  }
+  selectedColor = findNearestPoint(points, p, 1000);
+  if (selectedColor != null) {
+    lastSelectedColor = selectedColor;
+    parameters.colorValue = paletteKeys[selectedColor];
+    const state = drag.state;
+    globalPaletteEditor.colorPicker.refresh();
+    drag.state = state;
+  }
+}
+
 function initializePaletteEditorPaneFunctions() {
   globalPaletteEditor.colorPicker = mainPane.addInput(parameters, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
     let p = paletteKeys[lastSelectedColor];
@@ -110,7 +125,7 @@ function initializePaletteEditorPaneFunctions() {
     p.b = parameters.colorValue.b;
     fractalPalette = createPaletteFromKeys(paletteKeys);
     drawPaletteEditor();
-    viewFrac.setForceRedrawPalette();
+    globalFractalViewer.setForceRedrawPalette();
     drag.state = 'colorpicker';
   });
   globalPaletteEditor.buttonAddColor = mainPane.addButton({title: 'Add color [A]'}).on('click', addColor);

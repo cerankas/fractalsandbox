@@ -17,8 +17,6 @@ let drag = {
   startPoint: [0, 0]
 };
 
-let viewFrac, viewForm;
-
 let dragFormula;
 
 let doZoomForm = false;
@@ -37,15 +35,14 @@ const parameters = {
   tileSize: 200,
   tileDetail: 10,
 
-  formulaIndex: 1,
-
   colorIndex: 1,
   colorValue: {r: 0, g:0 , b: 0},
   colorPosition: 3,
 };
 
+let globalDrag;
 let globalHistory;
-
-let globalPaletteEditor;
-
 let globalFractalSelector;
+let globalFractalViewer;
+let globalPaletteEditor;
+let globalFractalEditor;

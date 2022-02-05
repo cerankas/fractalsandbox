@@ -16,7 +16,7 @@ function initializeMainPane() {
   mainPane.addButton({title: 'Add triangle [+]'}).on('click', addFormula);
   mainPane.addButton({title: 'Remove triangle [-]'}).on('click', () => { removeFormula(lastSelectedFormula); });
   mainPane.addInput(parameters, 'balanceFactor', { label: 'Total balance', min: .1, max: 3, step: .01 }).on('change', drawMainFractal);
-  mainPane.addButton({title: 'Draw infinitely [I]'}).on('click', () => { viewFrac.infinite = !viewFrac.infinite; });
+  mainPane.addButton({title: 'Draw infinitely [I]'}).on('click', () => { globalFractalViewer.infinite = !globalFractalViewer.infinite; });
   mainPane.addButton({title: 'Edit colors [C]'}).on('click', togglePaletteEditor);
 }
 
@@ -79,7 +79,7 @@ function windowKeyPress(e) {
     removeFormula(selectedFormula);
   }
   if (c == 'i') {
-    viewFrac.infinite = !viewFrac.infinite;
+    globalFractalViewer.infinite = !globalFractalViewer.infinite;
   }
   if (c == 'c') {
     togglePaletteEditor();

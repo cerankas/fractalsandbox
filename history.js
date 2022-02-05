@@ -12,7 +12,7 @@ class cHistory {
       this.stack.splice(this.pointer + 1);
     let item = {
       palette: JSON.stringify(paletteKeys),
-      fractal: viewFrac.fractalString,
+      fractal: globalFractalViewer.fractalString,
     };
     this.stack.push(item);
     this.pointer = this.stack.length - 1;

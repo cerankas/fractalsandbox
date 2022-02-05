@@ -1,33 +1,8 @@
 // Main
 
-
-
-function selectNearestFormula(p) {
-  const nearestIndex = findNearestPoint(fractal.formulaPoints(), p, 10 / viewForm.scale);
-  selectedFormula = (nearestIndex != null) ? fractal.formulaSelections()[nearestIndex] : null;
-  if (selectedFormula) {
-    lastSelectedFormula = fractal.formulaSelections()[nearestIndex];
-  }
-}
-
-function selectNearestColor(p) {
-  const points = [];
-  for (let key of paletteKeys) {
-    points.push([globalPaletteEditor.getX(key.index), 10]);
-  }
-  selectedColor = findNearestPoint(points, p, 1000);
-  if (selectedColor != null) {
-    lastSelectedColor = selectedColor;
-    parameters.colorValue = paletteKeys[selectedColor];
-    const state = drag.state;
-    globalPaletteEditor.colorPicker.refresh();
-    drag.state = state;
-  }
-}
-
 function onPointerMove(e) {
   if (e.target.id == 'canvasForm') {
-    let mousePoint = viewForm.fromScreen([e.offsetX, e.offsetY]);
+    let mousePoint = globalFractalEditor.fromScreen([e.offsetX, e.offsetY]);
     if (!drag.state) {
       selectNearestFormula(mousePoint);
     } 
@@ -38,16 +13,16 @@ function onPointerMove(e) {
       fractal.formulas[selectedFormula.formula].setPoint(dx,dy,selectedFormula.point);
     }
     if (drag.state == 'viewform') {
-      viewForm.manualShiftx = drag.startPoint[0] + e.offsetX;
-      viewForm.manualShifty = drag.startPoint[1] + e.offsetY;
+      globalFractalEditor.manualShiftx = drag.startPoint[0] + e.offsetX;
+      globalFractalEditor.manualShifty = drag.startPoint[1] + e.offsetY;
       resizeFormulas();
       return;
     }
     drawFormulas();
   }
   if (e.target.id == 'canvasFrac' && drag.state == 'viewfrac') {
-    viewFrac.manualShiftx = drag.startPoint[0] + e.offsetX;
-    viewFrac.manualShifty = drag.startPoint[1] + e.offsetY;
+    globalFractalViewer.manualShiftx = drag.startPoint[0] + e.offsetX;
+    globalFractalViewer.manualShifty = drag.startPoint[1] + e.offsetY;
     drawMainFractal();
   }
   if (e.target.id == 'canvasColor' && !drag.state) {
@@ -69,7 +44,7 @@ function onWindowPointerMove(e) {
     p.index = newIndex;
     fractalPalette = createPaletteFromKeys(paletteKeys);
     drawPaletteEditor();
-    viewFrac.setForceRedrawPalette();
+    globalFractalViewer.setForceRedrawPalette();
   }
   if (drag.state && e.buttons == 0) {
     drag.state = false;
@@ -81,7 +56,7 @@ function onPointerDown(e) {
   const rightButton = e.button == 2;
   if (e.target.id == 'canvasForm') {
     if (leftButton) {
-      let mousePoint = viewForm.fromScreen([e.offsetX, e.offsetY]);
+      let mousePoint = globalFractalEditor.fromScreen([e.offsetX, e.offsetY]);
       selectNearestFormula(mousePoint);
       if (selectedFormula) {
         drag.state = 'formula';
@@ -90,23 +65,23 @@ function onPointerDown(e) {
       }
       if (!selectedFormula) {
         drag.state = 'viewform';
-        drag.startPoint[0] = viewForm.manualShiftx - e.offsetX;
-        drag.startPoint[1] = viewForm.manualShifty - e.offsetY;
+        drag.startPoint[0] = globalFractalEditor.manualShiftx - e.offsetX;
+        drag.startPoint[1] = globalFractalEditor.manualShifty - e.offsetY;
       }
     }
     if (rightButton) {
-      viewForm.resetManual();
+      globalFractalEditor.resetManual();
       resizeFormulas();
     }
   }
   if (e.target.id == 'canvasFrac') {
     if (leftButton) {
       drag.state = 'viewfrac';
-      drag.startPoint[0] = viewFrac.manualShiftx - e.offsetX;
-      drag.startPoint[1] = viewFrac.manualShifty - e.offsetY;
+      drag.startPoint[0] = globalFractalViewer.manualShiftx - e.offsetX;
+      drag.startPoint[1] = globalFractalViewer.manualShifty - e.offsetY;
     }
     if (rightButton) {
-      viewFrac.resetManual();
+      globalFractalViewer.resetManual();
       drawMainFractal();
     }
   }
@@ -145,17 +120,17 @@ function onWheel(e) {
   }
   let delta = (e.deltaY < 0) ? 1.1 : 1 / 1.1;
   if (e.target.id == 'canvasForm') {
-    zoomView(viewForm);
+    zoomView(globalFractalEditor);
     doZoomForm = true;
     //resizeFormulas();
   }
   if (e.target.id == 'canvasFrac') {
-    zoomView(viewFrac);
+    zoomView(globalFractalViewer);
     doZoomFrac = true;
   }
 }
 
-function resizeFormulas(view = viewForm) {
+function resizeFormulas(view = globalFractalEditor) {
   if (view.manualScale == 1 && view.manualShiftx == 0 && view.manualShifty == 0) {
     let points = fractal.formulaPoints().concat([[-1, -1], [1, 1]]);
     let minMax = getBoundingBoxFrom2DArray(points);
@@ -172,7 +147,6 @@ function setupCanvas(id) {
   c.onpointermove = onPointerMove;
   c.onpointerdown = onPointerDown;
   c.addEventListener('wheel', onWheel, {passive:true});
-  c.oncontextmenu = () => {return false};
   return document.getElementById(id).getContext('2d');
 }
 
@@ -196,23 +170,23 @@ function windowResize() {
 }
 
 function drawMainFractal() {
-  viewFrac.prepare(fractal);
+  globalFractalViewer.prepare(fractal);
 }
 
 function computeInBackground() {
   if (doZoomFrac) {
-    viewFrac.prepare(fractal);
+    globalFractalViewer.prepare(fractal);
     doZoomFrac = false;
   }
   if (globalFractalSelector.active) {
     globalFractalSelector.computeInBackground();
   }
   else {
-    if (viewFrac.fractalString != fractal.toString()) {
-      viewFrac.prepare(fractal);
-      localStorage.lastFractal = viewFrac.fractalString;
+    if (globalFractalViewer.fractalString != fractal.toString()) {
+      globalFractalViewer.prepare(fractal);
+      localStorage.lastFractal = globalFractalViewer.fractalString;
     }
-    viewFrac.draw();
+    globalFractalViewer.draw();
   }
   if (doZoomForm) {
     resizeFormulas();
@@ -225,10 +199,11 @@ function jsMain() {
   window.addEventListener('pointermove', onWindowPointerMove);
   window.addEventListener('pointerup', onWindowPointerUp);
 
-  window.onresize = windowResize;
-  window.onkeypress = windowKeyPress;
-  document.onkeydown = documentKeyDown;
+  window.addEventListener('resize', windowResize);
+  window.addEventListener('keypress', windowKeyPress);
+  document.addEventListener('keydown', documentKeyDown);
 
+  //globalDrag = new cDrag();
   globalHistory = new cHistory();
   globalPaletteEditor = new PaletteEditor();
   globalFractalSelector = new FractalSelector();
@@ -236,8 +211,8 @@ function jsMain() {
   initializePalette();
 
   setupCanvas('canvasColor');
-  viewFrac = new FractalViewer(setupCanvas('canvasFrac'));
-  viewForm = new Viewport(setupCanvas('canvasForm'), .6);
+  globalFractalViewer = new FractalViewer(setupCanvas('canvasFrac'));
+  globalFractalEditor = new Viewport(setupCanvas('canvasForm'), .6);
   
   let initFract = '-.653 .458 .270 .685 .374 .513#-.151 -.382 -.123 .239 .278 .426#.051 -.434 -.067 -.211 .597 .689#-.047 .725 .183 .147 .023 .231'; // fern fractal
   loadFractal(localStorage.lastFractal || initFract);

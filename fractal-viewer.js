@@ -17,7 +17,7 @@ class FractalViewer extends Viewport {
     this.height = this.ctx.canvas.height;
     this.tab = new Int32Array(this.width * this.height);
     this.maxpoints = 100 * getViewArea(this);
-    const numpoints = 5 * getViewArea(this);
+    const numpoints = 2 * getViewArea(this);
     if (this.points == undefined || this.points.length != 2 * numpoints)
       this.points = new Float64Array(2 * numpoints); // two coordinates per point
     if (this.imageData == undefined || this.imageData.width != this.width || this.imageData.height != this.height)
@@ -29,6 +29,32 @@ class FractalViewer extends Viewport {
       this.fractalString = this.fractal.toString();
     }
     this.fractalComputer.initialize(this.fractal.formulas);
+  }
+  draw() {
+    let startms = getMilliseconds();
+    if (this.isFinished()) {
+      if (this.forceRedrawPalette) {
+        this.redrawPalette();
+      }
+      if (!this.finishStatsShown) {
+        document.title = Math.floor(this.drawnPointsCount / 1000000) + ' mp ' + (getMilliseconds() - this.fractalComputer.startms) + ' ms';
+        this.finishStatsShown = true;
+      }
+      return;
+    }
+    //document.title = ~~(100 * this.drawnPointsCount / this.maxpoints) + '%';
+    this.doCalculatePoints();
+    if (this.autoScaleRequired) {
+      this.doAutoScale();
+    }
+    this.doSumPoints();
+    this.doCalculateColors();
+    this.doPutImageData();
+    this.drawnPointsCount += this.points.length / 2;
+    document.title = Math.floor((this.points.length / 2 )/ (getMilliseconds() - startms));
+  }
+  isFinished() {
+    return this.drawnPointsCount >= this.maxpoints && !this.infinite;
   }
   doCalculatePoints() {
     this.fractalComputer.compute(this.points);
@@ -60,32 +86,6 @@ class FractalViewer extends Viewport {
   }
   doPutImageData() {
     this.ctx.putImageData(this.imageData, 0, 0);
-  }
-  finished() {
-    return this.drawnPointsCount >= this.maxpoints && !this.infinite;
-  }
-  draw() {
-    let startms = getMilliseconds();
-    if (this.finished()) {
-      if (this.forceRedrawPalette) {
-        this.redrawPalette();
-      }
-      if (!this.finishStatsShown) {
-        document.title = Math.floor(this.drawnPointsCount / 1000000) + ' mp ' + (getMilliseconds() - this.fractalComputer.startms) + ' ms';
-        this.finishStatsShown = true;
-      }
-      return;
-    }
-    //document.title = ~~(100 * this.drawnPointsCount / this.maxpoints) + '%';
-    this.doCalculatePoints();
-    if (this.autoScaleRequired) {
-      this.doAutoScale();
-    }
-    this.doSumPoints();
-    this.doCalculateColors();
-    this.doPutImageData();
-    this.drawnPointsCount += this.points.length / 2;
-    document.title = Math.floor((this.points.length / 2 )/ (getMilliseconds() - startms));
   }
   setForceRedrawPalette() {
     this.forceRedrawPalette = true;

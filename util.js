@@ -37,9 +37,8 @@ function saveFractal() {
 
 function loadFractal(fract) {
   globalFractalSelector.hide();
-  viewFrac.drawnPointsCount = 0;
-  viewFrac.resetManual();
-  viewForm.resetManual();
+  globalFractalViewer.resetManual();
+  globalFractalEditor.resetManual();
   fractal = new Fractal(fract);
   windowResize();
   globalHistory.store();

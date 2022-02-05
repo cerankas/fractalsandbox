@@ -21,12 +21,12 @@ class FractalEditor extends Viewport {
       }
       if (!selectedFormula) {
         drag.state = 'viewform';
-        drag.startPoint[0] = viewForm.manualShiftx - e.offsetX;
-        drag.startPoint[1] = viewForm.manualShifty - e.offsetY;
+        drag.startPoint[0] = globalFractalEditor.manualShiftx - e.offsetX;
+        drag.startPoint[1] = globalFractalEditor.manualShifty - e.offsetY;
       }
     }
     if (e.button == 2) {
-      viewForm.resetManual();
+      globalFractalEditor.resetManual();
       resizeFormulas();
     }
   }
@@ -74,7 +74,7 @@ function drawFormula(view, p) {
   ctx.stroke();
 }
 
-function drawFormulas(view = viewForm) {
+function drawFormulas(view = globalFractalEditor) {
   let ctx = view.ctx;
   ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
   ctx.lineWidth = 1;
@@ -107,4 +107,12 @@ function removeFormula(sel) {
   }
   selectedFormula = null;
   lastSelectedFormula = null;
+}
+
+function selectNearestFormula(p) {
+  const nearestIndex = findNearestPoint(fractal.formulaPoints(), p, 10 / globalFractalEditor.scale);
+  selectedFormula = (nearestIndex != null) ? fractal.formulaSelections()[nearestIndex] : null;
+  if (selectedFormula) {
+    lastSelectedFormula = fractal.formulaSelections()[nearestIndex];
+  }
 }
