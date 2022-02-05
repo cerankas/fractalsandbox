@@ -40,9 +40,7 @@ const parameters = {
   colorPosition: 3,
 };
 
-let globalDrag;
-let globalHistory;
 let globalFractalSelector;
 let globalFractalViewer;
-let globalPaletteEditor;
 let globalFractalEditor;
+let globalPaletteEditor;

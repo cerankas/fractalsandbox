@@ -1,10 +1,10 @@
-// Drag
+// GlobalDrag
 
-class cDrag {
+class GlobalDrag {
   static dragObject = null;
   static dragStart = [0, 0];
   static {
-    window.addEventListener('pointermove', cDrag.onPointerMove);
+    window.addEventListener('pointermove', GlobalDrag.onPointerMove);
   }
   static onPointerMove(e) {
     if (this.dragObject != null) {

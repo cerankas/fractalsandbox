@@ -102,7 +102,7 @@ function onWindowPointerUp(e) {
       resizeFormulas();
     }
     if (['formula', 'color', 'colorpicker'].includes(drag.state)) {
-      globalHistory.store();
+      GlobalHistory.store();
     }
     drag.state = false;
   }
@@ -203,25 +203,21 @@ function jsMain() {
   window.addEventListener('keypress', windowKeyPress);
   document.addEventListener('keydown', documentKeyDown);
 
-  //globalDrag = new cDrag();
-  globalHistory = new cHistory();
-  globalPaletteEditor = new PaletteEditor();
   globalFractalSelector = new FractalSelector();
-
-  initializePalette();
-
-  setupCanvas('canvasColor');
   globalFractalViewer = new FractalViewer(setupCanvas('canvasFrac'));
   globalFractalEditor = new Viewport(setupCanvas('canvasForm'), .6);
+  globalPaletteEditor = new PaletteEditor(setupCanvas('canvasColor'));
+
+  initializePalette();
   
-  let initFract = '-.653 .458 .270 .685 .374 .513#-.151 -.382 -.123 .239 .278 .426#.051 -.434 -.067 -.211 .597 .689#-.047 .725 .183 .147 .023 .231'; // fern fractal
+  const initFract = '-.653 .458 .270 .685 .374 .513#-.151 -.382 -.123 .239 .278 .426#.051 -.434 -.067 -.211 .597 .689#-.047 .725 .183 .147 .023 .231'; // fern fractal
   loadFractal(localStorage.lastFractal || initFract);
   computeInBackground();
 
   initializeMainPane();
   initializeLoadPane();
 
-  initializePaletteEditorPaneFunctions();
+  initializePaletteEditorPane();
 }
 
 window.onload = jsMain;

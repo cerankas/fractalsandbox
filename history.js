@@ -1,13 +1,11 @@
 // History
 
-class cHistory {
+class GlobalHistory {
 
-  constructor() {
-    this.stack = [];
-    this.pointer = 0;
-  }
+  static stack = [];
+  static pointer = 0;
 
-  store() {
+  static store() {
     if (this.pointer < this.stack.length - 1)
       this.stack.splice(this.pointer + 1);
     let item = {
@@ -18,21 +16,21 @@ class cHistory {
     this.pointer = this.stack.length - 1;
   }
 
-  restore(item) {
+  static restore(item) {
     paletteKeys = JSON.parse(item.palette);
     fractal = new Fractal(item.fractal);
     fractalPalette = createPaletteFromKeys(paletteKeys);
     windowResize();
   }
   
-  back() {
+  static back() {
     if (this.pointer > 0) {
       this.pointer--;
       this.restore(this.stack[this.pointer]);
     }
   }
   
-  forward() {
+  static forward() {
     if (this.pointer < this.stack.length - 1) {
       this.pointer++;
       this.restore(this.stack[this.pointer]);

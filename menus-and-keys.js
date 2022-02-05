@@ -11,8 +11,8 @@ function initializeMainPane() {
   mainPane.addButton({title: 'Save fractal [S]'}).on('click', saveFractal);
   mainPane.addButton({title: 'Download image [D]'}).on('click', downloadImage);
   //mainPane.addButton({title: 'Download movie [V]'}).on('click', downloadMovie);
-  mainPane.addButton({title: 'Undo [Z]'}).on('click', () => { globalHistory.back(); });
-  mainPane.addButton({title: 'Redo [Y]'}).on('click', () => { globalHistory.forward(); });
+  mainPane.addButton({title: 'Undo [Z]'}).on('click', () => { GlobalHistory.back(); });
+  mainPane.addButton({title: 'Redo [Y]'}).on('click', () => { GlobalHistory.forward(); });
   mainPane.addButton({title: 'Add triangle [+]'}).on('click', addFormula);
   mainPane.addButton({title: 'Remove triangle [-]'}).on('click', () => { removeFormula(lastSelectedFormula); });
   mainPane.addInput(parameters, 'balanceFactor', { label: 'Total balance', min: .1, max: 3, step: .01 }).on('change', drawMainFractal);
@@ -67,10 +67,10 @@ function windowKeyPress(e) {
     downloadImage();
   }
   if (c == 'z') {
-    globalHistory.back();
+    GlobalHistory.back();
   }
   if (c == 'y') {
-    globalHistory.forward();
+    GlobalHistory.forward();
   }
   if (c == '+' || c == '=') {
     addFormula();

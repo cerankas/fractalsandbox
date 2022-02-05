@@ -41,7 +41,7 @@ function loadFractal(fract) {
   globalFractalEditor.resetManual();
   fractal = new Fractal(fract);
   windowResize();
-  globalHistory.store();
+  GlobalHistory.store();
 }
 
 function toggleDisplay(id) {

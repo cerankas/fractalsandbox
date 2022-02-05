@@ -1,7 +1,8 @@
 // PaletteEditor
 
 class PaletteEditor {
-  constructor() {
+  constructor(ctx) {
+    this.ctx = ctx;
     this.maxx = 0;
   }
   setMaxX(maxx) {
@@ -64,7 +65,7 @@ function addColorAt(index) {
   fractalPalette = createPaletteFromKeys(paletteKeys);
   drawPaletteEditor();
   globalFractalViewer.setForceRedrawPalette();
-  globalHistory.store();
+  GlobalHistory.store();
 }
 
 function addColor() {
@@ -84,7 +85,7 @@ function removeColor() {
     fractalPalette = createPaletteFromKeys(paletteKeys);
     drawPaletteEditor();
     globalFractalViewer.setForceRedrawPalette();
-    globalHistory.store();
+    GlobalHistory.store();
     }
 }
 
@@ -117,7 +118,7 @@ function selectNearestColor(p) {
   }
 }
 
-function initializePaletteEditorPaneFunctions() {
+function initializePaletteEditorPane() {
   globalPaletteEditor.colorPicker = mainPane.addInput(parameters, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
     let p = paletteKeys[lastSelectedColor];
     p.r = parameters.colorValue.r;
