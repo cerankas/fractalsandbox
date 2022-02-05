@@ -7,7 +7,7 @@ function toggleMainPane() {
 function initializeMainPane() {
   mainPane = new Tweakpane.Pane({container: document.getElementById("mainPaneDiv")});
   mainPane.addButton({title: 'Hide menu [M]'}).on('click', () => { toggleMainPane(); });
-  mainPane.addButton({title: 'Load fractal [L]'}).on('click', () => { fractalSelector.show(); });
+  mainPane.addButton({title: 'Load fractal [L]'}).on('click', () => { globalFractalSelector.show(); });
   mainPane.addButton({title: 'Save fractal [S]'}).on('click', saveFractal);
   mainPane.addButton({title: 'Download image [D]'}).on('click', downloadImage);
   //mainPane.addButton({title: 'Download movie [V]'}).on('click', downloadMovie);
@@ -22,9 +22,9 @@ function initializeMainPane() {
 
 function initializeLoadPane() {
   loadPane = new Tweakpane.Pane({container: document.getElementById("loadPaneDiv")});
-  loadPane.addButton({title: 'Cancel [L]'}).on('click', () => { fractalSelector.hide(); });
-  loadPane.addInput(parameters, 'tileSize', { label: 'Tile size', min: 50, max: 500, step: 1 }).on('change', () => { fractalSelector.update(); });
-  loadPane.addInput(parameters, 'tileDetail', { label: 'Tile detail', min: 1, max: 10, step: 1 }).on('change', () => { fractalSelector.update(); });
+  loadPane.addButton({title: 'Cancel [L]'}).on('click', () => { globalFractalSelector.hide(); });
+  loadPane.addInput(parameters, 'tileSize', { label: 'Tile size', min: 50, max: 500, step: 1 }).on('change', () => { globalFractalSelector.update(); });
+  loadPane.addInput(parameters, 'tileDetail', { label: 'Tile detail', min: 1, max: 10, step: 1 }).on('change', () => { globalFractalSelector.update(); });
 }
 
 /*function initializeUserPane() {
@@ -46,8 +46,8 @@ function documentKeyDown(e) {
       fractal.formulas[selectedFormula.formula] = dragFormula;
       drawFormulas();
     }
-    if (fractalSelector.active) {
-      fractalSelector.hide();
+    if (globalFractalSelector.active) {
+      globalFractalSelector.hide();
     }
   }
 }
@@ -58,7 +58,7 @@ function windowKeyPress(e) {
     toggleMainPane();
   }
   if (c == 'l') {
-    if (!fractalSelector.active) { fractalSelector.show(); } else { fractalSelector.hide(); }
+    if (!globalFractalSelector.active) { globalFractalSelector.show(); } else { globalFractalSelector.hide(); }
   }
   if (c == 's') {
     saveFractal();

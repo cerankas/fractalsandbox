@@ -8,16 +8,16 @@ class FractalComputer {
   static formulaRandomizerArray;
 
   static {
-    FractalComputer.randomSamplesArray = new Int16Array(FractalComputer.RANDOM_ARRAY_SIZE);
-    FractalComputer.formulaRandomizerArray = new Int16Array(FractalComputer.FORMULA_ARRAY_SIZE);
-    for (let i = 0; i < FractalComputer.RANDOM_ARRAY_SIZE; i++) {
-      FractalComputer.randomSamplesArray[i] = (Math.random() * FractalComputer.FORMULA_ARRAY_SIZE) | 0;
+    this.randomSamplesArray = new Int16Array(this.RANDOM_ARRAY_SIZE);
+    this.formulaRandomizerArray = new Int16Array(this.FORMULA_ARRAY_SIZE);
+    for (let i = 0; i < this.RANDOM_ARRAY_SIZE; i++) {
+      this.randomSamplesArray[i] = (Math.random() * this.FORMULA_ARRAY_SIZE) | 0;
     }
-    for (let i = 1; i < FractalComputer.FORMULA_ARRAY_SIZE; i++) {
+    for (let i = 1; i < this.FORMULA_ARRAY_SIZE; i++) {
       let j = 0;
       while (this.formulaRandomizerArray[j] != 0)
-        j = Math.floor(Math.random() * FractalComputer.FORMULA_ARRAY_SIZE);
-      FractalComputer.formulaRandomizerArray[j] = i;
+        j = Math.floor(Math.random() * this.FORMULA_ARRAY_SIZE);
+      this.formulaRandomizerArray[j] = i;
     }
   }
   

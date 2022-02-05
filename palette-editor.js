@@ -25,13 +25,13 @@ function drawPaletteEditor() {
   c.height = c.parentElement.clientHeight;
   const d = 5;
   const h = c.height;
-  paletteEditor.setMaxX(c.width);
+  globalPaletteEditor.setMaxX(c.width);
   const ctx = c.getContext('2d');
   ctx.fillStyle = 'black';
   ctx.setLineDash([]);
   ctx.lineWidth = 1;
   for (let x = 0; x < c.width; x++) {
-    const i = paletteEditor.getIndex(x);
+    const i = globalPaletteEditor.getIndex(x);
     const rgb = fractalPalette[i];
     const hex = rgbToHex(rgb & 0xff, (rgb >> 8) & 0xff, (rgb >> 16) & 0xff);
     ctx.fillStyle = hex;
@@ -45,7 +45,7 @@ function drawPaletteEditor() {
       ctx.lineWidth = 1;
     }
     const key = paletteKeys[i];
-    const x = paletteEditor.getX(key.index);
+    const x = globalPaletteEditor.getX(key.index);
     const rgb = key.r + key.g + key.b;
     ctx.beginPath();
     ctx.strokeStyle = rgb > 1.5 * 0xff ? 'black' : 'white';
@@ -68,14 +68,14 @@ function addColorAt(index) {
 }
 
 function addColor() {
-  if (paletteEditor.colorPicker.hidden) return;
+  if (globalPaletteEditor.colorPicker.hidden) return;
   let i = lastSelectedColor;
   if (i == paletteKeys.length - 1) i--;
   addColorAt(((paletteKeys[i].index + paletteKeys[i + 1].index) / 2) | 0);
 }
 
 function removeColor() {
-  if (paletteEditor.colorPicker.hidden) return;
+  if (globalPaletteEditor.colorPicker.hidden) return;
   if (paletteKeys.length > 2) {
     paletteKeys.splice(lastSelectedColor, 1);
     if (lastSelectedColor > 0) {
@@ -91,19 +91,19 @@ function removeColor() {
 function togglePaletteEditor() {
   if (toggleDisplay('canvasColorDiv')) {
     drawPaletteEditor();
-    paletteEditor.colorPicker.hidden = false;
-    paletteEditor.buttonAddColor.hidden = false;
-    paletteEditor.buttonRemoveColor.hidden = false;
+    globalPaletteEditor.colorPicker.hidden = false;
+    globalPaletteEditor.buttonAddColor.hidden = false;
+    globalPaletteEditor.buttonRemoveColor.hidden = false;
     } 
   else {
-    paletteEditor.colorPicker.hidden = true;
-    paletteEditor.buttonAddColor.hidden = true;
-    paletteEditor.buttonRemoveColor.hidden = true;
+    globalPaletteEditor.colorPicker.hidden = true;
+    globalPaletteEditor.buttonAddColor.hidden = true;
+    globalPaletteEditor.buttonRemoveColor.hidden = true;
     }
 }
 
 function initializePaletteEditorPaneFunctions() {
-  paletteEditor.colorPicker = mainPane.addInput(parameters, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
+  globalPaletteEditor.colorPicker = mainPane.addInput(parameters, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
     let p = paletteKeys[lastSelectedColor];
     p.r = parameters.colorValue.r;
     p.g = parameters.colorValue.g;
@@ -113,9 +113,9 @@ function initializePaletteEditorPaneFunctions() {
     viewFrac.setForceRedrawPalette();
     drag.state = 'colorpicker';
   });
-  paletteEditor.buttonAddColor = mainPane.addButton({title: 'Add color [A]'}).on('click', addColor);
-  paletteEditor.buttonRemoveColor = mainPane.addButton({title: 'Remove color [X]'}).on('click', removeColor);
-  paletteEditor.colorPicker.hidden = true;
-  paletteEditor.buttonAddColor.hidden = true;
-  paletteEditor.buttonRemoveColor.hidden = true;
+  globalPaletteEditor.buttonAddColor = mainPane.addButton({title: 'Add color [A]'}).on('click', addColor);
+  globalPaletteEditor.buttonRemoveColor = mainPane.addButton({title: 'Remove color [X]'}).on('click', removeColor);
+  globalPaletteEditor.colorPicker.hidden = true;
+  globalPaletteEditor.buttonAddColor.hidden = true;
+  globalPaletteEditor.buttonRemoveColor.hidden = true;
 }

@@ -1,14 +1,6 @@
 // Main
 
-function findNearestPoint(points, p, distanceThreshold) {
-  function pointDistance(p1, p2) { let dx = p1[0] - p2[0], dy = p1[1] - p2[1]; return dx * dx + dy * dy; }
-  let nearestDistance = distanceThreshold, nearestIndex = null;
-  for (let i = 0; i < points.length; i++) {
-    let d = pointDistance(points[i], p);
-    if (d < nearestDistance) { nearestDistance = d; nearestIndex = i; } 
-  }
-  return nearestIndex;
-}
+
 
 function selectNearestFormula(p) {
   const nearestIndex = findNearestPoint(fractal.formulaPoints(), p, 10 / viewForm.scale);
@@ -21,14 +13,14 @@ function selectNearestFormula(p) {
 function selectNearestColor(p) {
   const points = [];
   for (let key of paletteKeys) {
-    points.push([paletteEditor.getX(key.index), 10]);
+    points.push([globalPaletteEditor.getX(key.index), 10]);
   }
   selectedColor = findNearestPoint(points, p, 1000);
   if (selectedColor != null) {
     lastSelectedColor = selectedColor;
     parameters.colorValue = paletteKeys[selectedColor];
     const state = drag.state;
-    paletteEditor.colorPicker.refresh();
+    globalPaletteEditor.colorPicker.refresh();
     drag.state = state;
   }
 }
@@ -67,7 +59,7 @@ function onPointerMove(e) {
 function onWindowPointerMove(e) {
   if (drag.state == 'color') {
     const p = paletteKeys[drag.colorIndex];
-    let newIndex = paletteEditor.getIndex(e.screenX - 8);
+    let newIndex = globalPaletteEditor.getIndex(e.screenX - 8);
     if (drag.colorIndex > 0 && newIndex <= paletteKeys[drag.colorIndex - 1].index) {
       newIndex = paletteKeys[drag.colorIndex - 1].index + 1;
     }
@@ -129,7 +121,7 @@ function onPointerDown(e) {
   }
 }
 
-function onPointerUp(e) {
+function onWindowPointerUp(e) {
   if (drag.state) {
     if (drag.state == 'formula') {
       resizeFormulas();
@@ -212,8 +204,8 @@ function computeInBackground() {
     viewFrac.prepare(fractal);
     doZoomFrac = false;
   }
-  if (fractalSelector.active) {
-    fractalSelector.computeInBackground();
+  if (globalFractalSelector.active) {
+    globalFractalSelector.computeInBackground();
   }
   else {
     if (viewFrac.fractalString != fractal.toString()) {
@@ -229,44 +221,17 @@ function computeInBackground() {
   setTimeout(computeInBackground,1);
 }
 
-function downloadImage() {
-  document.getElementById('download').href = document.getElementById('canvasFrac').toDataURL('image/png');
-  document.getElementById('download').click();
-}
-
-function saveFractal() {
-  let key = 'fractal#' + new Date().toISOString();
-  localStorage.setItem(key, fractal.toString());
-}
-
-function loadFractal(fract) {
-  fractalSelector.hide();
-  viewFrac.drawnPointsCount = 0;
-  viewFrac.resetManual();
-  viewForm.resetManual();
-  fractal = new Fractal(fract);
-  windowResize();
-  globalHistory.store();
-}
-
-function toggleDisplay(id) {
-  const el = document.getElementById(id);
-  const newstate = el.style['display'] == 'none';
-  el.style['display'] = newstate ? '' : 'none';
-  return newstate;
-}
-
 function jsMain() {
   window.addEventListener('pointermove', onWindowPointerMove);
-  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointerup', onWindowPointerUp);
 
   window.onresize = windowResize;
   window.onkeypress = windowKeyPress;
   document.onkeydown = documentKeyDown;
 
   globalHistory = new cHistory();
-  paletteEditor = new PaletteEditor();
-  fractalSelector = new FractalSelector();
+  globalPaletteEditor = new PaletteEditor();
+  globalFractalSelector = new FractalSelector();
 
   initializePalette();
 
