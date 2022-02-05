@@ -14,19 +14,6 @@ class Fractal {
     ret = ret.substr(0, ret.length - 1);
     return ret;
   }
-  formulaPoints() {
-    let points = [];
-    for (let formula of this.formulas)
-      points = points.concat(formula.getPoints());
-    return points;
-  }
-  formulaSelections() {
-    const selections = [];
-    for (let i in this.formulas)
-      for (let j = 0; j <= 3; j++)
-        selections.push({ formula: i, point: j });
-    return selections;
-  }
 }
 
 function isBalanced(formulas) {

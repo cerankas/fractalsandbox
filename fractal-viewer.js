@@ -1,6 +1,7 @@
 // FractalViewer
 
 class FractalViewer extends Viewport {
+
   constructor(ctx, zoom) {
     super(ctx, zoom);
     this.drawnPointsCount = 0;
@@ -10,26 +11,28 @@ class FractalViewer extends Viewport {
     this.fractalString = '';
     this.fractalComputer = new FractalComputer();
   }
-  prepare(fractal) {
+
+  prepare(formulas) {
     this.drawnPointsCount = 0;
     this.tabmax = 0;
     this.width  = this.ctx.canvas.width;
     this.height = this.ctx.canvas.height;
     this.tab = new Int32Array(this.width * this.height);
     this.maxpoints = 100 * getViewArea(this);
-    const numpoints = 2 * getViewArea(this);
+    const numpoints = 5 * getViewArea(this);
     if (this.points == undefined || this.points.length != 2 * numpoints)
       this.points = new Float64Array(2 * numpoints); // two coordinates per point
     if (this.imageData == undefined || this.imageData.width != this.width || this.imageData.height != this.height)
       this.imageData = this.ctx.createImageData(this.width, this.height);
     this.autoScaleRequired = true;
     this.finishStatsShown = false;
-    if (fractal) {
-      this.fractal = fractal;
-      this.fractalString = this.fractal.toString();
+    if (formulas) {
+      this.formulas = formulas;
+      this.fractalString = this.formulas.toString();
     }
-    this.fractalComputer.initialize(this.fractal.formulas);
+    this.fractalComputer.initialize(this.formulas);
   }
+
   draw() {
     let startms = getMilliseconds();
     if (this.isFinished()) {
@@ -53,22 +56,28 @@ class FractalViewer extends Viewport {
     this.drawnPointsCount += this.points.length / 2;
     document.title = Math.floor((this.points.length / 2 )/ (getMilliseconds() - startms));
   }
+
   isFinished() {
     return this.drawnPointsCount >= this.maxpoints && !this.infinite;
   }
+
   doCalculatePoints() {
     this.fractalComputer.compute(this.points);
   }
+
   doAutoScale() {
     this.autoScaleRequired = false;
     const minMax = getBoundingBoxFrom1DArray(this.points);
     this.setMinMax(minMax);
   }
+
   doSumPoints() {
     const thisPointsLength = this.points.length;
+    const shiftx = this.shift[0];
+    const shifty = this.shift[1];
     for (let i = 0; i < thisPointsLength; i += 2) {
-      const x = ( this.points[i    ] * this.scale + this.shiftx) | 0;
-      const y = (-this.points[i + 1] * this.scale + this.shifty) | 0;
+      const x = ( this.points[i    ] * this.scale + shiftx) | 0;
+      const y = (-this.points[i + 1] * this.scale + shifty) | 0;
       if (x > 0 && x <= this.width && y > 0 && y <= this.height) {
         const j = x - 1 + this.width * (y - 1);
         if (++this.tab[j] > this.tabmax)
@@ -76,6 +85,7 @@ class FractalViewer extends Viewport {
       }
     }
   }
+
   doCalculateColors() {
     const palData = new Int32Array(this.imageData.data.buffer);
     const palmul = (FRACTAL_PALETTE_LENGTH - 1) / this.tabmax;
@@ -84,12 +94,15 @@ class FractalViewer extends Viewport {
       palData[i] = fractalPalette[(this.tab[i] * palmul) | 0];
     }
   }
+
   doPutImageData() {
     this.ctx.putImageData(this.imageData, 0, 0);
   }
+
   setForceRedrawPalette() {
     this.forceRedrawPalette = true;
   }
+
   redrawPalette() {
     this.doCalculateColors();
     this.doPutImageData();

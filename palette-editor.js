@@ -4,6 +4,8 @@ class PaletteEditor {
   constructor(ctx) {
     this.ctx = ctx;
     this.maxx = 0;
+    this.colorValue = {r: 0, g:0 , b: 0};
+    this.colorPosition = 3;
   }
   setMaxX(maxx) {
     this.maxx = maxx;
@@ -108,26 +110,26 @@ function selectNearestColor(p) {
   for (let key of paletteKeys) {
     points.push([globalPaletteEditor.getX(key.index), 10]);
   }
-  selectedColor = findNearestPoint(points, p, 1000);
+  selectedColor = findNearestPoint(points, p, 100);
   if (selectedColor != null) {
     lastSelectedColor = selectedColor;
-    parameters.colorValue = paletteKeys[selectedColor];
-    const state = drag.state;
+    globalPaletteEditor.colorValue = paletteKeys[selectedColor];
+    //const state = drag.state;
     globalPaletteEditor.colorPicker.refresh();
-    drag.state = state;
+    //drag.state = state;
   }
 }
 
 function initializePaletteEditorPane() {
-  globalPaletteEditor.colorPicker = mainPane.addInput(parameters, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
+  globalPaletteEditor.colorPicker = mainPane.addInput(globalPaletteEditor, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
     let p = paletteKeys[lastSelectedColor];
-    p.r = parameters.colorValue.r;
-    p.g = parameters.colorValue.g;
-    p.b = parameters.colorValue.b;
+    p.r = globalPaletteEditor.colorValue.r;
+    p.g = globalPaletteEditor.colorValue.g;
+    p.b = globalPaletteEditor.colorValue.b;
     fractalPalette = createPaletteFromKeys(paletteKeys);
     drawPaletteEditor();
     globalFractalViewer.setForceRedrawPalette();
-    drag.state = 'colorpicker';
+    GlobalDrag.dragOwner = globalPaletteEditor;
   });
   globalPaletteEditor.buttonAddColor = mainPane.addButton({title: 'Add color [A]'}).on('click', addColor);
   globalPaletteEditor.buttonRemoveColor = mainPane.addButton({title: 'Remove color [X]'}).on('click', removeColor);

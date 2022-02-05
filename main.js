@@ -1,25 +1,6 @@
 // Main
 
 function onPointerMove(e) {
-  if (e.target.id == 'canvasForm') {
-    let mousePoint = globalFractalEditor.fromScreen([e.offsetX, e.offsetY]);
-    if (!drag.state) {
-      selectNearestFormula(mousePoint);
-    } 
-    if (drag.state == 'formula') {
-      fractal.formulas[selectedFormula.formula] = dragFormula.clone();
-      let dx = mousePoint[0] - drag.startPoint[0];
-      let dy = mousePoint[1] - drag.startPoint[1];
-      fractal.formulas[selectedFormula.formula].setPoint(dx,dy,selectedFormula.point);
-    }
-    if (drag.state == 'viewform') {
-      globalFractalEditor.manualShiftx = drag.startPoint[0] + e.offsetX;
-      globalFractalEditor.manualShifty = drag.startPoint[1] + e.offsetY;
-      resizeFormulas();
-      return;
-    }
-    drawFormulas();
-  }
   if (e.target.id == 'canvasFrac' && drag.state == 'viewfrac') {
     globalFractalViewer.manualShiftx = drag.startPoint[0] + e.offsetX;
     globalFractalViewer.manualShifty = drag.startPoint[1] + e.offsetY;
@@ -54,26 +35,6 @@ function onWindowPointerMove(e) {
 function onPointerDown(e) {
   const leftButton = e.button == 0;
   const rightButton = e.button == 2;
-  if (e.target.id == 'canvasForm') {
-    if (leftButton) {
-      let mousePoint = globalFractalEditor.fromScreen([e.offsetX, e.offsetY]);
-      selectNearestFormula(mousePoint);
-      if (selectedFormula) {
-        drag.state = 'formula';
-        drag.startPoint = mousePoint;
-        dragFormula = fractal.formulas[selectedFormula.formula].clone();
-      }
-      if (!selectedFormula) {
-        drag.state = 'viewform';
-        drag.startPoint[0] = globalFractalEditor.manualShiftx - e.offsetX;
-        drag.startPoint[1] = globalFractalEditor.manualShifty - e.offsetY;
-      }
-    }
-    if (rightButton) {
-      globalFractalEditor.resetManual();
-      resizeFormulas();
-    }
-  }
   if (e.target.id == 'canvasFrac') {
     if (leftButton) {
       drag.state = 'viewfrac';
@@ -99,55 +60,13 @@ function onPointerDown(e) {
 function onWindowPointerUp(e) {
   if (drag.state) {
     if (drag.state == 'formula') {
-      resizeFormulas();
+      globalFractalEditor.resizeFormulas();
     }
     if (['formula', 'color', 'colorpicker'].includes(drag.state)) {
       GlobalHistory.store();
     }
     drag.state = false;
   }
-}
-
-function onWheel(e) {
-  function zoomView(view) {
-    let p0 = view.fromScreen([e.offsetX, e.offsetY]);
-    view.manualScale *= delta;
-    view.updateTransform();
-    let p = view.toScreen(p0);
-    view.manualShiftx += e.offsetX - p[0];
-    view.manualShifty += e.offsetY - p[1];
-    view.updateTransform();
-  }
-  let delta = (e.deltaY < 0) ? 1.1 : 1 / 1.1;
-  if (e.target.id == 'canvasForm') {
-    zoomView(globalFractalEditor);
-    doZoomForm = true;
-    //resizeFormulas();
-  }
-  if (e.target.id == 'canvasFrac') {
-    zoomView(globalFractalViewer);
-    doZoomFrac = true;
-  }
-}
-
-function resizeFormulas(view = globalFractalEditor) {
-  if (view.manualScale == 1 && view.manualShiftx == 0 && view.manualShifty == 0) {
-    let points = fractal.formulaPoints().concat([[-1, -1], [1, 1]]);
-    let minMax = getBoundingBoxFrom2DArray(points);
-    view.setMinMax(minMax);
-  }
-  else {
-    view.updateTransform();
-  }
-  drawFormulas(view);
-}
-
-function setupCanvas(id) {
-  const c = document.getElementById(id);
-  c.onpointermove = onPointerMove;
-  c.onpointerdown = onPointerDown;
-  c.addEventListener('wheel', onWheel, {passive:true});
-  return document.getElementById(id).getContext('2d');
 }
 
 function windowResize() {
@@ -165,48 +84,48 @@ function windowResize() {
   setWidthHeight('canvasFrac', width, height);
   setWidthHeight('canvasForm', width, height);
   drawMainFractal();
-  resizeFormulas();
+  globalFractalEditor.resizeFormulas();
   drawPaletteEditor();
 }
 
 function drawMainFractal() {
-  globalFractalViewer.prepare(fractal);
+  globalFractalViewer.prepare(globalFractalEditor.formulas);
 }
 
 function computeInBackground() {
-  if (doZoomFrac) {
-    globalFractalViewer.prepare(fractal);
-    doZoomFrac = false;
+  if (globalFractalViewer.doZoom) {
+    globalFractalViewer.prepare(globalFractalEditor.formulas);
+    globalFractalViewer.doZoom= false;
   }
   if (globalFractalSelector.active) {
     globalFractalSelector.computeInBackground();
   }
   else {
-    if (globalFractalViewer.fractalString != fractal.toString()) {
-      globalFractalViewer.prepare(fractal);
-      localStorage.lastFractal = globalFractalViewer.fractalString;
+    if (globalFractalViewer.fractalString != globalFractalEditor.formulas.toString()) {
+      globalFractalViewer.prepare(globalFractalEditor.formulas);
+      //localStorage.lastFractal = globalFractalViewer.fractalString;
     }
     globalFractalViewer.draw();
   }
-  if (doZoomForm) {
-    resizeFormulas();
-    doZoomForm = false;
+  if (globalFractalEditor.doZoom) {
+    globalFractalEditor.resizeFormulas();
+    globalFractalEditor.doZoom = false;
   }
   setTimeout(computeInBackground,1);
 }
 
 function jsMain() {
-  window.addEventListener('pointermove', onWindowPointerMove);
-  window.addEventListener('pointerup', onWindowPointerUp);
+  //window.addEventListener('pointermove', onWindowPointerMove);
+  //window.addEventListener('pointerup', onWindowPointerUp);
 
   window.addEventListener('resize', windowResize);
   window.addEventListener('keypress', windowKeyPress);
   document.addEventListener('keydown', documentKeyDown);
 
-  globalFractalSelector = new FractalSelector();
-  globalFractalViewer = new FractalViewer(setupCanvas('canvasFrac'));
-  globalFractalEditor = new Viewport(setupCanvas('canvasForm'), .6);
-  globalPaletteEditor = new PaletteEditor(setupCanvas('canvasColor'));
+  globalFractalSelector = new FractalSelector(document.getElementById('fractalSelectorDiv'));
+  globalFractalViewer = new FractalViewer(getCanvasCtx('canvasFrac'));
+  globalFractalEditor = new FractalEditor(getCanvasCtx('canvasForm'));
+  globalPaletteEditor = new PaletteEditor(getCanvasCtx('canvasColor'));
 
   initializePalette();
   

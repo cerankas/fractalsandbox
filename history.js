@@ -18,7 +18,7 @@ class GlobalHistory {
 
   static restore(item) {
     paletteKeys = JSON.parse(item.palette);
-    fractal = new Fractal(item.fractal);
+    globalFractalEditor.formulas = new Fractal(item.fractal).formulas;
     fractalPalette = createPaletteFromKeys(paletteKeys);
     windowResize();
   }

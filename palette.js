@@ -63,6 +63,6 @@ function initializePalette() {
     paletteKeys.push(new cPaletteKey(999, 0xff, 0xff, 0xff));
   }
   fractalPalette = createPaletteFromKeys(paletteKeys);
-  parameters.colorValue = paletteKeys[0];
+  globalPaletteEditor.colorValue = paletteKeys[0];
 }
 

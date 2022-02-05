@@ -47,46 +47,8 @@ class Formula {
     ];
   }
 
-  fromPoints(points) {
-    this.a = points[2][0] - points[0][0];
-    this.b = points[1][0] - points[0][0];
-    this.c = points[2][1] - points[0][1];
-    this.d = points[1][1] - points[0][1];
-    this.e = points[0][0];
-    this.f = points[0][1];
-  }
-
-  getPoints() {
-    return [
-      this.iterate([0, 0]),
-      this.iterate([0, 1]),
-      this.iterate([1, 0]),
-      this.iterate([-1, 0])
-    ];
-  }
-
   getArea() {
     return Math.abs(this.b * this.c - this.a * this.d);
-  }
-
-  setPoint(dx, dy, n) {
-    function sp(n) {
-      p[n][0] += dx;
-      p[n][1] += dy;
-    }
-    let p = this.getPoints();
-    if (!n)
-      for (let i in p)
-        sp(i);
-    if (n === 1)
-      sp(1);
-    if (n > 1) {
-      sp(n);
-      dx = -dx;
-      dy = -dy;
-      sp(5 - n);
-    }
-    this.fromPoints(p);
   }
 
   getRotation() { 

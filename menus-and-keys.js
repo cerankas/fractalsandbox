@@ -15,7 +15,7 @@ function initializeMainPane() {
   mainPane.addButton({title: 'Redo [Y]'}).on('click', () => { GlobalHistory.forward(); });
   mainPane.addButton({title: 'Add triangle [+]'}).on('click', addFormula);
   mainPane.addButton({title: 'Remove triangle [-]'}).on('click', () => { removeFormula(lastSelectedFormula); });
-  mainPane.addInput(parameters, 'balanceFactor', { label: 'Total balance', min: .1, max: 3, step: .01 }).on('change', drawMainFractal);
+  mainPane.addInput(globalFractalEditor, 'balanceFactor', { label: 'Total balance', min: .1, max: 3, step: .01 }).on('change', drawMainFractal);
   mainPane.addButton({title: 'Draw infinitely [I]'}).on('click', () => { globalFractalViewer.infinite = !globalFractalViewer.infinite; });
   mainPane.addButton({title: 'Edit colors [C]'}).on('click', togglePaletteEditor);
 }
@@ -23,8 +23,8 @@ function initializeMainPane() {
 function initializeLoadPane() {
   loadPane = new Tweakpane.Pane({container: document.getElementById("loadPaneDiv")});
   loadPane.addButton({title: 'Cancel [L]'}).on('click', () => { globalFractalSelector.hide(); });
-  loadPane.addInput(parameters, 'tileSize', { label: 'Tile size', min: 50, max: 500, step: 1 }).on('change', () => { globalFractalSelector.update(); });
-  loadPane.addInput(parameters, 'tileDetail', { label: 'Tile detail', min: 1, max: 10, step: 1 }).on('change', () => { globalFractalSelector.update(); });
+  loadPane.addInput(globalFractalSelector, 'tileSize', { label: 'Tile size', min: 50, max: 500, step: 1 }).on('change', () => { globalFractalSelector.update(); });
+  loadPane.addInput(globalFractalSelector, 'tileDetail', { label: 'Tile detail', min: 1, max: 10, step: 1 }).on('change', () => { globalFractalSelector.update(); });
 }
 
 /*function initializeUserPane() {
@@ -41,14 +41,8 @@ function initializeLoadPane() {
 
 function documentKeyDown(e) {
   if (e.keyCode == 27) { // Esc
-    if (drag.state == 'formula') {
-      drag.state = false;
-      fractal.formulas[selectedFormula.formula] = dragFormula;
-      drawFormulas();
-    }
-    if (globalFractalSelector.active) {
-      globalFractalSelector.hide();
-    }
+    if (globalFractalSelector.active) { globalFractalSelector.hide(); return; }
+    //if (globalPaletteEditor.active) { globalPaletteEditor.hide(); return; }
   }
 }
 

@@ -6,6 +6,7 @@ class FractalSelectorItem {
     this.key = key;
     this.value = value;
   }
+
   createCanvas(div, size) {
     this.canvas = document.createElement('canvas');
     this.canvas.setAttribute('id', this.key);
@@ -17,10 +18,11 @@ class FractalSelectorItem {
     div.appendChild(this.canvas);
     this.canvas = document.getElementById(this.key);
     this.viewPort = new FractalViewer(this.canvas.getContext('2d'));
-    this.viewPort.prepare(new Fractal(this.value));
+    this.viewPort.prepare(new Fractal(this.value).formulas);
     this.viewPort.draw();
     this.detail = 1;
   }
+
   updateSize(size) {
     this.canvas.width = size;
     this.canvas.height = size;
@@ -28,17 +30,25 @@ class FractalSelectorItem {
     this.viewPort.draw();
     this.detail = 1;
   }
+
   increaseDetail() {
     this.viewPort.draw();
     this.detail++;
   }
+
 }
 
 class FractalSelector {
-  constructor() {
+
+  constructor(div) {
     this.active = false;
     this.items = [];
+    this.div = div;
+    this.backgroundDiv = document.getElementById('mainDiv');
+    this.tileSize = 200;
+    this.tileDetail = 10;
   }
+
   update() {
     function isFractalKey(key) { 
       return key.substr(0,8) == 'fractal#';
@@ -63,39 +73,42 @@ class FractalSelector {
     this.updated = false;
     // update items in fractalSelectorDiv
   }
+
   show() {
     this.active = true;
-    document.getElementById('mainDiv').style.display = 'none';
-    document.getElementById('fractalSelectorDiv').style.display = '';
+    this.backgroundDiv.style.display = 'none';
+    this.div.style.display = '';
     this.update();
   }
+
   hide() {
     this.active = false;
-    document.getElementById('fractalSelectorDiv').style.display = 'none';
-    document.getElementById('mainDiv').style.display = '';
+    this.div.style.display = 'none';
+    this.backgroundDiv.style.display = '';
   }
+
   toggle() {
     if (this.active)
       this.hide();
     else
       this.show();
   }
+
   computeInBackground() {
     const startms = getMilliseconds();
     while (!this.updated && getMilliseconds() - startms < 200) {
-      const div = document.getElementById('fractalSelectorDiv');
       for (let item of this.items) {
         if (!item.canvas) {
-          item.createCanvas(div, parameters.tileSize);
+          item.createCanvas(this.div, this.tileSize);
           return;
         }
-        if (item.canvas.width != parameters.tileSize) {
-          item.updateSize(parameters.tileSize);
+        if (item.canvas.width != this.tileSize) {
+          item.updateSize(this.tileSize);
           return;
         }
       }
       for (let item of this.items) {
-        if (item.detail < parameters.tileDetail) {
+        if (item.detail < this.tileDetail) {
           item.increaseDetail();
           return;
         }
@@ -103,4 +116,5 @@ class FractalSelector {
       this.updated = true;
     }
   }
+
 }

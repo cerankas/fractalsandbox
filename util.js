@@ -2,19 +2,8 @@
 
 function getMilliseconds() { return Number(new Date()); }
 
-let lastForm = null;
-function peekOnFormChange() {
-  const form = (selectedFormula != null) ? JSON.stringify(fractal.formulas[selectedFormula.formula]) : '';
-  if (form != '' && form != lastForm) {
-    lastForm = form;
-    //let r = fractal.formulas[selectedFormula.formula].getRotation();
-    let r = fractal.formulas[selectedFormula.formula].getScale();
-    //console.log(r[0], r[1], r[2])
-  }
-}
-
 /*function memoryTest() {
-  let memoryTestStepSize = 100 * 1000 * 1000;
+  const memoryTestStepSize = 100 * 1000 * 1000;
   const t = [];
   while (true) 
     try {
@@ -31,15 +20,15 @@ function downloadImage() {
 }
 
 function saveFractal() {
-  let key = 'fractal#' + new Date().toISOString();
-  localStorage.setItem(key, fractal.toString());
+  const key = 'fractal#' + new Date().toISOString();
+  localStorage.setItem(key, globalFractalEditor.formulas.toString());
 }
 
 function loadFractal(fract) {
   globalFractalSelector.hide();
   globalFractalViewer.resetManual();
   globalFractalEditor.resetManual();
-  fractal = new Fractal(fract);
+  globalFractalEditor.formulas = new Fractal(fract).formulas;
   windowResize();
   GlobalHistory.store();
 }
@@ -51,12 +40,55 @@ function toggleDisplay(id) {
   return newstate;
 }
 
-function findNearestPoint(points, p, distanceThreshold) {
-  function pointDistance(p1, p2) { let dx = p1[0] - p2[0], dy = p1[1] - p2[1]; return dx * dx + dy * dy; }
-  let nearestDistance = distanceThreshold, nearestIndex = null;
+function getCanvasCtx(id) {
+  return document.getElementById(id).getContext('2d');
+}
+
+function findNearestPoint(points, point, distanceThreshold) {
+  function pointDistanceSquared(p1, p2) { 
+    const delta = subtractVectors(p1, p2);
+    return delta[0] * delta[0] + delta[1] * delta[1];
+  }
+  let nearestDistance = distanceThreshold * distanceThreshold;
+  let nearestIndex = null;
   for (let i = 0; i < points.length; i++) {
-    let d = pointDistance(points[i], p);
-    if (d < nearestDistance) { nearestDistance = d; nearestIndex = i; } 
+    const distance = pointDistanceSquared(points[i], point);
+    if (distance < nearestDistance) { nearestDistance = distance; nearestIndex = i; } 
   }
   return nearestIndex;
+}
+
+function getEventClientXY(e) {
+  return [
+    e.offsetX,
+    e.offsetY
+  ];
+}
+
+function getEventScreenXY(e) {
+  return [
+    e.screenX,
+    e.screenY
+  ];
+}
+
+function addVectors(v1, v2) {
+  return [
+    v1[0] + v2[0],
+    v1[1] + v2[1]
+  ];
+}
+
+function subtractVectors(v1, v2) {
+  return [
+    v1[0] - v2[0],
+    v1[1] - v2[1]
+  ];
+}
+
+function multiplyVector(v, s) { 
+  return [
+    v[0] * s, 
+    v[1] * s
+  ]; 
 }
