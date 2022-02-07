@@ -40,17 +40,19 @@ class Viewport {
   }
  
   updateTransform() {
-    const s = [
+    const screenSize = [
       this.ctx.canvas.width,
       this.ctx.canvas.height
     ];
-    const d = subtractVectors(this.minMax[1], this.minMax[0]);
-    const f =      addVectors(this.minMax[1], this.minMax[0]);
-    this.scale = Math.min(s[0] / d[0], s[1] / d[1]) * this.autoZoom * this.manualScale;
-    this.shift = [
-      (s[0] - f[0] * this.scale + this.manualShift[0]) / 2,
-      (s[1] + f[1] * this.scale + this.manualShift[1]) / 2
+    const screenCenter = multiplyVector(screenSize, .5);
+    const dataSize = subtractVectors(this.minMax[1], this.minMax[0]);
+    const dataCenter = multiplyVector(addVectors(this.minMax[1], this.minMax[0]), .5);
+    this.scale = Math.min(screenSize[0] / dataSize[0], screenSize[1] / dataSize[1]) * this.autoZoom * this.manualScale;
+    const tmpShift = [
+      screenCenter[0] - dataCenter[0] * this.scale,
+      screenCenter[1] + dataCenter[1] * this.scale
     ];
+    this.shift = addVectors(tmpShift, this.manualShift);
   }
  
   onWheel(e) {

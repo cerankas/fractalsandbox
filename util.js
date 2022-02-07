@@ -2,18 +2,6 @@
 
 function getMilliseconds() { return Number(new Date()); }
 
-/*function memoryTest() {
-  const memoryTestStepSize = 100 * 1000 * 1000;
-  const t = [];
-  while (true) 
-    try {
-      t.push(new Int8Array(memoryTestStepSize));
-    } catch (error) {
-      alert('failure after allocating ' + memoryTestStepSize * t.length +  ' bytes');
-      return;
-    }
-}*/
-
 function downloadImage() {
   document.getElementById('download').href = document.getElementById('canvasFrac').toDataURL('image/png');
   document.getElementById('download').click();
@@ -67,8 +55,8 @@ function getEventClientXY(e) {
 
 function getEventScreenXY(e) {
   return [
-    e.screenX,
-    e.screenY
+    e.pageX,
+    e.pageY
   ];
 }
 

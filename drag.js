@@ -7,7 +7,8 @@ class GlobalDrag {
   static startPoint = [0, 0];
   
   static {
-    window.addEventListener('pointermove', GlobalDrag.onPointerMove);
+    window.addEventListener('pointermove', this.onPointerMove.bind(this));
+    window.addEventListener('pointerup',   this.onPointerUp.bind(this));
   }
   
   static startDrag(owner, data, point) {
@@ -17,16 +18,16 @@ class GlobalDrag {
   }
 
   static onPointerMove(e) {
-    if (this.dragOwner != null) {
-      const rect = this.dragOwner.ctx.canvas.getBoundingClientRect;
-      const canvasCorner = [rect.x, rect.y];
-      const mousePoint = this.dragOwner.fromScreen(getEventScreenXY(e));
+    if (this.dragOwner) {
+      const rect = this.dragOwner.ctx.canvas.getBoundingClientRect();
+      const canvasCorner = [rect.left, rect.top];
+      const mousePoint = getEventScreenXY(e);
       this.dragOwner.onDrag(subtractVectors(mousePoint, canvasCorner), e);
     }
   }
   
   static onPointerUp() {
-    if (this.dragOwner != null) {
+    if (this.dragOwner) {
       this.dragOwner.onDragEnd();
       this.dragOwner = null;
       this.dragData = null;

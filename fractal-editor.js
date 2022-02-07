@@ -13,20 +13,20 @@ class FractalEditor extends Viewport {
       [0, 1],
       [1, 1]
     ];
-    const c = ctx.canvas;
-    c.addEventListener('pointerdown', this.onPointerDown.bind(this));
-    c.addEventListener('pointermove', this.onPointerMove.bind(this));
+    ctx.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
+    ctx.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
   }
 
   onPointerDown(e) {
     if (e.button == 0) {
-      const mousePoint = this.fromScreen(getEventClientXY(e));
-      this.selectNearestFormula(mousePoint);
+      const screenMousePoint = getEventClientXY(e);
+      const dataMousePoint = this.fromScreen(screenMousePoint);
+      this.selectNearestFormula(dataMousePoint);
       if (this.selectedFormula) {
-        GlobalDrag.startDrag(this, this.formulas[this.selectedFormula.formula].clone(), mousePoint);
+        GlobalDrag.startDrag(this, this.formulas[this.selectedFormula.formula].clone(), screenMousePoint);
       }
       if (!this.selectedFormula) {
-        const point = subtractVectors(this.manualShift, mousePoint);
+        const point = subtractVectors(this.manualShift, screenMousePoint);
         GlobalDrag.startDrag(this, null, point);
       }
     }
@@ -38,27 +38,26 @@ class FractalEditor extends Viewport {
 
   onPointerMove(e) {
     if (GlobalDrag.dragOwner != null) return;
-    const mousePoint = this.fromScreen(getEventClientXY(e));
-    this.selectNearestFormula(mousePoint);
+    const dataMousePoint = this.fromScreen(getEventClientXY(e));
+    this.selectNearestFormula(dataMousePoint);
     this.drawFormulas();
   }
 
-  onDrag(mousePoint, e) {
-    if (GlobalDrag.dragData == null) {
+  onDrag(screenMousePoint, e) {
+    if (GlobalDrag.dragData != null) {
       this.formulas[this.selectedFormula.formula] = GlobalDrag.dragData.clone();
-      const delta = subtractVectors(mousePoint, GlobalDrag.startPoint);
+      const delta = subtractVectors(screenMousePoint, GlobalDrag.startPoint);
       this.formulas[this.selectedFormula.formula].setPoint(delta[0], delta[1], this.selectedFormula.point);
     }
-    if (GlobalDrag.dragData != null) {
-      this.manualShift = addVectors(GlobalDrag.startPoint + mousePoint);
+    if (GlobalDrag.dragData == null) {
+      this.manualShift = addVectors(GlobalDrag.startPoint, screenMousePoint);
       this.resizeFormulas();
       return;
     }
     this.drawFormulas();
   }
 
-  onDragEnd(e) {
-
+  onDragEnd() {
   }
 
   selectNearestFormula(point) {
