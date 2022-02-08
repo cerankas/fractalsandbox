@@ -13,8 +13,8 @@ function initializeMainPane() {
   //mainPane.addButton({title: 'Download movie [V]'}).on('click', downloadMovie);
   mainPane.addButton({title: 'Undo [Z]'}).on('click', () => { GlobalHistory.back(); });
   mainPane.addButton({title: 'Redo [Y]'}).on('click', () => { GlobalHistory.forward(); });
-  mainPane.addButton({title: 'Add triangle [+]'}).on('click', addFormula);
-  mainPane.addButton({title: 'Remove triangle [-]'}).on('click', () => { removeFormula(lastSelectedFormula); });
+  mainPane.addButton({title: 'Add triangle [+]'}).on('click', () => { globalFractalEditor.addFormula(); });
+  mainPane.addButton({title: 'Remove triangle [-]'}).on('click', () => { globalFractalEditor.removeFormula(); });
   mainPane.addInput(globalFractalEditor, 'balanceFactor', { label: 'Total balance', min: .1, max: 3, step: .01 }).on('change', drawMainFractal);
   mainPane.addButton({title: 'Draw infinitely [I]'}).on('click', () => { globalFractalViewer.infinite = !globalFractalViewer.infinite; });
   mainPane.addButton({title: 'Edit colors [C]'}).on('click', togglePaletteEditor);
@@ -67,10 +67,10 @@ function windowKeyPress(e) {
     GlobalHistory.forward();
   }
   if (c == '+' || c == '=') {
-    addFormula();
+    globalFractalEditor.addFormula();
   }
   if (c == '-') {
-    removeFormula(selectedFormula);
+    globalFractalEditor.removeFormula();
   }
   if (c == 'i') {
     globalFractalViewer.infinite = !globalFractalViewer.infinite;

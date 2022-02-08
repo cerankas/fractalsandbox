@@ -3,7 +3,6 @@
 class GlobalDrag {
 
   static dragOwner = null;
-  static dragData = null;
   static startPoint = [0, 0];
   
   static {
@@ -11,9 +10,8 @@ class GlobalDrag {
     window.addEventListener('pointerup',   this.onPointerUp.bind(this));
   }
   
-  static startDrag(owner, data, point) {
+  static startDrag(owner, point) {
     this.dragOwner = owner;
-    this.dragData = data;
     this.startPoint = point;
   }
 
@@ -30,7 +28,6 @@ class GlobalDrag {
     if (this.dragOwner) {
       this.dragOwner.onDragEnd();
       this.dragOwner = null;
-      this.dragData = null;
     }
   }
 
