@@ -86,6 +86,11 @@ class Formula {
     this.b *= sy;
     this.d *= sy;
   }
+
+  shift(dx, dy) {
+    this.e += dx;
+    this.f += dy;
+  }
 }
 
 function rotateVector(vector, angle) {

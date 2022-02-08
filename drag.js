@@ -3,16 +3,14 @@
 class GlobalDrag {
 
   static dragOwner = null;
-  static startPoint = [0, 0];
   
   static {
     window.addEventListener('pointermove', this.onPointerMove.bind(this));
     window.addEventListener('pointerup',   this.onPointerUp.bind(this));
   }
   
-  static startDrag(owner, point) {
+  static startDrag(owner) {
     this.dragOwner = owner;
-    this.startPoint = point;
   }
 
   static onPointerMove(e) {
@@ -20,7 +18,7 @@ class GlobalDrag {
       const rect = this.dragOwner.ctx.canvas.getBoundingClientRect();
       const canvasCorner = [rect.left, rect.top];
       const mousePoint = getEventScreenXY(e);
-      this.dragOwner.onDrag(subtractVectors(mousePoint, canvasCorner), e);
+      this.dragOwner.onDrag(new Vec(mousePoint).sub(canvasCorner));
     }
   }
   

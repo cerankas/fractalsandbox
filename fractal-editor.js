@@ -8,12 +8,15 @@ class FractalEditor extends Viewport {
     this.selectedFormula = 0;
     this.selectedPoint = null;
     this.balanceFactor = 1;
+    this.dragFormula = null;
+    this.dragStart = [0, 0];
+    this.dragLock = null;
     ctx.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
     ctx.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
   }
 
   hasSelectedPoint() {
-    return this.selectedPoint !== null;
+    return this.selectedPoint != null;
   }
 
   onPointerDown(e) {
@@ -23,12 +26,14 @@ class FractalEditor extends Viewport {
       this.selectNearestFormula(dataMousePoint);
       if (this.hasSelectedPoint()) {
         this.dragFormula = this.formulas[this.selectedFormula].clone();
-        GlobalDrag.startDrag(this, screenMousePoint);
+        this.dragStart = dataMousePoint;
+        this.dragLock = null;
+        GlobalDrag.startDrag(this);
       }
-      if (!this.hasSelectedPoint()) {
+      else {
         this.dragFormula = null;
-        const point = subtractVectors(this.manualShift, screenMousePoint);
-        GlobalDrag.startDrag(this, point);
+        this.dragStart = new Vec(this.manualShift).sub(screenMousePoint);
+        GlobalDrag.startDrag(this);
       }
     }
     if (e.button == 2) {
@@ -44,37 +49,41 @@ class FractalEditor extends Viewport {
     this.drawFormulas();
   }
 
-  onDrag(screenMousePoint, e) {
-    if (this.dragFormula !== null) {
-      const tmpFormula = this.dragFormula.clone();
-      const delta = subtractVectors(screenMousePoint, GlobalDrag.startPoint);
-      if (this.selectedPoint == 0) {
-        this.dragMove(tmpFormula, delta);
-      }
-      if (this.selectedPoint == 1) {
-        this.dragMove(tmpFormula, delta);
-      }
-      if (this.selectedPoint == 2) {
-        this.dragMove(tmpFormula, delta);
-      }
-      if (this.selectedPoint == 3) {
-        this.dragMove(tmpFormula, delta);
-      }
-      this.formulas[this.selectedFormula] = tmpFormula;
+  onDrag(screenMousePoint) {
+    if (this.dragFormula != null) {
+      this.doDragFormula(this.fromScreen(screenMousePoint));
+      this.drawFormulas();
     }
-    if (this.dragFormula === null) {
+    else {
       this.manualShift = addVectors(GlobalDrag.startPoint, screenMousePoint);
       this.resizeFormulas();
-      return;
     }
-    this.drawFormulas();
   }
 
-  dragMove(formula, delta) {
-
+  doDragFormula(dataMousePoint) {
+    const tmpFormula = this.dragFormula.clone();
+    if (this.selectedPoint == 0) {
+      const delta = new Vec(dataMousePoint).sub(this.dragStart);
+      tmpFormula.shift(delta[0], delta[1]);
+      }
+    if (this.selectedPoint == 2) {
+      this.dragMove(tmpFormula, dataMousePoint);
+    }
+    this.formulas[this.selectedFormula] = tmpFormula;
+    // if (this.selectedPoint == 1) {
+    //   this.dragMove(tmpFormula, delta);
+    // }
+    // if (this.selectedPoint == 2) {
+    //   this.dragMove(tmpFormula, delta);
+    // }
+    // if (this.selectedPoint == 3) {
+    //   this.dragMove(tmpFormula, delta);
+    // }
+    // this.formulas[this.selectedFormula] = tmpFormula;
   }
 
   onDragEnd() {
+    this.resizeFormulas();
   }
 
   selectNearestFormula(point) {
@@ -214,10 +223,10 @@ class FractalEditor extends Viewport {
   }
   
   removeFormula(formulaIndex) {
-    if (formulaIndex === null) {
+    if (formulaIndex == null) {
       formulaIndex = this.selectedFormula;
     }
-    if (formulaIndex !== null && this.formulas.length > 2) {
+    if (formulaIndex != null && this.formulas.length > 2) {
       this.formulas.splice(formulaIndex, 1);
       windowResize();
       GlobalHistory.store();
@@ -227,4 +236,3 @@ class FractalEditor extends Viewport {
   }
 
 }
-
