@@ -40,7 +40,7 @@ function drawPaletteEditor() {
     ctx.fillStyle = hex;
     ctx.fillRect(x, 0, x, c.height);
   }
-  for (let i in paletteKeys) {
+  for (let i = 0; i < paletteKeys.length; i++) {
     if (i == selectedColor) {
       ctx.lineWidth = 4;
     }

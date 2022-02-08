@@ -32,7 +32,7 @@ class FractalEditor extends Viewport {
       }
       else {
         this.dragFormula = null;
-        this.dragStart = new Vec(this.manualShift).sub(screenMousePoint);
+        this.dragStart = this.manualShift.vectorSub(screenMousePoint);
         GlobalDrag.startDrag(this);
       }
     }
@@ -55,7 +55,7 @@ class FractalEditor extends Viewport {
       this.drawFormulas();
     }
     else {
-      this.manualShift = addVectors(GlobalDrag.startPoint, screenMousePoint);
+      this.manualShift = GlobalDrag.startPoint.add(screenMousePoint);
       this.resizeFormulas();
     }
   }
@@ -63,7 +63,7 @@ class FractalEditor extends Viewport {
   doDragFormula(dataMousePoint) {
     const tmpFormula = this.dragFormula.clone();
     if (this.selectedPoint == 0) {
-      const delta = new Vec(dataMousePoint).sub(this.dragStart);
+      const delta = dataMousePoint.sub(this.dragStart);
       tmpFormula.shift(delta[0], delta[1]);
       }
     if (this.selectedPoint == 2) {
@@ -115,7 +115,7 @@ class FractalEditor extends Viewport {
   
   getFractalPoints() {
     const fractalPoints = [];
-    for (let formulaIndex in this.formulas) {
+    for (let formulaIndex = 0; formulaIndex < this.formulas.length; formulaIndex++) {
       const formulaPoints = this.getFormulaPoints(formulaIndex);
       for (let pointIndex = 0; pointIndex < formulaPoints.length; pointIndex++) {
         fractalPoints.push(formulaPoints[pointIndex].concat([formulaIndex, pointIndex]));
@@ -141,7 +141,7 @@ class FractalEditor extends Viewport {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.lineWidth = 1;
     this.drawCage();
-    for (let i in this.formulas) {
+    for (let i = 0; i < this.formulas.length; i++) {
       if (i != this.selectedFormula)
       this.drawFormula(i);
     }

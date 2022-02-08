@@ -34,7 +34,7 @@ function getCanvasCtx(id) {
 
 function findNearestPoint(points, point, distanceThreshold) {
   function pointDistanceSquared(p1, p2) { 
-    const delta = new Vec(p1).sub(p2);
+    const delta = p1.sub(p2);
     return delta[0] * delta[0] + delta[1] * delta[1];
   }
   let nearestDistance = distanceThreshold * distanceThreshold;

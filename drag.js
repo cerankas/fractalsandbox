@@ -18,7 +18,7 @@ class GlobalDrag {
       const rect = this.dragOwner.ctx.canvas.getBoundingClientRect();
       const canvasCorner = [rect.left, rect.top];
       const mousePoint = getEventScreenXY(e);
-      this.dragOwner.onDrag(new Vec(mousePoint).sub(canvasCorner));
+      this.dragOwner.onDrag(mousePoint.sub(canvasCorner));
     }
   }
   

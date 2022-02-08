@@ -40,18 +40,18 @@ class Viewport {
   }
  
   updateTransform() {
-    const screenSize = new Vec(
+    const screenSize = [
       this.ctx.canvas.width,
       this.ctx.canvas.height
-    );
+    ];
     const screenCenter = screenSize.mul(.5);
-    const dataSize = new Vec(this.minMax[1]).sub(this.minMax[0]);
-    const dataCenter = new Vec(this.minMax[1]).add(this.minMax[0]).mul(.5);
+    const dataSize = this.minMax[1].sub(this.minMax[0]);
+    const dataCenter = this.minMax[1].add(this.minMax[0]).mul(.5);
     this.scale = Math.min(screenSize[0] / dataSize[0], screenSize[1] / dataSize[1]) * this.autoZoom * this.manualScale;
-    const tmpShift = new Vec(
+    const tmpShift = [
       screenCenter[0] - dataCenter[0] * this.scale,
       screenCenter[1] + dataCenter[1] * this.scale
-    );
+    ];
     this.shift = tmpShift.add(this.manualShift);
   }
  
@@ -62,7 +62,7 @@ class Viewport {
     this.manualScale *= delta;
     this.updateTransform();
     const p = this.toScreen(p0);
-    this.manualShift = new Vec(this.manualShift).add(mousePoint).sub(p);
+    this.manualShift = this.manualShift.add(mousePoint).sub(p);
     this.updateTransform();
     this.doZoom = true;
   }

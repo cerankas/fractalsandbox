@@ -19,7 +19,7 @@ class FractalViewer extends Viewport {
     this.height = this.ctx.canvas.height;
     this.tab = new Int32Array(this.width * this.height);
     this.maxpoints = 100 * getViewArea(this);
-    const numpoints = 5 * getViewArea(this);
+    const numpoints = 1 * getViewArea(this);
     if (this.points == undefined || this.points.length != 2 * numpoints)
       this.points = new Float64Array(2 * numpoints); // two coordinates per point
     if (this.imageData == undefined || this.imageData.width != this.width || this.imageData.height != this.height)

@@ -52,32 +52,32 @@ class Formula {
   }
 
   getRotation() { 
-    let rx = getVectorAngle([this.a, this.c]);
-    let ry = getVectorAngle([this.b, this.d]); - 90;
+    let rx = [this.a, this.c].vectorAngle();
+    let ry = [this.b, this.d].vectorAngle() - 90;
     return [rx, ry];
   }
 
   getScale() { 
-    let sx = Math.sqrt(this.a * this.a + this.c * this.c);
-    let sy = Math.sqrt(this.b * this.b + this.d * this.d);
+    let sx = [this.a, this.c].vectorLength();
+    let sy = [this.b, this.d].vectorLength();
     return [sx, sy];
   }
 
   setRotation(rx, ry) {
     let s = this.getScale();
-    [this.a, this.c] = rotateVector([s[0], 0], rx);
-    [this.b, this.d] = rotateVector([0, s[1]], ry);
+    [this.a, this.c] = [s[0], 0].vectorRotate(rx);
+    [this.b, this.d] = [0, s[1]].vectorRotate(ry);
   }
 
   setScale(sx, sy) {
     const r = this.getRotation();
-    [this.a, this.c] = rotateVector([sx, 0], r[0]);
-    [this.b, this.d] = rotateVector([0, sy], r[1]);
+    [this.a, this.c] = [sx, 0].vectorRotate(r[0]);
+    [this.b, this.d] = [0, sy].vectorRotate(r[1]);
   }
 
   rotate(rx, ry) {
-    [this.a, this.c] = rotateVector([this.a, this.c], rx);
-    [this.b, this.d] = rotateVector([this.b, this.d], ry);
+    [this.a, this.c] = [this.a, this.c].vectorRotate(rx);
+    [this.b, this.d] = [this.b, this.d].vectorRotate(ry);
   }
 
   scale(sx, sy) {
@@ -93,32 +93,32 @@ class Formula {
   }
 }
 
-function rotateVector(vector, angle) {
-  angle *= Math.PI / 180;
-  const sin = Math.sin(angle);
-  const cos = Math.cos(angle);
-  return [
-    vector[0] * cos - vector[1] * sin,
-    vector[0] * sin + vector[1] * cos
-  ];
-}
+// function rotateVector(vector, angle) {
+//   angle *= Math.PI / 180;
+//   const sin = Math.sin(angle);
+//   const cos = Math.cos(angle);
+//   return [
+//     vector[0] * cos - vector[1] * sin,
+//     vector[0] * sin + vector[1] * cos
+//   ];
+// }
 
-function getVectorAngle(vector) {
-  return Math.atan2(vector[1], vector[0]) * 180 / Math.PI;
-}
+// function getVectorAngle(vector) {
+//   return Math.atan2(vector[1], vector[0]) * 180 / Math.PI;
+// }
 
-function getVectorRotation(vector1, vector2) {
-  const radius = getVectorRotation(vector2) - getVectorRotation(vector1);
-  if (radius >   180) radius -= 180;
-  if (radius <= -180) radius += 180;
-  return radius;
-}
+// function getVectorRotation(vector1, vector2) {
+//   const radius = getVectorRotation(vector2) - getVectorRotation(vector1);
+//   if (radius >   180) radius -= 180;
+//   if (radius <= -180) radius += 180;
+//   return radius;
+// }
 
-function getVectorLength(vector) {
-  return Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-}
+// function getVectorLength(vector) {
+//   return Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+// }
 
-function getVectorScale(vector1, vector2) {
-  const length1 = getVectorLength(vector1);
-  return getVectorLength(vector2) / (length1 != 0 ? length1 : 1);
-}
+// function getVectorScale(vector1, vector2) {
+//   const length1 = getVectorLength(vector1);
+//   return getVectorLength(vector2) / (length1 != 0 ? length1 : 1);
+// }
