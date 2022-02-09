@@ -3,9 +3,10 @@
 class Fractal {
   constructor() {
     this.formulas = [];
-    const args = arguments[0].replace(/#/g, '\n').split('\n');
-    for (let arg of args)
+    const args = arguments[0].replaceAll(',', '#').split('#');
+    for (let arg of args) {
       this.formulas.push(new Formula(arg));
+    }
   }
   toString() {
     let ret = '';

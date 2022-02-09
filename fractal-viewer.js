@@ -4,14 +4,19 @@ class FractalViewer extends Viewport {
 
   constructor(ctx, zoom) {
     super(ctx, zoom);
-    this.drawnPointsCount = 0;
+    this.calculatedPointsCount = 0;
     this.infinite = false;
     this.forceRedrawPalette = false;
     this.finishStatsShown = false;
     this.fractalString = '';
     this.dragStart = [0, 0];
     this.fractalComputer = new FractalComputer();
-    ctx.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
+  }
+
+  registerEventListeners() {
+    this.registerWheelListener();    
+    this.ctx.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
+    return this;
   }
 
   onPointerDown(e) {
@@ -31,15 +36,15 @@ class FractalViewer extends Viewport {
   }
   
   prepare(formulas) {
-    this.drawnPointsCount = 0;
+    this.calculatedPointsCount = 0;
     this.tabmax = 0;
     this.width  = this.ctx.canvas.width;
     this.height = this.ctx.canvas.height;
     this.tab = new Int32Array(this.width * this.height);
     this.maxpoints = 100 * getViewArea(this);
-    const numpoints = 5 * getViewArea(this);
-    if (this.points == undefined || this.points.length != 2 * numpoints)
-      this.points = new Float64Array(2 * numpoints); // two coordinates per point
+    this.numpoints = 1 * getViewArea(this);
+    if (this.points == undefined || this.points.length != 2 * this.numpoints)
+      this.points = new Float64Array(2 * this.numpoints); // two coordinates per point
     if (this.imageData == undefined || this.imageData.width != this.width || this.imageData.height != this.height)
       this.imageData = this.ctx.createImageData(this.width, this.height);
     this.autoScaleRequired = true;
@@ -49,6 +54,8 @@ class FractalViewer extends Viewport {
       this.fractalString = this.formulas.toString();
     }
     this.fractalComputer.initialize(this.formulas);
+    this.lastPutImageTime = getMilliseconds();
+    this.putImageInterval = 20;
   }
 
   draw() {
@@ -58,28 +65,44 @@ class FractalViewer extends Viewport {
         this.redrawPalette();
       }
       if (!this.finishStatsShown) {
-        document.title = Math.floor(this.drawnPointsCount / 1000000) + ' mp ' + (getMilliseconds() - this.fractalComputer.startms) + ' ms';
+        document.title = Math.floor(this.calculatedPointsCount / 1000000) + ' mp ' + (getMilliseconds() - this.fractalComputer.startms) + ' ms';
         this.finishStatsShown = true;
       }
       return;
     }
-    //document.title = ~~(100 * this.drawnPointsCount / this.maxpoints) + '%';
-    this.doCalculatePoints();
+    //document.title = ~~(100 * this.calculatedPointsCount / this.maxpoints) + '%';
     if (this.autoScaleRequired) {
+      this.doCalculatePoints();
       this.doAutoScale();
+      this.doSumPoints();
+      //while (getMilliseconds() - startms < 8) {
+      //  this.doCalculatePoints();
+      //  this.doSumPoints();
+     // }
+      this.doCalculateColors();
+      this.doPutImageData();
     }
-    this.doSumPoints();
-    this.doCalculateColors();
-    this.doPutImageData();
-    this.drawnPointsCount += this.points.length / 2;
-    document.title = Math.floor((this.points.length / 2 )/ (getMilliseconds() - startms));
+    else {
+      while (getMilliseconds() - startms < Math.min(this.putImageInterval, 40)) {
+        this.doCalculatePoints();
+        this.doSumPoints();
+      }
+      if (getMilliseconds() - this.lastPutImageTime > this.putImageInterval || this.isFinished()) {
+        this.lastPutImageTime = getMilliseconds();
+        if (this.putImageInterval < 2000) this.putImageInterval *= 1.5;
+        this.doCalculateColors();
+        this.doPutImageData();
+      }
+    }
+    document.title = Math.floor((this.numpoints) / (getMilliseconds() - startms));
   }
 
   isFinished() {
-    return this.drawnPointsCount >= this.maxpoints && !this.infinite;
+    return this.calculatedPointsCount >= this.maxpoints && !this.infinite;
   }
 
   doCalculatePoints() {
+    this.calculatedPointsCount += this.numpoints;
     this.fractalComputer.compute(this.points);
   }
 

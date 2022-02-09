@@ -51,7 +51,7 @@ function jsMain() {
   document.addEventListener('keydown', documentKeyDown);
 
   globalFractalSelector = new FractalSelector(document.getElementById('fractalSelectorDiv'));
-  globalFractalViewer = new FractalViewer(getCanvasCtx('canvasFrac'));
+  globalFractalViewer = new FractalViewer(getCanvasCtx('canvasFrac')).registerEventListeners();
   globalFractalEditor = new FractalEditor(getCanvasCtx('canvasForm'));
   globalPaletteEditor = new PaletteEditor(getCanvasCtx('canvasColor'), localStorage.lastpalette);
   

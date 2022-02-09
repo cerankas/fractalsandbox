@@ -37,7 +37,7 @@ function createPaletteFromKeys(keys) {
       palette.push(fmul(r, g, b, 0xff));
     }
   }
-  for (let i = lastKey.index + 1; i < 1000; i++)
+  for (let i = lastKey.index + 1; i < FRACTAL_PALETTE_LENGTH; i++)
     palette.push(fmul(lastKey.r, lastKey.g, lastKey.b, 0xff));
   return palette;
 }

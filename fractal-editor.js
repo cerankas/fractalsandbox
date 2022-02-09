@@ -62,8 +62,8 @@ class FractalEditor extends Viewport {
 
   doDragFormula(dataMousePoint) {
     const tmpFormula = this.dragFormula.clone();
+    const delta = dataMousePoint.sub(this.dragStart);
     if (this.selectedPoint == 0) {
-      const delta = dataMousePoint.sub(this.dragStart);
       tmpFormula.shift(delta[0], delta[1]);
       }
     if (this.selectedPoint == 2) {

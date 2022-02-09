@@ -1,39 +1,22 @@
 // Formula
 
 class Formula {
-  constructor(a, b, c, d, e, f, p) {
-    if (arguments.length == 0) {
-      this.a = .9;
-      this.b = 0;
-      this.c = 0;
-      this.d = .9;
-      this.e = 0;
-      this.f = 0;
-      this.p = .81;
-    }
-    if (arguments.length == 1) {
-      [a, b, c, d, e, f, p] = a.split(' ');
-      this.a = parseFloat(a);
-      this.b = parseFloat(b);
-      this.c = parseFloat(c);
-      this.d = parseFloat(d);
-      this.e = parseFloat(e);
-      this.f = parseFloat(f);
-      this.p = parseFloat(p);
-    }
-    if (arguments.length > 1) {
-      this.a = a;
-      this.b = b;
-      this.c = c;
-      this.d = d;
-      this.e = e;
-      this.f = f;
-      this.p = p;
-    }
+  
+  constructor(string) {
+    string = string || '.9 0 0 .9 0 0 .81';
+    const numbers = string.split(' ');
+    numbers.forEach((element, index, array) => { array[index] = parseFloat(element); });
+    this.a = numbers[0];
+    this.b = numbers[1];
+    this.c = numbers[2];
+    this.d = numbers[3];
+    this.e = numbers[4];
+    this.f = numbers[5];
+    this.p = numbers[6];
   }
 
   clone() {
-    return new Formula(this.a, this.b, this.c, this.d, this.e, this.f, this.p);
+    return new Formula(this.toString());
   }
 
   toString() {
@@ -91,34 +74,5 @@ class Formula {
     this.e += dx;
     this.f += dy;
   }
+
 }
-
-// function rotateVector(vector, angle) {
-//   angle *= Math.PI / 180;
-//   const sin = Math.sin(angle);
-//   const cos = Math.cos(angle);
-//   return [
-//     vector[0] * cos - vector[1] * sin,
-//     vector[0] * sin + vector[1] * cos
-//   ];
-// }
-
-// function getVectorAngle(vector) {
-//   return Math.atan2(vector[1], vector[0]) * 180 / Math.PI;
-// }
-
-// function getVectorRotation(vector1, vector2) {
-//   const radius = getVectorRotation(vector2) - getVectorRotation(vector1);
-//   if (radius >   180) radius -= 180;
-//   if (radius <= -180) radius += 180;
-//   return radius;
-// }
-
-// function getVectorLength(vector) {
-//   return Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-// }
-
-// function getVectorScale(vector1, vector2) {
-//   const length1 = getVectorLength(vector1);
-//   return getVectorLength(vector2) / (length1 != 0 ? length1 : 1);
-// }

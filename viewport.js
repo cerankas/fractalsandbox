@@ -11,7 +11,6 @@ class Viewport {
     this.autoZoom = zoom || 0.9;
     this.minMax = [[0, 0], [1, 1]];
     this.doZoom = false;
-    ctx.canvas.addEventListener('wheel', this.onWheel.bind(this), {passive:true});
   }
 
   toScreen(p) {
@@ -65,6 +64,10 @@ class Viewport {
     this.manualShift = this.manualShift.add(mousePoint).sub(p);
     this.updateTransform();
     this.doZoom = true;
+  }
+
+  registerWheelListener() {
+    this.ctx.canvas.addEventListener('wheel', this.onWheel.bind(this), {passive:true});
   }
 
 }
