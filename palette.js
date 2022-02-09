@@ -50,19 +50,3 @@ function componentToHex(c) {
 function rgbToHex(r, g, b) {
   return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
-
-function initializePalette() {
-  if (localStorage.lastpalette) {
-    paletteKeys = JSON.parse(localStorage.lastpalette);
-  }
-  else {
-    paletteKeys.push(new cPaletteKey(  0, 0xff, 0xff, 0xff));
-    paletteKeys.push(new cPaletteKey(250, 0,    0,    0xff));
-    paletteKeys.push(new cPaletteKey(500, 0xff, 0,    0   ));
-    paletteKeys.push(new cPaletteKey(750, 0xff, 0xff, 0   ));
-    paletteKeys.push(new cPaletteKey(999, 0xff, 0xff, 0xff));
-  }
-  fractalPalette = createPaletteFromKeys(paletteKeys);
-  globalPaletteEditor.colorValue = paletteKeys[0];
-}
-

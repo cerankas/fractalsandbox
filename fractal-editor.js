@@ -32,7 +32,7 @@ class FractalEditor extends Viewport {
       }
       else {
         this.dragFormula = null;
-        this.dragStart = this.manualShift.vectorSub(screenMousePoint);
+        this.dragStart = this.manualShift.sub(screenMousePoint);
         GlobalDrag.startDrag(this);
       }
     }
@@ -55,7 +55,7 @@ class FractalEditor extends Viewport {
       this.drawFormulas();
     }
     else {
-      this.manualShift = GlobalDrag.startPoint.add(screenMousePoint);
+      this.manualShift = this.dragStart.add(screenMousePoint);
       this.resizeFormulas();
     }
   }
@@ -70,16 +70,6 @@ class FractalEditor extends Viewport {
       this.dragMove(tmpFormula, dataMousePoint);
     }
     this.formulas[this.selectedFormula] = tmpFormula;
-    // if (this.selectedPoint == 1) {
-    //   this.dragMove(tmpFormula, delta);
-    // }
-    // if (this.selectedPoint == 2) {
-    //   this.dragMove(tmpFormula, delta);
-    // }
-    // if (this.selectedPoint == 3) {
-    //   this.dragMove(tmpFormula, delta);
-    // }
-    // this.formulas[this.selectedFormula] = tmpFormula;
   }
 
   onDragEnd() {

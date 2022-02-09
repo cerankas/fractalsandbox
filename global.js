@@ -2,18 +2,6 @@
 
 'use strict';
 
-let fractalPalette = [];
-let paletteKeys = [];
-
-let selectedColor = null;
-let lastSelectedColor = 0;
-
-const functionKeys = {
-  shift: false,
-  ctrl: false,
-  alt: false
-}
-
 let mainPane;
 let loadPane;
 

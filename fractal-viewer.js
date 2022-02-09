@@ -9,9 +9,27 @@ class FractalViewer extends Viewport {
     this.forceRedrawPalette = false;
     this.finishStatsShown = false;
     this.fractalString = '';
+    this.dragStart = [0, 0];
     this.fractalComputer = new FractalComputer();
+    ctx.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
   }
 
+  onPointerDown(e) {
+    if (e.button == 0) {
+      GlobalDrag.startDrag(this);
+      this.dragStart = this.manualShift.sub(getEventClientXY(e));
+    }
+    if (e.button == 2) {
+      this.resetManual();
+      drawMainFractal();
+    }
+  }
+  
+  onDrag(mousePoint) {
+    this.manualShift = this.dragStart.add(mousePoint);
+    drawMainFractal();
+  }
+  
   prepare(formulas) {
     this.drawnPointsCount = 0;
     this.tabmax = 0;
@@ -19,7 +37,7 @@ class FractalViewer extends Viewport {
     this.height = this.ctx.canvas.height;
     this.tab = new Int32Array(this.width * this.height);
     this.maxpoints = 100 * getViewArea(this);
-    const numpoints = 1 * getViewArea(this);
+    const numpoints = 5 * getViewArea(this);
     if (this.points == undefined || this.points.length != 2 * numpoints)
       this.points = new Float64Array(2 * numpoints); // two coordinates per point
     if (this.imageData == undefined || this.imageData.width != this.width || this.imageData.height != this.height)
@@ -90,8 +108,9 @@ class FractalViewer extends Viewport {
     const palData = new Int32Array(this.imageData.data.buffer);
     const palmul = (FRACTAL_PALETTE_LENGTH - 1) / this.tabmax;
     const thisTabLength = this.tab.length;
+    const palette = globalPaletteEditor.palette;
     for (let i = 0; i < thisTabLength; i++) {
-      palData[i] = fractalPalette[(this.tab[i] * palmul) | 0];
+      palData[i] = palette[(this.tab[i] * palmul) | 0];
     }
   }
 

@@ -1,139 +1,203 @@
 // PaletteEditor
 
 class PaletteEditor {
-  constructor(ctx) {
+
+  constructor(ctx, palette) {
     this.ctx = ctx;
     this.maxx = 0;
     this.colorValue = {r: 0, g:0 , b: 0};
     this.colorPosition = 3;
+    this.paletteKeys = [];
+    this.palette = [];
+    this.selectedColor = null;
+    this.lastSelectedColor = 0;
+    this.dragIndex = 0;
+    this.loadPalette(palette);
+    ctx.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
+    ctx.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
   }
+  
   setMaxX(maxx) {
     this.maxx = maxx;
   }
+  
   getX(i) {
     return  (this.maxx + 1) * i / FRACTAL_PALETTE_LENGTH;
   }
+  
   getIndex(x) {
     if (x < 0) x = 0;
     if (x >= this.maxx) x = this.maxx;
     return (x * FRACTAL_PALETTE_LENGTH / (this.maxx + 1)) | 0;
   }
-}
 
-function drawPaletteEditor() {
-  localStorage.lastpalette = JSON.stringify(paletteKeys);
-  const id = 'canvasColor';
-  const c  = document.getElementById(id);
-  c.width = c.parentElement.clientWidth;
-  c.height = c.parentElement.clientHeight;
-  const d = 5;
-  const h = c.height;
-  globalPaletteEditor.setMaxX(c.width);
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = 'black';
-  ctx.setLineDash([]);
-  ctx.lineWidth = 1;
-  for (let x = 0; x < c.width; x++) {
-    const i = globalPaletteEditor.getIndex(x);
-    const rgb = fractalPalette[i];
-    const hex = rgbToHex(rgb & 0xff, (rgb >> 8) & 0xff, (rgb >> 16) & 0xff);
-    ctx.fillStyle = hex;
-    ctx.fillRect(x, 0, x, c.height);
+  onPointerDown(e) {
+    console.log('down')
+    if (e.button == 0) {
+      this.selectNearestColor(getEventClientXY(e));
+      if (this.selectedColor != null) {
+        GlobalDrag.startDrag(this);
+        this.dragIndex = this.selectedColor;
+      }
+    }
   }
-  for (let i = 0; i < paletteKeys.length; i++) {
-    if (i == selectedColor) {
-      ctx.lineWidth = 4;
+
+  onPointerMove(e) {
+    if (!GlobalDrag.dragOwner) {
+      this.selectNearestColor(getEventClientXY(e));
+      this.draw();
+    }
+  }
+
+  onDrag(mousePoint) {
+    const p = this.paletteKeys[this.dragIndex];
+    let newIndex = this.getIndex(mousePoint[0]);
+    if (this.dragIndex > 0 && newIndex <= this.paletteKeys[this.dragIndex - 1].index) {
+      newIndex = this.paletteKeys[this.dragIndex - 1].index + 1;
+    }
+    if (this.dragIndex < this.paletteKeys.length - 1 && newIndex >= this.paletteKeys[this.dragIndex + 1].index) {
+      newIndex = this.paletteKeys[this.dragIndex + 1].index - 1;
+    }
+    p.index = newIndex;
+    this.palette = createPaletteFromKeys(this.paletteKeys);
+    this.draw();
+    globalFractalViewer.setForceRedrawPalette();
+  }
+
+  onDragEnd() {
+    
+  }
+  
+  draw() {
+    localStorage.lastpalette = JSON.stringify(this.paletteKeys);
+    const ctx = this.ctx;
+    const c  = ctx.canvas;
+    c.width = c.parentElement.clientWidth;
+    c.height = c.parentElement.clientHeight;
+    const d = 5;
+    const h = c.height;
+    this.setMaxX(c.width);
+    ctx.fillStyle = 'black';
+    ctx.setLineDash([]);
+    ctx.lineWidth = 1;
+    for (let x = 0; x < c.width; x++) {
+      const i = this.getIndex(x);
+      const rgb = this.palette[i];
+      const hex = rgbToHex(rgb & 0xff, (rgb >> 8) & 0xff, (rgb >> 16) & 0xff);
+      ctx.fillStyle = hex;
+      ctx.fillRect(x, 0, x, c.height);
+    }
+    for (let i = 0; i < this.paletteKeys.length; i++) {
+      if (i == this.selectedColor) {
+        ctx.lineWidth = 4;
+      }
+      else {
+        ctx.lineWidth = 1;
+      }
+      const key = this.paletteKeys[i];
+      const x = this.getX(key.index);
+      const rgb = key.r + key.g + key.b;
+      ctx.beginPath();
+      ctx.strokeStyle = rgb > 1.5 * 0xff ? 'black' : 'white';
+      ctx.moveTo(x - d, 0);
+      ctx.lineTo(x, d);
+      ctx.lineTo(x + d, 0);
+      ctx.stroke();
+    }
+  }
+  
+  initializePane(pane) {
+    this.colorPicker = pane.addInput(this, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
+      let p = this.paletteKeys[this.lastSelectedColor];
+      p.r = this.colorValue.r;
+      p.g = this.colorValue.g;
+      p.b = this.colorValue.b;
+      this.palette = createPaletteFromKeys(this.paletteKeys);
+      this.draw();
+      globalFractalViewer.setForceRedrawPalette();
+      GlobalDrag.dragOwner = this;
+    });
+    this.buttonAddColor = pane.addButton({title: 'Add color [A]'}).on('click', this.addColor.bind(this));
+    this.buttonRemoveColor = pane.addButton({title: 'Remove color [X]'}).on('click', this.removeColor.bind(this));
+    this.colorPicker.hidden = true;
+    this.buttonAddColor.hidden = true;
+    this.buttonRemoveColor.hidden = true;
+  }
+
+  loadPalette(palette) {
+    if (palette) {
+      this.paletteKeys = JSON.parse(palette);
     }
     else {
-      ctx.lineWidth = 1;
+      this.paletteKeys.push(new cPaletteKey(  0, 0xff, 0xff, 0xff));
+      this.paletteKeys.push(new cPaletteKey(250, 0,    0,    0xff));
+      this.paletteKeys.push(new cPaletteKey(500, 0xff, 0,    0   ));
+      this.paletteKeys.push(new cPaletteKey(750, 0xff, 0xff, 0   ));
+      this.paletteKeys.push(new cPaletteKey(999, 0xff, 0xff, 0xff));
     }
-    const key = paletteKeys[i];
-    const x = globalPaletteEditor.getX(key.index);
-    const rgb = key.r + key.g + key.b;
-    ctx.beginPath();
-    ctx.strokeStyle = rgb > 1.5 * 0xff ? 'black' : 'white';
-    ctx.moveTo(x - d, 0);
-    ctx.lineTo(x, d);
-    ctx.lineTo(x + d, 0);
-    ctx.stroke();
+    this.palette = createPaletteFromKeys(this.paletteKeys);
+    this.colorValue = this.paletteKeys[0];
   }
-}
-
-function addColorAt(index) {
-  let i = 0;
-  while (i < paletteKeys.length - 1 && paletteKeys[i].index < index) i++;
-  const rgb = fractalPalette[index];
-  paletteKeys.splice(i, 0, new cPaletteKey(index, rgb & 0xff, (rgb >> 8) & 0xff, (rgb >> 16) & 0xff));
-  fractalPalette = createPaletteFromKeys(paletteKeys);
-  drawPaletteEditor();
-  globalFractalViewer.setForceRedrawPalette();
-  GlobalHistory.store();
-}
-
-function addColor() {
-  if (globalPaletteEditor.colorPicker.hidden) return;
-  let i = lastSelectedColor;
-  if (i == paletteKeys.length - 1) i--;
-  addColorAt(((paletteKeys[i].index + paletteKeys[i + 1].index) / 2) | 0);
-}
-
-function removeColor() {
-  if (globalPaletteEditor.colorPicker.hidden) return;
-  if (paletteKeys.length > 2) {
-    paletteKeys.splice(lastSelectedColor, 1);
-    if (lastSelectedColor > 0) {
-      lastSelectedColor--;
-    }
-    fractalPalette = createPaletteFromKeys(paletteKeys);
-    drawPaletteEditor();
+  
+  addColorAt(index) {
+    let i = 0;
+    while (i < this.paletteKeys.length - 1 && this.paletteKeys[i].index < index) i++;
+    const rgb = this.palette[index];
+    this.paletteKeys.splice(i, 0, new cPaletteKey(index, rgb & 0xff, (rgb >> 8) & 0xff, (rgb >> 16) & 0xff));
+    this.palette = createPaletteFromKeys(this.paletteKeys);
+    this.draw();
     globalFractalViewer.setForceRedrawPalette();
     GlobalHistory.store();
-    }
-}
-
-function togglePaletteEditor() {
-  if (toggleDisplay('canvasColorDiv')) {
-    drawPaletteEditor();
-    globalPaletteEditor.colorPicker.hidden = false;
-    globalPaletteEditor.buttonAddColor.hidden = false;
-    globalPaletteEditor.buttonRemoveColor.hidden = false;
-    } 
-  else {
-    globalPaletteEditor.colorPicker.hidden = true;
-    globalPaletteEditor.buttonAddColor.hidden = true;
-    globalPaletteEditor.buttonRemoveColor.hidden = true;
-    }
-}
-
-function selectNearestColor(p) {
-  const points = [];
-  for (let key of paletteKeys) {
-    points.push([globalPaletteEditor.getX(key.index), 10]);
   }
-  selectedColor = findNearestPoint(points, p, 100);
-  if (selectedColor != null) {
-    lastSelectedColor = selectedColor;
-    globalPaletteEditor.colorValue = paletteKeys[selectedColor];
-    //const state = drag.state;
-    globalPaletteEditor.colorPicker.refresh();
-    //drag.state = state;
+  
+  addColor() {
+    if (this.colorPicker.hidden) return;
+    let i = this.lastSelectedColor;
+    if (i == this.paletteKeys.length - 1) i--;
+    this.addColorAt(((this.paletteKeys[i].index + this.paletteKeys[i + 1].index) / 2) | 0);
   }
-}
-
-function initializePaletteEditorPane() {
-  globalPaletteEditor.colorPicker = mainPane.addInput(globalPaletteEditor, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
-    let p = paletteKeys[lastSelectedColor];
-    p.r = globalPaletteEditor.colorValue.r;
-    p.g = globalPaletteEditor.colorValue.g;
-    p.b = globalPaletteEditor.colorValue.b;
-    fractalPalette = createPaletteFromKeys(paletteKeys);
-    drawPaletteEditor();
-    globalFractalViewer.setForceRedrawPalette();
-    GlobalDrag.dragOwner = globalPaletteEditor;
-  });
-  globalPaletteEditor.buttonAddColor = mainPane.addButton({title: 'Add color [A]'}).on('click', addColor);
-  globalPaletteEditor.buttonRemoveColor = mainPane.addButton({title: 'Remove color [X]'}).on('click', removeColor);
-  globalPaletteEditor.colorPicker.hidden = true;
-  globalPaletteEditor.buttonAddColor.hidden = true;
-  globalPaletteEditor.buttonRemoveColor.hidden = true;
+  
+  removeColor() {
+    if (this.colorPicker.hidden) return;
+    if (this.paletteKeys.length > 2) {
+      this.paletteKeys.splice(this.lastSelectedColor, 1);
+      if (this.lastSelectedColor > 0) {
+        this.lastSelectedColor--;
+      }
+      this.palette = createPaletteFromKeys(this.paletteKeys);
+      this.draw();
+      globalFractalViewer.setForceRedrawPalette();
+      GlobalHistory.store();
+      }
+  }
+  
+  toggle() {
+    if (toggleDisplay('canvasColorDiv')) {
+      this.draw();
+      this.colorPicker.hidden = false;
+      this.buttonAddColor.hidden = false;
+      this.buttonRemoveColor.hidden = false;
+      } 
+    else {
+      this.colorPicker.hidden = true;
+      this.buttonAddColor.hidden = true;
+      this.buttonRemoveColor.hidden = true;
+      }
+  }
+  
+  selectNearestColor(p) {
+    const points = [];
+    for (let key of this.paletteKeys) {
+      points.push([this.getX(key.index), 10]);
+    }
+    this.selectedColor = findNearestPoint(points, p, 100);
+    if (this.selectedColor != null) {
+      this.lastSelectedColor = this.selectedColor;
+      this.colorValue = this.paletteKeys[this.selectedColor];
+      const state = GlobalDrag.dragOwner;
+      this.colorPicker.refresh();
+      GlobalDrag.dragOwner = state;
+    }
+  }
+  
 }

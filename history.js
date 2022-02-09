@@ -9,7 +9,7 @@ class GlobalHistory {
     if (this.pointer < this.stack.length - 1)
       this.stack.splice(this.pointer + 1);
     let item = {
-      palette: JSON.stringify(paletteKeys),
+      palette: JSON.stringify(globalPaletteEditor.paletteKeys),
       fractal: globalFractalViewer.fractalString,
     };
     this.stack.push(item);
@@ -17,9 +17,8 @@ class GlobalHistory {
   }
 
   static restore(item) {
-    paletteKeys = JSON.parse(item.palette);
+    globalPaletteEditor.loadPalette(JSON.parse(item.palette));
     globalFractalEditor.formulas = new Fractal(item.fractal).formulas;
-    fractalPalette = createPaletteFromKeys(paletteKeys);
     windowResize();
   }
   

@@ -24,7 +24,8 @@ class GlobalDrag {
   
   static onPointerUp() {
     if (this.dragOwner) {
-      this.dragOwner.onDragEnd();
+      if ([globalFractalEditor, globalPaletteEditor, 'colorpicker'].includes(this.dragOwner)) GlobalHistory.store();
+      if (this.dragOwner.onDragEnd) this.dragOwner.onDragEnd();
       this.dragOwner = null;
     }
   }
