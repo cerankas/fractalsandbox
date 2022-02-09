@@ -8,11 +8,13 @@ class FractalEditor extends Viewport {
     this.selectedFormula = 0;
     this.selectedPoint = null;
     this.balanceFactor = 1;
+    this.viewRatio = .5;
     this.dragFormula = null;
     this.dragStart = [0, 0];
     this.dragLock = null;
     ctx.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
     ctx.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
+    this.registerWheelListener();
   }
 
   hasSelectedPoint() {
@@ -62,12 +64,26 @@ class FractalEditor extends Viewport {
 
   doDragFormula(dataMousePoint) {
     const tmpFormula = this.dragFormula.clone();
-    const delta = dataMousePoint.sub(this.dragStart);
+    const basePoint = tmpFormula.iterate([0, 0]);
+    const deltaStartMouse = dataMousePoint.sub(this.dragStart);
+    const deltaBaseMouse = basePoint.sub(dataMousePoint);
+    const deltaBaseStart = basePoint.sub(this.dragStart);
+    const angle = deltaBaseStart.vectorAngleDifference(deltaBaseMouse);
+    const scale = deltaBaseStart.vectorLengthRatio(deltaBaseMouse);
     if (this.selectedPoint == 0) {
-      tmpFormula.shift(delta[0], delta[1]);
+      tmpFormula.shift(deltaStartMouse[0], deltaStartMouse[1]);
       }
     if (this.selectedPoint == 2) {
-      this.dragMove(tmpFormula, dataMousePoint);
+      tmpFormula.rotate(angle, angle);
+      tmpFormula.scale(scale, scale);
+    }
+    if (this.selectedPoint == 1) {
+      tmpFormula.rotate(0, angle);
+      tmpFormula.scale(1, scale);
+    }
+    if (this.selectedPoint == 3) {
+      tmpFormula.rotate(angle, 0);
+      tmpFormula.scale(scale, 1);
     }
     this.formulas[this.selectedFormula] = tmpFormula;
   }

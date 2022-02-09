@@ -38,9 +38,9 @@ Array.prototype.vectorAngle = function() {
 }
 
 Array.prototype.vectorAngleDifference = function(vector) {
-  const angle = vector.vectorAngle() - this.vectorAngle();
-  if (angle >   180) angle -= 180;
-  if (angle <= -180) angle += 180;
+  let angle = vector.vectorAngle() - this.vectorAngle();
+  if (angle >   180) angle -= 360;
+  if (angle <= -180) angle += 360;
   return angle;
 }
 

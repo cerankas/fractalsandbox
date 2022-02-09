@@ -15,7 +15,8 @@ function initializeMainPane() {
   mainPane.addButton({title: 'Redo [Y]'}).on('click', () => { GlobalHistory.forward(); });
   mainPane.addButton({title: 'Add triangle [+]'}).on('click', () => { globalFractalEditor.addFormula(); });
   mainPane.addButton({title: 'Remove triangle [-]'}).on('click', () => { globalFractalEditor.removeFormula(); });
-  mainPane.addInput(globalFractalEditor, 'balanceFactor', { label: 'Total balance', min: .1, max: 3, step: .01 }).on('change', drawMainFractal);
+  mainPane.addInput(globalFractalEditor, 'balanceFactor', { min: .1, max: 3, step: .01 }).on('change', drawMainFractal);
+  mainPane.addInput(globalFractalEditor, 'viewRatio', { min: 0, max: 1, step: .01 }).on('change', windowResize);
   mainPane.addButton({title: 'Draw infinitely [I]'}).on('click', () => { globalFractalViewer.infinite = !globalFractalViewer.infinite; });
   mainPane.addButton({title: 'Edit colors [C]'}).on('click', () => { globalPaletteEditor.toggle(); });
 

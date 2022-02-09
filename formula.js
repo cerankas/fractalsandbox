@@ -46,21 +46,31 @@ class Formula {
     return [sx, sy];
   }
 
+  setAC(v) {
+    this.a = v[0];
+    this.c = v[1];
+  }
+
+  setBD(v) {
+    this.b = v[0];
+    this.d = v[1];
+  }
+
   setRotation(rx, ry) {
     let s = this.getScale();
-    [this.a, this.c] = [s[0], 0].vectorRotate(rx);
-    [this.b, this.d] = [0, s[1]].vectorRotate(ry);
+    this.setAC([s[0], 0].vectorRotate(rx));
+    this.setBD([0, s[1]].vectorRotate(ry));
   }
 
   setScale(sx, sy) {
     const r = this.getRotation();
-    [this.a, this.c] = [sx, 0].vectorRotate(r[0]);
-    [this.b, this.d] = [0, sy].vectorRotate(r[1]);
+    this.setAC([sx, 0].vectorRotate(r[0]));
+    this.setBD([0, sy].vectorRotate(r[1]));
   }
 
   rotate(rx, ry) {
-    [this.a, this.c] = [this.a, this.c].vectorRotate(rx);
-    [this.b, this.d] = [this.b, this.d].vectorRotate(ry);
+    this.setAC([this.a, this.c].vectorRotate(rx));
+    this.setBD([this.b, this.d].vectorRotate(ry));
   }
 
   scale(sx, sy) {

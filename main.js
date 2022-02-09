@@ -8,12 +8,17 @@ function windowResize() {
   }
   let width  = window.innerWidth;
   let height = window.innerHeight;
-  if (width > height) 
-    width /= 2; 
-  else 
-    height /= 2;
-  setWidthHeight(globalFractalViewer, width, height);
-  setWidthHeight(globalFractalEditor, width, height);
+  const r1 = globalFractalEditor.viewRatio;
+  const r2 = 1 - r1;
+  if (width > height)
+  {
+    setWidthHeight(globalFractalViewer, r1 * width, height);
+    setWidthHeight(globalFractalEditor, r2 * width, height);
+    }
+  else  {
+    setWidthHeight(globalFractalViewer, width, r1 * height);
+    setWidthHeight(globalFractalEditor, width, r2 * height);
+    }
   drawMainFractal();
   globalFractalEditor.resizeFormulas();
   globalPaletteEditor.draw();
