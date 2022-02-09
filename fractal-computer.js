@@ -2,22 +2,28 @@
 
 class FractalComputer {
   static FORMULA_ARRAY_SIZE = 0x4000;
-  static RANDOM_ARRAY_SIZE = 5000000;
 
-  static randomSamplesArray;
+  static randomSamplesArray = [];
   static formulaRandomizerArray;
 
   static {
-    this.randomSamplesArray = new Int16Array(this.RANDOM_ARRAY_SIZE);
+    this.ensureRandomArraySize(this.FORMULA_ARRAY_SIZE);
     this.formulaRandomizerArray = new Int16Array(this.FORMULA_ARRAY_SIZE);
-    for (let i = 0; i < this.RANDOM_ARRAY_SIZE; i++) {
-      this.randomSamplesArray[i] = (Math.random() * this.FORMULA_ARRAY_SIZE) | 0;
-    }
     for (let i = 1; i < this.FORMULA_ARRAY_SIZE; i++) {
       let j = 0;
       while (this.formulaRandomizerArray[j] != 0)
         j = Math.floor(Math.random() * this.FORMULA_ARRAY_SIZE);
       this.formulaRandomizerArray[j] = i;
+    }
+  }
+
+  static ensureRandomArraySize(size) {
+    if (size <= this.randomSamplesArray.length) return;
+    const tmpRandomSamplesArray = this.randomSamplesArray;
+    this.randomSamplesArray = new Int16Array(size);
+    this.randomSamplesArray.set(tmpRandomSamplesArray);
+    for (let i = tmpRandomSamplesArray.length; i < size; i++) {
+      this.randomSamplesArray[i] = (Math.random() * this.FORMULA_ARRAY_SIZE) | 0;
     }
   }
   
@@ -49,6 +55,11 @@ class FractalComputer {
   }
 
   compute(points) {
+    FractalComputer.ensureRandomArraySize(points.length / 2);
+    if (!this.randomXor) {
+      this.computeFirst(points);
+      return;
+    }
     let x = this.x;
     let y = this.y;
     let randomXor = this.randomXor;
@@ -65,4 +76,23 @@ class FractalComputer {
     this.y = y;
     this.randomXor ++;
   }
+
+  computeFirst(points) {
+    let x = this.x;
+    let y = this.y;
+    let randomXor = this.randomXor;
+    let formulas = this.formulas;
+    let pointPtr = points.length;
+    let randomPtr = 0;
+    while (pointPtr) {
+      const f = formulas[FractalComputer.randomSamplesArray[randomPtr++]];
+      const tmp              = f.a * x + f.b * y + f.e;
+      y = points[--pointPtr] = f.c * x + f.d * y + f.f;
+      x = points[--pointPtr] = tmp;
+    }
+    this.x = x;
+    this.y = y;
+    this.randomXor ++;
+  }
+
 }
