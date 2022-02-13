@@ -22,10 +22,9 @@ function windowResize() {
       setWidthHeight(globalFractalEditor, width, height - width);
     }
   }
-  globalFractalViewer.updateTransform();
   globalFractalViewer.viewChanged = true;
   globalFractalEditor.resizeFormulas();
-  globalPaletteEditor.draw();
+  globalPaletteEditor.mustRedraw = true;
 }
 
 function processInBackground() {
@@ -79,6 +78,7 @@ function jsMain() {
   globalFractalEditor = new FractalEditor(getCanvasCtx('canvasForm'));
   globalPaletteEditor = new PaletteEditor(getCanvasCtx('canvasColor'));
   
+  globalFractalViewer.displayStats = true;
   globalPaletteEditor.loadPalette(localStorage.lastPalette);
 
   const fernFractal = '-.653 .458 .270 .685 .374 .513#-.151 -.382 -.123 .239 .278 .426#.051 -.434 -.067 -.211 .597 .689#-.047 .725 .183 .147 .023 .231';
