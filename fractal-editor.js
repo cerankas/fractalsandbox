@@ -7,14 +7,9 @@ class FractalEditor extends Viewport {
     this.formulas = [];
     this.selectedFormula = 0;
     this.selectedPoint = null;
-    this.balanceFactor = 1;
-    this.viewRatio = .5;
-    this.dragFormula = null;
-    this.dragStart = [0, 0];
-    this.dragLock = null;
+    this.registerWheelListener();
     ctx.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
     ctx.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
-    this.registerWheelListener();
   }
 
   hasSelectedPoint() {
@@ -23,38 +18,38 @@ class FractalEditor extends Viewport {
 
   onPointerDown(e) {
     if (e.button == 0) {
-      const screenMousePoint = getEventClientXY(e);
+      const screenMousePoint = getEventOffsetXY(e);
       const dataMousePoint = this.fromScreen(screenMousePoint);
       this.selectNearestFormula(dataMousePoint);
       if (this.hasSelectedPoint()) {
         this.dragFormula = this.formulas[this.selectedFormula].clone();
         this.dragStart = dataMousePoint;
         this.dragLock = null;
-        GlobalDrag.startDrag(this);
+        globalDrag.startDrag(this);
       }
       else {
         this.dragFormula = null;
         this.dragStart = this.manualShift.sub(screenMousePoint);
-        GlobalDrag.startDrag(this);
+        globalDrag.startDrag(this);
       }
     }
     if (e.button == 2) {
-      this.resetManual();
+      this.resetToAuto();
       this.resizeFormulas();
     }
   }
 
   onPointerMove(e) {
-    if (GlobalDrag.dragOwner != null) return;
-    const dataMousePoint = this.fromScreen(getEventClientXY(e));
+    if (globalDrag.isDragging()) return;
+    const dataMousePoint = this.fromScreen(getEventOffsetXY(e));
     this.selectNearestFormula(dataMousePoint);
-    this.drawFormulas();
+    this.draw();
   }
 
   onDrag(screenMousePoint) {
     if (this.dragFormula != null) {
       this.doDragFormula(this.fromScreen(screenMousePoint));
-      this.drawFormulas();
+      this.draw();
     }
     else {
       this.manualShift = this.dragStart.add(screenMousePoint);
@@ -111,9 +106,10 @@ class FractalEditor extends Viewport {
       [ 0, 0],
       [ 0, 1],
       [ 1, 0],
-      [-1, 0],
+      [-1, 0]
     ];
     for (let vector of formulaVectors) {
+      if (vector == undefined) debugger;
       formulaPoints.push(formula.iterate(vector));
     }
     return formulaPoints;
@@ -139,14 +135,14 @@ class FractalEditor extends Viewport {
     else {
       this.updateTransform();
     }
-    this.drawFormulas();
+    this.viewChanged = true;
   }
   
-  drawFormulas() {
+  draw() {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.lineWidth = 1;
-    this.drawCage();
+    this.drawBaseFormula();
     for (let i = 0; i < this.formulas.length; i++) {
       if (i != this.selectedFormula)
       this.drawFormula(i);
@@ -177,23 +173,14 @@ class FractalEditor extends Viewport {
     }
   }
   
-  drawCage() {
-    const p1 = this.toScreen([-1,-1]);
-    const p2 = this.toScreen([0,0]);
-    const p3 = this.toScreen([1,1]);
-    const ctx = this.ctx;
-    ctx.strokeStyle = 'lightgrey';
-    ctx.beginPath();
-    ctx.moveTo(p1[0],p1[1]);
-    ctx.lineTo(p1[0],p3[1]);
-    ctx.lineTo(p3[0],p3[1]);
-    ctx.lineTo(p3[0],p1[1]);
-    ctx.lineTo(p1[0],p1[1]);
-    ctx.moveTo(p2[0],p1[1]);
-    ctx.lineTo(p2[0],p3[1]);
-    ctx.moveTo(p1[0],p2[1]);
-    ctx.lineTo(p3[0],p2[1]);
-    ctx.stroke();
+  drawBaseFormula() {
+    this.ctx.strokeStyle = 'lightgrey';
+    this.drawTriangle([
+      this.toScreen([ 0, 0]),
+      this.toScreen([ 0, 1]),
+      this.toScreen([ 1, 0]),
+      this.toScreen([-1, 0])
+    ]);
   }
 
   drawTriangle(points) {
@@ -224,18 +211,11 @@ class FractalEditor extends Viewport {
     this.formulas.push(new Formula());
     this.selectedFormula = this.formulas.length - 1;
     this.selectedPoint = null;
-    windowResize();
-    GlobalHistory.store();
   }
   
-  removeFormula(formulaIndex) {
-    if (formulaIndex == null) {
-      formulaIndex = this.selectedFormula;
-    }
-    if (formulaIndex != null && this.formulas.length > 2) {
-      this.formulas.splice(formulaIndex, 1);
-      windowResize();
-      GlobalHistory.store();
+  removeFormula() {
+    if (this.selectedFormula != null && this.formulas.length > 2) {
+      this.formulas.splice(this.selectedFormula, 1);
     }
     this.selectedFormula = 0;
     this.selectedPoint = null;

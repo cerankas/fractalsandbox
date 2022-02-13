@@ -5,6 +5,9 @@
 let mainPane;
 let loadPane;
 
+let globalDrag;
+let globalHistory;
+
 let globalFractalSelector;
 let globalFractalViewer;
 let globalFractalEditor;

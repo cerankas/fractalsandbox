@@ -33,8 +33,6 @@ class FractalComputer {
       this.formulas.push(null);
   }
   
-//  getAdjustedArea(area, balanceFactor) { return Math.pow(area, balanceFactor); }
-
   initialize(formulas) {
     this.startms = getMilliseconds();
     this.x = 0;

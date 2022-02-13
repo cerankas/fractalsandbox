@@ -6,10 +6,6 @@ class FractalViewer extends Viewport {
     super(ctx, zoom);
     this.calculatedPointsCount = 0;
     this.infinite = false;
-    this.forceRedrawPalette = false;
-    this.finishStatsShown = false;
-    this.fractalString = '';
-    this.dragStart = [0, 0];
     this.fractalComputer = new FractalComputer();
   }
 
@@ -21,48 +17,56 @@ class FractalViewer extends Viewport {
 
   onPointerDown(e) {
     if (e.button == 0) {
-      GlobalDrag.startDrag(this);
-      this.dragStart = this.manualShift.sub(getEventClientXY(e));
+      globalDrag.startDrag(this);
+      this.dragStart = this.manualShift.sub(getEventOffsetXY(e));
     }
     if (e.button == 2) {
-      this.resetManual();
-      drawMainFractal();
+      this.resetToAuto();
+      this.viewChanged = true;
     }
   }
-  
+
   onDrag(mousePoint) {
     this.manualShift = this.dragStart.add(mousePoint);
-    drawMainFractal();
+    this.updateTransform();
+    this.viewChanged = true;
   }
-  
-  prepare(formulas) {
+
+  setFormulas(formulas) {
+    this.formulas = formulas;
+    this.prepare();
+  }
+
+  setPalette(palette) {
+    this.palette = palette;
+    if (this.calculatedPointsCount) {
+      this.doCalculateColorsAndDraw();
+    }
+  }
+
+  prepare() {
     this.calculatedPointsCount = 0;
-    this.tabmax = 0;
+    this.maxSum = 0;
     this.width  = this.ctx.canvas.width;
     this.height = this.ctx.canvas.height;
-    this.tab = new Int32Array(this.width * this.height);
-    this.maxpoints = 100 * getViewArea(this);
-    this.numpoints = 2 * getViewArea(this);
+    this.sums = new Int32Array(this.width * this.height);
+    this.maxpoints = 100 * this.getArea(this);
+    this.numpoints = 2 * this.getArea(this);
     if (this.points == undefined || this.points.length != 2 * this.numpoints)
       this.points = new Float64Array(2 * this.numpoints); // two coordinates per point
     if (this.imageData == undefined || this.imageData.width != this.width || this.imageData.height != this.height)
       this.imageData = this.ctx.createImageData(this.width, this.height);
-    this.autoScaleRequired = true;
-    this.finishStatsShown = false;
-    if (formulas) {
-      this.formulas = formulas;
-      this.fractalString = this.formulas.toString();
-    }
     this.fractalComputer.initialize(this.formulas);
     this.lastPutImageTime = getMilliseconds();
     this.putImageInterval = 20;
+    this.finishStatsShown = false;
   }
 
-  draw() {
+  processInBackground() {
     let startms = getMilliseconds();
     if (this.isFinished()) {
       if (this.forceRedrawPalette) {
-        this.redrawPalette();
+        this.doCalculateColorsAndDraw();
       }
       if (!this.finishStatsShown) {
         document.title = Math.floor(this.calculatedPointsCount / 1000000) + ' mp ' + (getMilliseconds() - this.fractalComputer.startms) + ' ms';
@@ -71,16 +75,11 @@ class FractalViewer extends Viewport {
       return;
     }
     //document.title = ~~(100 * this.calculatedPointsCount / this.maxpoints) + '%';
-    if (this.autoScaleRequired) {
+    if (!this.calculatedPointsCount) {
       this.doCalculatePoints();
       this.doAutoScale();
       this.doSumPoints();
-      //while (getMilliseconds() - startms < 8) {
-      //  this.doCalculatePoints();
-      //  this.doSumPoints();
-     // }
-      this.doCalculateColors();
-      this.doPutImageData();
+      this.doCalculateColorsAndDraw();
     }
     else {
       while (getMilliseconds() - startms < Math.min(this.putImageInterval, 40)) {
@@ -90,8 +89,7 @@ class FractalViewer extends Viewport {
       if (getMilliseconds() - this.lastPutImageTime > this.putImageInterval || this.isFinished()) {
         this.lastPutImageTime = getMilliseconds();
         if (this.putImageInterval < 2000) this.putImageInterval *= 1.5;
-        this.doCalculateColors();
-        this.doPutImageData();
+        this.doCalculateColorsAndDraw();
       }
     }
     document.title = Math.floor((this.numpoints) / (getMilliseconds() - startms));
@@ -107,69 +105,50 @@ class FractalViewer extends Viewport {
   }
 
   doAutoScale() {
-    this.autoScaleRequired = false;
     const minMax = getBoundingBoxFrom1DArray(this.points);
     this.setMinMax(minMax);
   }
 
   doSumPoints() {
     const thisPointsLength = this.points.length;
+    const scale = this.scale;
     const shiftx = this.shift[0];
     const shifty = this.shift[1];
     for (let i = 0; i < thisPointsLength; i += 2) {
-      const x = ( this.points[i    ] * this.scale + shiftx) | 0;
-      const y = (-this.points[i + 1] * this.scale + shifty) | 0;
+      const x = ( this.points[i    ] * scale + shiftx) | 0;
+      const y = (-this.points[i + 1] * scale + shifty) | 0;
       if (x > 0 && x <= this.width && y > 0 && y <= this.height) {
         const j = x - 1 + this.width * (y - 1);
-        if (++this.tab[j] > this.tabmax)
-          this.tabmax = this.tab[j];
+        if (++this.sums[j] > this.maxSum)
+          this.maxSum = this.sums[j];
       }
     }
   }
 
-  doCalculateColors() {
-    const palData = new Int32Array(this.imageData.data.buffer);
-    const palmul = (FRACTAL_PALETTE_LENGTH - 1) / this.tabmax;
-    const thisTabLength = this.tab.length;
-    const palette = globalPaletteEditor.palette;
-    for (let i = 0; i < thisTabLength; i++) {
-      palData[i] = palette[(this.tab[i] * palmul) | 0];
+  doSumPoints2() {
+    for (let i = 0; i < this.points.length; i += 2) {
+      const x = ( this.points[i    ] * this.scale + this.shift[0]) | 0;
+      const y = (-this.points[i + 1] * this.scale + this.shift[1]) | 0;
+      if (x > 0 && x <= this.width && y > 0 && y <= this.height) {
+        const j = x - 1 + this.width * (y - 1);
+        if (++this.sums[j] > this.maxSum)
+          this.maxSum = this.sums[j];
+      }
     }
   }
 
-  doPutImageData() {
+  doCalculateColorsAndDraw() {
+    const palData = new Int32Array(this.imageData.data.buffer);
+    const palmul = (FRACTAL_PALETTE_LENGTH - 1) / this.maxSum;
+    const thisTabLength = this.sums.length;
+    for (let i = 0; i < thisTabLength; i++) {
+      palData[i] = this.palette[(this.sums[i] * palmul) | 0];
+    }
     this.ctx.putImageData(this.imageData, 0, 0);
   }
 
-  setForceRedrawPalette() {
-    this.forceRedrawPalette = true;
+  getArea() {
+    return this.width * this.height;
   }
 
-  redrawPalette() {
-    this.doCalculateColors();
-    this.doPutImageData();
-    this.forceRedrawPalette = false;
-  }
-}
-
-function getViewArea(view) { return view.width * view.height; }
-
-function getBoundingBoxFrom2DArray(points) {
-  let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
-  for (let i = 0; i < points.length; i++) {
-    const x = points[i][0], y = points[i][1];
-    if (x < minx) minx = x; if (x > maxx) maxx = x;
-    if (y < miny) miny = y; if (y > maxy) maxy = y;
-  }
-  return [[minx, miny], [maxx, maxy]];
-}
-
-function getBoundingBoxFrom1DArray(points) {
-  let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
-  for (let i = 0; i < points.length - 1000; i += 2) {
-    const x = points[i], y = points[i + 1];
-    if (x < minx) minx = x; if (x > maxx) maxx = x;
-    if (y < miny) miny = y; if (y > maxy) maxy = y;
-  }
-  return [[minx, miny], [maxx, maxy]];
 }

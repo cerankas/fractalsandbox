@@ -14,11 +14,10 @@ function saveFractal() {
 
 function loadFractal(fract) {
   globalFractalSelector.hide();
-  globalFractalViewer.resetManual();
-  globalFractalEditor.resetManual();
-  globalFractalEditor.formulas = new Fractal(fract).formulas;
-  windowResize();
-  GlobalHistory.store();
+  globalFractalViewer.resetToAuto();
+  globalFractalEditor.resetToAuto();
+  globalFractalEditor.formulas = formulasFromString(fract);
+  globalFractalViewer.setFormulas(globalFractalEditor.formulas);
 }
 
 function toggleDisplay(id) {
@@ -46,16 +45,26 @@ function findNearestPoint(points, point, distanceThreshold) {
   return nearestIndex;
 }
 
-function getEventClientXY(e) {
-  return [
-    e.offsetX,
-    e.offsetY
-  ];
+function getBoundingBoxFrom2DArray(points) {
+  let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+  for (let i = 0; i < points.length; i++) {
+    const x = points[i][0], y = points[i][1];
+    if (x < minx) minx = x; if (x > maxx) maxx = x;
+    if (y < miny) miny = y; if (y > maxy) maxy = y;
+  }
+  return [[minx, miny], [maxx, maxy]];
 }
 
-function getEventScreenXY(e) {
-  return [
-    e.pageX,
-    e.pageY
-  ];
+function getBoundingBoxFrom1DArray(points) {
+  let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+  for (let i = 0; i < points.length - 1000; i += 2) {
+    const x = points[i], y = points[i + 1];
+    if (x < minx) minx = x; if (x > maxx) maxx = x;
+    if (y < miny) miny = y; if (y > maxy) maxy = y;
+  }
+  return [[minx, miny], [maxx, maxy]];
 }
+
+function getEventOffsetXY(e) { return [e.offsetX, e.offsetY]; }
+
+function getEventPageXY(e) { return [e.pageX, e.pageY]; }

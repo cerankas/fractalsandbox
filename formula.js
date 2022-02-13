@@ -86,3 +86,20 @@ class Formula {
   }
 
 }
+
+function formulasFromString(fractalString) {
+  const formulas = [];
+  const strings = fractalString.replaceAll(',', '#').split('#');
+  for (let string of strings) {
+    formulas.push(new Formula(string));
+  }
+  return formulas;
+}
+
+function formulasToString(formulas) {
+  let string = formulas[0].toString();
+  for (let i = 1; i < formulas.length; i++) {
+    string += '#' + formulas[i].toString();
+  }
+  return string;
+}

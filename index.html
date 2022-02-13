@@ -6,6 +6,7 @@
     <meta name="description" content="Interactive fractal generator">
     <meta name="author" content="Szymon Ceranka">
     <link href="style.css" rel="stylesheet" type="text/css"/>
+    <link href="lib/fontello-embedded.css" rel="stylesheet" type="text/css"/>
     <script src="lib/tweakpane.min.js"></script>
     <script src="global.js"></script>
     <script src="vector.js"></script>
@@ -15,13 +16,11 @@
     <script src="palette.js"></script>
     <script src="palette-editor.js"></script>
     <script src="formula.js"></script>
-    <script src="fractal.js"></script>
     <script src="fractal-selector.js"></script>
     <script src="fractal-editor.js"></script>
     <script src="fractal-computer.js"></script>
     <script src="fractal-viewer.js"></script>
     <script src="history.js"></script>
-    <script src="user.js"></script>
     <script src="menus-and-keys.js"></script>
     <script src="main.js"></script>
   </head>
@@ -33,6 +32,9 @@
       <canvas id="canvasFrac"></canvas><canvas id="canvasForm"></canvas>
       <div id="canvasColorDiv" style="position:absolute; height:20px; left:8px; right:8px; bottom:8px; display:none;">
         <canvas id="canvasColor"></canvas>
+      </div>
+      <div id="colorPickerDiv" style="position:absolute; left:0px; height:100px; width:100px; bottom:80px; display:none">
+        <input type="color" id="colorPickerInput" value="#ff0000">
       </div>
     </div>
     <div id="fractalSelectorDiv" style="overflow-y:scroll; height:100%; display:none;">

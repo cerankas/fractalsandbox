@@ -18,21 +18,22 @@ class FractalSelectorItem {
     div.appendChild(this.canvas);
     this.canvas = document.getElementById(this.key);
     this.viewPort = new FractalViewer(this.canvas.getContext('2d'));
-    this.viewPort.prepare(new Fractal(this.value).formulas);
-    this.viewPort.draw();
+    this.viewPort.setFormulas(formulasFromString(this.value));
+    this.viewPort.setPalette(globalPaletteEditor.palette);
+    this.viewPort.processInBackground();
     this.detail = 1;
   }
 
   updateSize(size) {
     this.canvas.width = size;
     this.canvas.height = size;
-    this.viewPort.prepare();
-    this.viewPort.draw();
+    this.viewPort.prepare()
+    this.viewPort.processInBackground();
     this.detail = 1;
   }
 
   increaseDetail() {
-    this.viewPort.draw();
+    this.viewPort.processInBackground();
     this.detail++;
   }
 
@@ -94,7 +95,7 @@ class FractalSelector {
       this.show();
   }
 
-  computeInBackground() {
+  processInBackground() {
     const startms = getMilliseconds();
     while (!this.updated && getMilliseconds() - startms < 200) {
       for (let item of this.items) {

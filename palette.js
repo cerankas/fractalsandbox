@@ -3,12 +3,14 @@
 const FRACTAL_PALETTE_LENGTH = 1000;
 
 class cPaletteKey {
+  
   constructor(index, r, g, b) {
     this.index = index;
     this.r = r;
     this.g = g;
     this.b = b;
   }
+
 }
 
 function coeffMul(v1, v2, coeff) {
@@ -49,4 +51,12 @@ function componentToHex(c) {
 
 function rgbToHex(r, g, b) {
   return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+function paletteKeysFromString(string) {
+  return JSON.parse(string);
+}
+
+function paletteKeysToString(paletteKeys) {
+  return JSON.stringify(paletteKeys);
 }

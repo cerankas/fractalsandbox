@@ -32,19 +32,18 @@ class PaletteEditor {
   }
 
   onPointerDown(e) {
-    console.log('down')
     if (e.button == 0) {
-      this.selectNearestColor(getEventClientXY(e));
+      this.selectNearestColor(getEventOffsetXY(e));
       if (this.selectedColor != null) {
-        GlobalDrag.startDrag(this);
+        globalDrag.startDrag(this);
         this.dragIndex = this.selectedColor;
       }
     }
   }
 
   onPointerMove(e) {
-    if (!GlobalDrag.dragOwner) {
-      this.selectNearestColor(getEventClientXY(e));
+    if (!globalDrag.isDragging()) {
+      this.selectNearestColor(getEventOffsetXY(e));
       this.draw();
     }
   }
@@ -60,8 +59,6 @@ class PaletteEditor {
     }
     p.index = newIndex;
     this.palette = createPaletteFromKeys(this.paletteKeys);
-    this.draw();
-    globalFractalViewer.setForceRedrawPalette();
   }
 
   onDragEnd() {
@@ -69,7 +66,6 @@ class PaletteEditor {
   }
   
   draw() {
-    localStorage.lastpalette = JSON.stringify(this.paletteKeys);
     const ctx = this.ctx;
     const c  = ctx.canvas;
     c.width = c.parentElement.clientWidth;
@@ -107,15 +103,12 @@ class PaletteEditor {
   }
   
   initializePane(pane) {
-    this.colorPicker = pane.addInput(this, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => { 
+    this.colorPicker = pane.addInput(this, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => {
       let p = this.paletteKeys[this.lastSelectedColor];
       p.r = this.colorValue.r;
       p.g = this.colorValue.g;
       p.b = this.colorValue.b;
       this.palette = createPaletteFromKeys(this.paletteKeys);
-      this.draw();
-      globalFractalViewer.setForceRedrawPalette();
-      GlobalDrag.dragOwner = this;
     });
     this.buttonAddColor = pane.addButton({title: 'Add color [A]'}).on('click', this.addColor.bind(this));
     this.buttonRemoveColor = pane.addButton({title: 'Remove color [X]'}).on('click', this.removeColor.bind(this));
@@ -126,7 +119,7 @@ class PaletteEditor {
 
   loadPalette(palette) {
     if (palette) {
-      this.paletteKeys = JSON.parse(palette);
+      this.paletteKeys = paletteKeysFromString(palette);
     }
     else {
       this.paletteKeys.push(new cPaletteKey(  0, 0xff, 0xff, 0xff));
@@ -145,9 +138,6 @@ class PaletteEditor {
     const rgb = this.palette[index];
     this.paletteKeys.splice(i, 0, new cPaletteKey(index, rgb & 0xff, (rgb >> 8) & 0xff, (rgb >> 16) & 0xff));
     this.palette = createPaletteFromKeys(this.paletteKeys);
-    this.draw();
-    globalFractalViewer.setForceRedrawPalette();
-    GlobalHistory.store();
   }
   
   addColor() {
@@ -165,10 +155,7 @@ class PaletteEditor {
         this.lastSelectedColor--;
       }
       this.palette = createPaletteFromKeys(this.paletteKeys);
-      this.draw();
-      globalFractalViewer.setForceRedrawPalette();
-      GlobalHistory.store();
-      }
+    }
   }
   
   toggle() {
@@ -177,12 +164,12 @@ class PaletteEditor {
       this.colorPicker.hidden = false;
       this.buttonAddColor.hidden = false;
       this.buttonRemoveColor.hidden = false;
-      } 
+    } 
     else {
       this.colorPicker.hidden = true;
       this.buttonAddColor.hidden = true;
       this.buttonRemoveColor.hidden = true;
-      }
+    }
   }
   
   selectNearestColor(p) {
@@ -194,9 +181,7 @@ class PaletteEditor {
     if (this.selectedColor != null) {
       this.lastSelectedColor = this.selectedColor;
       this.colorValue = this.paletteKeys[this.selectedColor];
-      const state = GlobalDrag.dragOwner;
       this.colorPicker.refresh();
-      GlobalDrag.dragOwner = state;
     }
   }
   

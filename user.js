@@ -23,3 +23,15 @@ function getSessionStatus() {
     }
   }
 }*/
+
+/*function initializeUserPane() {
+  userPane = new Tweakpane.Pane();
+  userPane.hidden = true;
+  mainPane.addInput(parameters, 'email');
+  mainPane.addInput(parameters, 'password');
+  mainPane.addInput(parameters, 'nickname');
+  mainPane.addButton({title: 'login'}).on('click', () => { sendXHR('action=login&email=' + parameters.email + '&password=' + parameters.password); });
+  mainPane.addButton({title: 'logout'}).on('click', () => { sendXHR('action=logout'); });
+  mainPane.addButton({title: 'register'}).on('click', () => { sendXHR('action=register&email=' + parameters.email + '&password=' + parameters.password + '&nickname=' + parameters.nickname); });
+  mainPane.addButton({title: 'reset password'}).on('click', () => { sendXHR('action=reset&email=' + parameters.email); });
+}*/

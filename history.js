@@ -1,39 +1,32 @@
 // History
 
-class GlobalHistory {
+class History {
 
-  static stack = [];
-  static pointer = 0;
+  constructor(onRestoreItem) {
+    this.stack = [];
+    this.pointer = -1;
+    this.restoreItem = onRestoreItem;
+  }
 
-  static store() {
-    if (this.pointer < this.stack.length - 1)
-      this.stack.splice(this.pointer + 1);
-    let item = {
-      palette: JSON.stringify(globalPaletteEditor.paletteKeys),
-      fractal: globalFractalViewer.fractalString,
-    };
+  store(item) {
+    if (this.stack.length) {
+      let different = false;
+      for (let field in item) if (item[field] != this.stack[this.pointer][field]) different = true;
+      if (!different) return;
+    }
+    if (!this.isPointerAtLastItem()) this.deleteItemsAfterPointer();
     this.stack.push(item);
-    this.pointer = this.stack.length - 1;
+    this.pointer ++;
   }
+  
+  back()    { if (!this.isPointerAtFirstItem()) this.restoreItem(this.stack[--this.pointer]); }
+  
+  forward() { if (!this.isPointerAtLastItem())  this.restoreItem(this.stack[++this.pointer]); }
 
-  static restore(item) {
-    globalPaletteEditor.loadPalette(JSON.parse(item.palette));
-    globalFractalEditor.formulas = new Fractal(item.fractal).formulas;
-    windowResize();
-  }
-  
-  static back() {
-    if (this.pointer > 0) {
-      this.pointer--;
-      this.restore(this.stack[this.pointer]);
-    }
-  }
-  
-  static forward() {
-    if (this.pointer < this.stack.length - 1) {
-      this.pointer++;
-      this.restore(this.stack[this.pointer]);
-    }
-  }
+  isPointerAtFirstItem() { return this.pointer == 0; }
+
+  isPointerAtLastItem()  { return this.pointer == this.stack.length - 1; }
+
+  deleteItemsAfterPointer() { this.stack.splice(this.pointer + 1); }
 
 }

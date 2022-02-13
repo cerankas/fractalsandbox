@@ -10,7 +10,6 @@ class Viewport {
     this.manualShift = [0, 0];
     this.autoZoom = zoom || 0.9;
     this.minMax = [[0, 0], [1, 1]];
-    this.doZoom = false;
   }
 
   toScreen(p) {
@@ -27,7 +26,7 @@ class Viewport {
     ];
   }
 
-  resetManual() {
+  resetToAuto() {
     this.manualScale = 1;
     this.manualShift = [0, 0];
     this.updateTransform();
@@ -55,19 +54,23 @@ class Viewport {
   }
  
   onWheel(e) {
-    const delta = (e.deltaY < 0) ? 1.1 : 1 / 1.1;
-    const mousePoint = getEventClientXY(e);
-    const p0 = this.fromScreen(mousePoint);
-    this.manualScale *= delta;
+    const scaleMultiplier = (e.deltaY < 0) ? 1.1 : 1 / 1.1;
+    const screenMousePoint = getEventOffsetXY(e);
+    const dataMousePoint = this.fromScreen(screenMousePoint);
+    this.manualScale *= scaleMultiplier;
     this.updateTransform();
-    const p = this.toScreen(p0);
-    this.manualShift = this.manualShift.add(mousePoint).sub(p);
+    const uncorrectedScreenMousePoint = this.toScreen(dataMousePoint);
+    this.manualShift = this.manualShift.add(screenMousePoint).sub(uncorrectedScreenMousePoint);
     this.updateTransform();
-    this.doZoom = true;
+    this.viewChanged = true;
   }
 
   registerWheelListener() {
-    this.ctx.canvas.addEventListener('wheel', this.onWheel.bind(this), {passive:true});
+    this.ctx.canvas.addEventListener('wheel', this.onWheel.bind(this), { passive: true });
+  }
+
+  viewToString() {
+    return this.scale + ' ' + this.shift[0] + ' ' + this.shift[1];
   }
 
 }

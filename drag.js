@@ -1,30 +1,33 @@
-// GlobalDrag
+// Drag
 
-class GlobalDrag {
+class Drag {
 
-  static dragOwner = null;
-  
-  static {
+    constructor() {
+    this.dragOwner = null;
+    this.colorPickerDragging = false;
     window.addEventListener('pointermove', this.onPointerMove.bind(this));
     window.addEventListener('pointerup',   this.onPointerUp.bind(this));
   }
   
-  static startDrag(owner) {
+  startDrag(owner) {
     this.dragOwner = owner;
   }
 
-  static onPointerMove(e) {
+  isDragging() {
+    return this.dragOwner != null || this.colorPickerDragging;
+  }
+
+  onPointerMove(e) {
     if (this.dragOwner) {
       const rect = this.dragOwner.ctx.canvas.getBoundingClientRect();
       const canvasCorner = [rect.left, rect.top];
-      const mousePoint = getEventScreenXY(e);
+      const mousePoint = getEventPageXY(e);
       this.dragOwner.onDrag(mousePoint.sub(canvasCorner));
     }
   }
   
-  static onPointerUp() {
+  onPointerUp() {
     if (this.dragOwner) {
-      if ([globalFractalEditor, globalPaletteEditor, 'colorpicker'].includes(this.dragOwner)) GlobalHistory.store();
       if (this.dragOwner.onDragEnd) this.dragOwner.onDragEnd();
       this.dragOwner = null;
     }
