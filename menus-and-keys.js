@@ -4,7 +4,54 @@ function toggleMainPane() {
   mainPane.hidden = ~mainPane.hidden;
 }
 
+function selectFractal() {
+  globalFractalSelector.show();
+}
+
+function historyBack() {
+  globalHistory.back();
+}
+
+function historyForward() {
+  globalHistory.forward();
+}
+
+function addTriangle() {
+  globalFractalEditor.addFormula();
+}
+
+function removeTriangle() {
+  globalFractalEditor.removeFormula();
+}
+
+function drawInfinitely() {
+  globalFractalViewer.infinite = !globalFractalViewer.infinite;
+}
+
+function editColors() {
+  globalPaletteEditor.toggle();
+}
+
+
 function initializeMainPane() {
+  function addMainMenuIcon(name, onclick) {
+    const menuDiv = document.getElementById("mainIconsHidingDiv");
+    const icon = document.createElement('i');
+    icon.className = 'icon-main icon-' + name;
+    icon.onclick = onclick;
+    menuDiv.appendChild(icon);
+    menuDiv.appendChild(document.createTextNode(' '));
+  }
+  addMainMenuIcon('download-cloud', selectFractal);
+  addMainMenuIcon('upload-cloud', saveFractal);
+  addMainMenuIcon('picture', downloadImage);
+  addMainMenuIcon('reply', historyBack);
+  addMainMenuIcon('forward', historyForward);
+  addMainMenuIcon('plus-squared-alt', addTriangle);
+  addMainMenuIcon('minus-squared-alt', removeTriangle);
+  addMainMenuIcon('infinity', drawInfinitely);
+  addMainMenuIcon('brush', editColors);
+
   mainPane = new Tweakpane.Pane({container: document.getElementById("mainPaneDiv")});
   mainPane.addButton({title: 'Hide menu [M]'}).on('click', () => { toggleMainPane(); });
   mainPane.addButton({title: 'Load fractal [L]'}).on('click', () => { globalFractalSelector.show(); });

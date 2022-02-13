@@ -28,13 +28,19 @@
   <body style="overflow:hidden;"  oncontextmenu="return false">
     <a id="download" download="fractalsandbox.png" href="" style="display:none"></a>
     <div id="mainDiv">
-      <div id="mainPaneDiv" style="position:absolute; top:8px; right:8px; width:280px; height:auto; margin:0px; padding:0px;"></div>
+      <div id="mainIconsDiv" style="position:absolute; height:16px; top:8px; right:8px;">
+        <span id="mainIconsHidingDiv">
+        </span>
+        <i class="icon-main icon-ellipsis" onclick="toggleMainMenu()"></i>
+      </div>
+      <div id="mainPaneDiv" style="position:absolute; top:38px; right:8px; width:280px; height:auto; margin:0px; padding:0px;"></div>
       <canvas id="canvasFrac"></canvas><canvas id="canvasForm"></canvas>
       <div id="canvasColorDiv" style="position:absolute; height:20px; left:8px; right:8px; bottom:8px; display:none;">
         <canvas id="canvasColor"></canvas>
       </div>
-      <div id="colorPickerDiv" style="position:absolute; left:0px; height:100px; width:100px; bottom:80px; display:none">
+      <div id="colorPickerDiv" style="position:absolute; left:0px; height:100px; width:100px; bottom:80px; display:none;">
         <input type="color" id="colorPickerInput" value="#ff0000">
+        <i class="demo-icon icon-upload-cloud"></i>
       </div>
     </div>
     <div id="fractalSelectorDiv" style="overflow-y:scroll; height:100%; display:none;">

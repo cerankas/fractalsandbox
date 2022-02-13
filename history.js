@@ -14,18 +14,18 @@ class History {
       for (let field in item) if (item[field] != this.stack[this.pointer][field]) different = true;
       if (!different) return;
     }
-    if (!this.isPointerAtLastItem()) this.deleteItemsAfterPointer();
+    if (this.isPointerBeforeLastItem()) this.deleteItemsAfterPointer();
     this.stack.push(item);
     this.pointer ++;
   }
   
-  back()    { if (!this.isPointerAtFirstItem()) this.restoreItem(this.stack[--this.pointer]); }
+  back()    { if (this.isPointerAfterFirstItem()) this.restoreItem(this.stack[--this.pointer]); }
   
-  forward() { if (!this.isPointerAtLastItem())  this.restoreItem(this.stack[++this.pointer]); }
+  forward() { if (this.isPointerBeforeLastItem()) this.restoreItem(this.stack[++this.pointer]); }
 
-  isPointerAtFirstItem() { return this.pointer == 0; }
+  isPointerAfterFirstItem() { return this.pointer > 0; }
 
-  isPointerAtLastItem()  { return this.pointer == this.stack.length - 1; }
+  isPointerBeforeLastItem() { return this.pointer < this.stack.length - 1; }
 
   deleteItemsAfterPointer() { this.stack.splice(this.pointer + 1); }
 

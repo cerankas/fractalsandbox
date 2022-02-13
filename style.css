@@ -3,7 +3,19 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    user-select: none;
 }
+
 canvas {
     touch-action: none;
+}
+
+.icon-main {
+    cursor: pointer;
+    font-size: 150%;
+    background-color: #e8e8e8;
+}
+
+.icon-main:hover {
+    background-color: lightgrey;
 }
