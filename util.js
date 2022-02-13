@@ -14,9 +14,10 @@ function saveFractal() {
 
 function loadFractal(fract) {
   globalFractalSelector.hide();
-  globalFractalViewer.resetToAuto();
   globalFractalEditor.resetToAuto();
   globalFractalEditor.formulas = formulasFromString(fract);
+  globalFractalEditor.resizeFormulas();
+  globalFractalViewer.resetToAuto();
   globalFractalViewer.setFormulas(globalFractalEditor.formulas);
 }
 

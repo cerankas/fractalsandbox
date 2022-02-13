@@ -12,16 +12,6 @@ function windowResize() {
   else height /= 2;
   setWidthHeight(globalFractalViewer, width, height);
   setWidthHeight(globalFractalEditor, width, height);
-  if (false) {
-    if (width > height) {
-      setWidthHeight(globalFractalViewer, height, height);
-      setWidthHeight(globalFractalEditor, width - height, height);
-    }
-    else {
-      setWidthHeight(globalFractalViewer, width, width);
-      setWidthHeight(globalFractalEditor, width, height - width);
-    }
-  }
   globalFractalViewer.viewChanged = true;
   globalFractalEditor.resizeFormulas();
   globalPaletteEditor.mustRedraw = true;

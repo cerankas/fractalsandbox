@@ -6,7 +6,4 @@ html, body {
 }
 canvas {
     touch-action: none;
-/*    margin: 0px;
-    padding: 0px;
-    border: 0px;*/
 }

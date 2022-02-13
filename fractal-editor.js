@@ -43,13 +43,12 @@ class FractalEditor extends Viewport {
     if (globalDrag.isDragging()) return;
     const dataMousePoint = this.fromScreen(getEventOffsetXY(e));
     this.selectNearestFormula(dataMousePoint);
-    this.draw();
+    this.viewChanged = true;
   }
 
   onDrag(screenMousePoint) {
     if (this.dragFormula != null) {
       this.doDragFormula(this.fromScreen(screenMousePoint));
-      this.draw();
     }
     else {
       this.manualShift = this.dragStart.add(screenMousePoint);
