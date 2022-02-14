@@ -107,22 +107,6 @@ class FractalViewer extends Viewport {
   }
 
   doSumPoints() {
-    const thisPointsLength = this.points.length;
-    const scale = this.scale;
-    const shiftx = this.shift[0];
-    const shifty = this.shift[1];
-    for (let i = 0; i < thisPointsLength; i += 2) {
-      const x = ( this.points[i    ] * scale + shiftx) | 0;
-      const y = (-this.points[i + 1] * scale + shifty) | 0;
-      if (x > 0 && x <= this.width && y > 0 && y <= this.height) {
-        const j = x - 1 + this.width * (y - 1);
-        if (++this.sums[j] > this.maxSum)
-          this.maxSum = this.sums[j];
-      }
-    }
-  }
-
-  doSumPoints2() {
     for (let i = 0; i < this.points.length; i += 2) {
       const x = ( this.points[i    ] * this.scale + this.shift[0]) | 0;
       const y = (-this.points[i + 1] * this.scale + this.shift[1]) | 0;

@@ -103,3 +103,12 @@ function formulasToString(formulas) {
   }
   return string;
 }
+
+function normalizeFormulas(formulas) {
+  let area = 0;
+  for (let formula of formulas) {
+    area += formula.getArea();
+  }
+  for (let formula of formulas)
+    formula.p = formula.getArea() / area;
+}

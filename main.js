@@ -22,40 +22,48 @@ function processInBackground() {
     globalFractalSelector.processInBackground();
   }
   else {
+
     const fractalString = formulasToString(globalFractalEditor.formulas);
     const paletteString = paletteKeysToString(globalPaletteEditor.paletteKeys);
+
     if (globalFractalViewer.fractalString != fractalString || globalFractalViewer.viewChanged) {
       globalFractalViewer.fractalString = fractalString;
       globalFractalViewer.viewChanged = false;
       globalFractalViewer.setFormulas(globalFractalEditor.formulas);
     }
+
     if (globalFractalViewer.paletteString != paletteString) {
       globalFractalViewer.paletteString = paletteString;
       globalFractalViewer.setPalette(globalPaletteEditor.palette);
     }
+
     globalFractalViewer.processInBackground();
+
     if (!globalDrag.isDragging()) {
       localStorage.lastFractal = fractalString;
       localStorage.lastPalette = paletteString;
       globalHistory.store({ fractal: fractalString, palette: paletteString });
     }
+
     if (globalFractalEditor.fractalString != fractalString || globalFractalEditor.viewChanged) {
       globalFractalEditor.fractalString = fractalString;
       globalFractalEditor.viewChanged = false;
       globalFractalEditor.draw();
     }
+
     if (globalPaletteEditor.paletteString != paletteString || globalPaletteEditor.mustRedraw) {
       globalPaletteEditor.paletteString = paletteString;
       globalPaletteEditor.mustRedraw = false;
       globalPaletteEditor.draw();
     }
+
   }
   setTimeout(processInBackground,1);
 }
 
 function onRestoreHistoryItem(item) {
-  globalFractalEditor.formulas = formulasFromString(item.fractal);
   globalPaletteEditor.loadPalette(item.palette);
+  loadFractal(item.fractal);
   windowResize();
 }
 

@@ -86,6 +86,14 @@ class FractalEditor extends Viewport {
     this.resizeFormulas();
   }
 
+  loadFormulas(formulaString) {
+    this.formulas = formulasFromString(formulaString);
+    this.resetToAuto();
+    this.resizeFormulas();
+    this.selectedFormula = 0;
+    this.selectedPoint = null;
+  }
+
   selectNearestFormula(point) {
     const fractalPoints = this.getFractalPoints();
     const nearestIndex = findNearestPoint(fractalPoints, point, 20 / this.scale);
@@ -99,6 +107,7 @@ class FractalEditor extends Viewport {
   }
 
   getFormulaPoints(formulaIndex) {
+    if (formulaIndex >= this.formulas.length) debugger
     const formula = this.formulas[formulaIndex];
     const formulaPoints = [];
     const formulaVectors = [
@@ -108,7 +117,6 @@ class FractalEditor extends Viewport {
       [-1, 0]
     ];
     for (let vector of formulaVectors) {
-      if (vector == undefined) debugger;
       formulaPoints.push(formula.iterate(vector));
     }
     return formulaPoints;
@@ -210,6 +218,7 @@ class FractalEditor extends Viewport {
     this.formulas.push(new Formula());
     this.selectedFormula = this.formulas.length - 1;
     this.selectedPoint = null;
+    normalizeFormulas(this.formulas);
   }
   
   removeFormula() {
@@ -218,6 +227,7 @@ class FractalEditor extends Viewport {
     }
     this.selectedFormula = 0;
     this.selectedPoint = null;
+    normalizeFormulas(this.formulas);
   }
 
 }
