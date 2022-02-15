@@ -35,8 +35,9 @@ class FractalComputer {
   
   initialize(formulas) {
     this.startms = getMilliseconds();
-    this.x = 0;
-    this.y = 0;
+    const attractor = formulas[0].getAttractor();
+    this.x = attractor[0];
+    this.y = attractor[1];
     this.randomXor = 0;
     normalizeFormulas(formulas);
     for (let i = 0, formulaIndex = -1, accumulatedWeight = 0; i < FractalComputer.FORMULA_ARRAY_SIZE; i++) {
@@ -67,13 +68,12 @@ class FractalComputer {
     }
     this.x = x;
     this.y = y;
-    this.randomXor ++;
+    if (++this.randomXor >= FractalComputer.FORMULA_ARRAY_SIZE) this.randomXor = 0;
   }
 
   computeFirst(points) {
     let x = this.x;
     let y = this.y;
-    let randomXor = this.randomXor;
     let formulas = this.formulas;
     let pointPtr = points.length;
     let randomPtr = 0;

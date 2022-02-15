@@ -30,6 +30,15 @@ class Formula {
     ];
   }
 
+  getAttractor() {
+    const aa = this.a - 1;
+    const dd = this.d - 1;
+    const w = aa * dd - this.b * this.c;
+    const wx = this.b * this.f -     dd * this.e;
+    const wy =     aa * this.f - this.c * this.e;
+    return [wx / w, wy / w];
+  }
+
   getArea() {
     return Math.abs(this.b * this.c - this.a * this.d);
   }
