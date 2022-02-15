@@ -16,6 +16,7 @@ function loadFractal(fract) {
   globalFractalSelector.hide();
   globalFractalEditor.loadFormulas(fract);
   globalFractalViewer.resetToAuto();
+  globalFractalViewer.setFormulas(globalFractalEditor.formulas);
 }
 
 function toggleDisplay(id) {
