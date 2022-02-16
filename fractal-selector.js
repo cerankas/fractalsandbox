@@ -18,10 +18,9 @@ class FractalSelectorItem {
     div.appendChild(this.canvas);
     this.canvas = document.getElementById(this.key);
     this.viewPort = new FractalViewer(this.canvas.getContext('2d'));
-    this.viewPort.setFormulas(formulasFromString(this.value));
     this.viewPort.setPalette(globalPaletteEditor.palette);
+    this.viewPort.setFormulas(formulasFromString(this.value));
     this.viewPort.processInBackground();
-    this.detail = 1;
   }
 
   updateSize(size) {
@@ -29,12 +28,14 @@ class FractalSelectorItem {
     this.canvas.height = size;
     this.viewPort.prepare()
     this.viewPort.processInBackground();
-    this.detail = 1;
   }
 
   increaseDetail() {
     this.viewPort.processInBackground();
-    this.detail++;
+  }
+
+  isFinished() {
+    return this.viewPort.isFinished();
   }
 
 }
@@ -46,8 +47,7 @@ class FractalSelector {
     this.items = [];
     this.div = div;
     this.backgroundDiv = document.getElementById('mainDiv');
-    this.tileSize = 200;
-    this.tileDetail = 10;
+    this.tileSize = 100;
   }
 
   update() {
@@ -97,7 +97,7 @@ class FractalSelector {
 
   processInBackground() {
     const startms = getMilliseconds();
-    while (!this.updated && getMilliseconds() - startms < 200) {
+    while (!this.updated && getMilliseconds() - startms < 40) {
       for (let item of this.items) {
         if (!item.canvas) {
           item.createCanvas(this.div, this.tileSize);
@@ -109,7 +109,7 @@ class FractalSelector {
         }
       }
       for (let item of this.items) {
-        if (item.detail < this.tileDetail) {
+        if (!item.isFinished()) {
           item.increaseDetail();
           return;
         }

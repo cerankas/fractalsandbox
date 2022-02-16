@@ -71,7 +71,6 @@ function initializeLoadPane() {
   loadPane = new Tweakpane.Pane({container: document.getElementById("loadPaneDiv")});
   loadPane.addButton({title: 'Cancel [L]'}).on('click', () => { globalFractalSelector.hide(); });
   loadPane.addInput(globalFractalSelector, 'tileSize', { label: 'Tile size', min: 50, max: 500, step: 1 }).on('change', () => { globalFractalSelector.update(); });
-  loadPane.addInput(globalFractalSelector, 'tileDetail', { label: 'Tile detail', min: 1, max: 10, step: 1 }).on('change', () => { globalFractalSelector.update(); });
 }
 
 function initializeUserInterface() {
