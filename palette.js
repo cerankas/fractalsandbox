@@ -1,8 +1,9 @@
 // Palette
 
-const FRACTAL_PALETTE_LENGTH = 1000;
 
-class cPaletteKey {
+class PaletteKey {
+  static PALETTE_LENGTH = 1000;
+  static MAX_KEY_INDEX = 1000;
   
   constructor(index, r, g, b) {
     this.index = index;
@@ -39,7 +40,7 @@ function createPaletteFromKeys(keys) {
       palette.push(fmul(r, g, b, 0xff));
     }
   }
-  for (let i = lastKey.index + 1; i < FRACTAL_PALETTE_LENGTH; i++)
+  for (let i = lastKey.index + 1; i < PaletteKey.MAX_KEY_INDEX; i++)
     palette.push(fmul(lastKey.r, lastKey.g, lastKey.b, 0xff));
   return palette;
 }

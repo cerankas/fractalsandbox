@@ -1,5 +1,7 @@
 // FractalViewer
 
+let doonce = 100;
+
 class FractalViewer extends Viewport {
 
   constructor(ctx, zoom) {
@@ -52,6 +54,7 @@ class FractalViewer extends Viewport {
     this.height = this.ctx.canvas.height;
     
     this.sums = new Int32Array(this.width * this.height);
+    // this.sums = new Float64Array(this.width * this.height);
     this.maxSum = 0;
 
     this.maxpoints = 100 * this.getArea();
@@ -108,6 +111,30 @@ class FractalViewer extends Viewport {
     this.setMinMax(minMax);
   }
   
+  doSumPoints0() {
+    for (let i = 0; i < this.points.length; i += 2) {
+      const x =  this.points[i    ] * this.scale + this.shift[0];
+      const y = -this.points[i + 1] * this.scale + this.shift[1];
+      if (x > 0 && x <= this.width && y > 0 && y <= this.height) {
+        const xx = x | 0;
+        const yy = y | 0;
+        const wx1 = x - xx;
+        const wy1 = y - yy;
+        const wx2 = xx + 1 - x;
+        const wy2 = yy + 1 - y;
+        if (doonce) {
+          console.log(wx1 * wy1 + wx1 * wy2 + wx2 * wy1 + wx2 * wy2)
+          doonce --;
+        }
+        const j = (xx - 1) + this.width * (yy - 1);
+        this.sums[j                 ] +=  wx1 * wy1;
+        this.sums[j              + 1] +=  wx2 * wy1;
+        this.sums[j + this.width    ] +=  wx1 * wy2;
+        this.sums[j + this.width + 1] +=  wx2 * wy2;
+      }
+    }
+  }
+
   doSumPoints() {
     for (let i = 0; i < this.points.length; i += 2) {
       const x = ( this.points[i    ] * this.scale + this.shift[0]) | 0;
@@ -115,19 +142,52 @@ class FractalViewer extends Viewport {
       if (x > 0 && x <= this.width && y > 0 && y <= this.height) {
         const j = x - 1 + this.width * (y - 1);
         if (++this.sums[j] > this.maxSum)
-        this.maxSum = this.sums[j];
+          this.maxSum = this.sums[j];
       }
     }
   }
   
   doCalculateColorsAndDraw() {
+    for (let i = this.sums.length - 1; i >= 0; i--) {
+      if (this.maxSum < this.sums[i]) {
+        this.maxSum = this.sums[i];
+      }
+    }
     const palData = new Int32Array(this.imageData.data.buffer);
-    const palmul = (FRACTAL_PALETTE_LENGTH - 1) / this.maxSum;
-    const thisTabLength = this.sums.length;
-    for (let i = 0; i < thisTabLength; i++) {
+    const palmul = (PaletteKey.PALETTE_LENGTH - 1) / this.maxSum;
+    for (let i = this.sums.length - 1; i >= 0; i--) {
       palData[i] = this.palette[(this.sums[i] * palmul) | 0];
     }
     this.ctx.putImageData(this.imageData, 0, 0);
+    //this.doDrawHistogram();
+  }
+
+  doDrawHistogram() {
+    const size = this.width;
+    const hist = new Array(size).fill(0);
+    // var mul = (size - 1) / this.maxSum;
+    // var mul = (size - 1) / Math.sqrt(this.maxSum);
+    // var mul = (size - 1) / Math.log2(this.maxSum);
+    var mul = (size - 1) / Math.pow(this.maxSum, .3);
+    for (let i = 0; i < this.sums.length; i++) {
+      // hist[(this.sums[i] * mul) | 0] ++;
+      // hist[Math.sqrt(this.sums[i] * mul) | 0] ++;
+      // hist[(Math.log2(this.sums[i]) * mul) | 0] ++;
+      hist[(Math.pow(this.sums[i], .3) * mul) | 0] ++;
+    }
+
+    let max = 0;
+    for (let i = 1; i < hist.length; i++)
+      if (max < hist[i]) max = hist[i];
+    let ctx = this.ctx;
+    ctx.strokeStyle = 'red';
+    ctx.fillsStyle = 'grey';
+    ctx.beginPath();
+    ctx.moveTo(0, this.height * .9);
+    for (var i = 1; i < hist.length; i++) {
+      ctx.lineTo(i, this.height * .9 - (hist[i] * this.height * .3) / max);
+    }
+    ctx.stroke();
   }
   
   doDisplayStats() {

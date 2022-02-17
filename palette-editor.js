@@ -22,13 +22,13 @@ class PaletteEditor {
   }
   
   getX(i) {
-    return  (this.maxx + 1) * i / FRACTAL_PALETTE_LENGTH;
+    return  (this.maxx + 1) * i / PaletteKey.PALETTE_LENGTH;
   }
   
   getIndex(x) {
     if (x < 0) x = 0;
     if (x >= this.maxx) x = this.maxx;
-    return (x * FRACTAL_PALETTE_LENGTH / (this.maxx + 1)) | 0;
+    return (x * PaletteKey.PALETTE_LENGTH / (this.maxx + 1)) | 0;
   }
 
   onPointerDown(e) {
@@ -122,11 +122,11 @@ class PaletteEditor {
       this.paletteKeys = paletteKeysFromString(palette);
     }
     else {
-      this.paletteKeys.push(new cPaletteKey(  0, 0xff, 0xff, 0xff));
-      this.paletteKeys.push(new cPaletteKey(250, 0,    0,    0xff));
-      this.paletteKeys.push(new cPaletteKey(500, 0xff, 0,    0   ));
-      this.paletteKeys.push(new cPaletteKey(750, 0xff, 0xff, 0   ));
-      this.paletteKeys.push(new cPaletteKey(999, 0xff, 0xff, 0xff));
+      this.paletteKeys.push(new PaletteKey(  0, 0xff, 0xff, 0xff));
+      this.paletteKeys.push(new PaletteKey(250, 0,    0,    0xff));
+      this.paletteKeys.push(new PaletteKey(500, 0xff, 0,    0   ));
+      this.paletteKeys.push(new PaletteKey(750, 0xff, 0xff, 0   ));
+      this.paletteKeys.push(new PaletteKey(999, 0xff, 0xff, 0xff));
     }
     this.palette = createPaletteFromKeys(this.paletteKeys);
     this.colorValue = this.paletteKeys[0];
@@ -136,7 +136,7 @@ class PaletteEditor {
     let i = 0;
     while (i < this.paletteKeys.length - 1 && this.paletteKeys[i].index < index) i++;
     const rgb = this.palette[index];
-    this.paletteKeys.splice(i, 0, new cPaletteKey(index, rgb & 0xff, (rgb >> 8) & 0xff, (rgb >> 16) & 0xff));
+    this.paletteKeys.splice(i, 0, new PaletteKey(index, rgb & 0xff, (rgb >> 8) & 0xff, (rgb >> 16) & 0xff));
     this.palette = createPaletteFromKeys(this.paletteKeys);
   }
   
