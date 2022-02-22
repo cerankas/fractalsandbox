@@ -1,7 +1,5 @@
 // FractalViewer
 
-let doonce = 100;
-
 class FractalViewer extends Viewport {
 
   constructor(ctx, zoom) {
@@ -10,6 +8,9 @@ class FractalViewer extends Viewport {
     this.infinite = false;
     this.fractalComputer = new FractalComputer();
     this.displayStats = false;
+    this.weighedPoints = false;
+    this.stepDensity = 2;
+    this.targetDensity = 100;
   }
 
   registerEventListeners() {
@@ -53,12 +54,11 @@ class FractalViewer extends Viewport {
     this.width  = this.ctx.canvas.width;
     this.height = this.ctx.canvas.height;
     
-    this.sums = new Int32Array(this.width * this.height);
-    // this.sums = new Float64Array(this.width * this.height);
+    this.sums = this.weighedPoints ? new Float64Array(this.width * this.height) : this.sums = new Int32Array(this.width * this.height);
     this.maxSum = 0;
 
-    this.maxpoints = 100 * this.getArea();
-    this.numpoints = 2 * this.getArea();
+    this.maxpoints = this.targetDensity * this.getArea();
+    this.numpoints = this.stepDensity * this.getArea();
 
     if (this.points == undefined || this.points.length != 2 * this.numpoints) {
       this.points = new Float64Array(2 * this.numpoints); // two coordinates per point
@@ -84,7 +84,7 @@ class FractalViewer extends Viewport {
       this.doCalculateColorsAndDraw();
     }
     else {
-      while (getMilliseconds() - this.startms < Math.min(this.putImageInterval, 40)) {
+      while (getMilliseconds() - this.startms < Math.min(this.putImageInterval, 40) && !this.isFinished()) {
         this.doCalculatePoints();
         this.doSumPoints();
       }
@@ -110,8 +110,23 @@ class FractalViewer extends Viewport {
     const minMax = getBoundingBoxFrom1DArray(this.points);
     this.setMinMax(minMax);
   }
+
+  doSumPoints() {
+    this.weighedPoints ? this.doSumPointsWeighed() : this.doSumPointsSimple();
+  }
+
+  doSumPointsSimple() {
+    for (let i = 0; i < this.points.length; i += 2) {
+      const x = ( this.points[i    ] * this.scale + this.shift[0]) | 0;
+      const y = (-this.points[i + 1] * this.scale + this.shift[1]) | 0;
+      if (x > 0 && x <= this.width && y > 0 && y <= this.height) {
+        const j = x - 1 + this.width * (y - 1);
+        this.sums[j] ++;
+      }
+    }
+  }
   
-  doSumPoints0() {
+  doSumPointsWeighed() {
     for (let i = 0; i < this.points.length; i += 2) {
       const x =  this.points[i    ] * this.scale + this.shift[0];
       const y = -this.points[i + 1] * this.scale + this.shift[1];
@@ -122,10 +137,6 @@ class FractalViewer extends Viewport {
         const wy1 = y - yy;
         const wx2 = xx + 1 - x;
         const wy2 = yy + 1 - y;
-        if (doonce) {
-          console.log(wx1 * wy1 + wx1 * wy2 + wx2 * wy1 + wx2 * wy2)
-          doonce --;
-        }
         const j = (xx - 1) + this.width * (yy - 1);
         this.sums[j                 ] +=  wx1 * wy1;
         this.sums[j              + 1] +=  wx2 * wy1;
@@ -135,18 +146,6 @@ class FractalViewer extends Viewport {
     }
   }
 
-  doSumPoints() {
-    for (let i = 0; i < this.points.length; i += 2) {
-      const x = ( this.points[i    ] * this.scale + this.shift[0]) | 0;
-      const y = (-this.points[i + 1] * this.scale + this.shift[1]) | 0;
-      if (x > 0 && x <= this.width && y > 0 && y <= this.height) {
-        const j = x - 1 + this.width * (y - 1);
-        if (++this.sums[j] > this.maxSum)
-          this.maxSum = this.sums[j];
-      }
-    }
-  }
-  
   doCalculateColorsAndDraw() {
     for (let i = this.sums.length - 1; i >= 0; i--) {
       if (this.maxSum < this.sums[i]) {
