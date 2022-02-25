@@ -5,8 +5,8 @@
     <meta name="title" content="Fractal Sandbox">
     <meta name="description" content="Interactive fractal generator">
     <meta name="author" content="Szymon Ceranka">
-    <link href="style.css" rel="stylesheet" type="text/css"/>
     <link href="lib/fontello-embedded.css" rel="stylesheet" type="text/css"/>
+    <link href="style.css" rel="stylesheet" type="text/css"/>
     <script src="lib/tweakpane.min.js"></script>
     <script src="global.js"></script>
     <script src="vector.js"></script>
@@ -31,7 +31,10 @@
       <div id="mainIconsDiv" style="position:absolute; height:16px; top:8px; right:8px;">
         <span id="mainIconsHidingDiv">
         </span>
-        <i class="icon-main icon-ellipsis" onclick="toggleMainMenu()"></i>
+        <div class="tooltip">
+          <i class="icon-main icon-ellipsis" onclick="toggleMainMenu()"></i>
+          <span class="tooltiptext">Toggle toolbar [T]</span>
+        </div>
       </div>
       <div id="mainPaneDiv" style="position:absolute; top:38px; right:8px; width:280px; height:auto; margin:0px; padding:0px;"></div>
       <canvas id="canvasFrac"></canvas><canvas id="canvasForm"></canvas>

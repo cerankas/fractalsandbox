@@ -1,5 +1,9 @@
 // Menus and Keys
 
+function toggleMainMenu() {
+  toggleDisplay('mainIconsHidingDiv');
+}
+
 function toggleMainPane() {
   mainPane.hidden = ~mainPane.hidden;
 }
@@ -34,23 +38,46 @@ function editColors() {
 
 
 function initializeMainPane() {
-  function addMainMenuIcon(name, onclick) {
+  function addMainMenuIcon(name, onclick, tooltip) {
     const menuDiv = document.getElementById("mainIconsHidingDiv");
     const icon = document.createElement('i');
     icon.className = 'icon-main icon-' + name;
     icon.onclick = onclick;
-    menuDiv.appendChild(icon);
+    if (tooltip) {
+      const tooltipText = document.createElement('span');
+      tooltipText.className = 'tooltiptext';
+      tooltipText.innerHTML = tooltip;
+      const tooltipContainer = document.createElement('div');
+      tooltipContainer.className = 'tooltip';
+      tooltipContainer.appendChild(icon);
+      tooltipContainer.appendChild(tooltipText);
+      menuDiv.appendChild(tooltipContainer);
+    }
+    else {
+      menuDiv.appendChild(icon);
+    }
     menuDiv.appendChild(document.createTextNode(' '));
   }
-  addMainMenuIcon('download-cloud', selectFractal);
-  addMainMenuIcon('upload-cloud', saveFractal);
-  addMainMenuIcon('picture', downloadImage);
-  addMainMenuIcon('reply', historyBack);
-  addMainMenuIcon('forward', historyForward);
-  addMainMenuIcon('plus-squared-alt', addTriangle);
-  addMainMenuIcon('minus-squared-alt', removeTriangle);
-  addMainMenuIcon('infinity', drawInfinitely);
-  addMainMenuIcon('brush', editColors);
+  function addMainMenuSeparator() {
+    const menuDiv = document.getElementById("mainIconsHidingDiv");
+    const node = document.createElement('span');
+    node.innerHTML = '&nbsp;';
+    menuDiv.appendChild(node);
+  }
+
+  addMainMenuIcon('download-cloud', selectFractal, 'Load fractal [L]');
+  addMainMenuIcon('upload-cloud', saveFractal, 'Save fractal [S]');
+  addMainMenuIcon('picture', downloadImage, 'Download image [D]');
+  addMainMenuSeparator();
+  addMainMenuIcon('reply', historyBack, 'Undo [Z]');
+  addMainMenuIcon('forward', historyForward, 'Redo [Y]');
+  addMainMenuSeparator();
+  addMainMenuIcon('plus-squared-alt', addTriangle, 'Add triangle [+]');
+  addMainMenuIcon('minus-squared-alt', removeTriangle, 'Remove triangle [-]');
+  addMainMenuSeparator();
+  addMainMenuIcon('infinity', drawInfinitely, 'Draw infinitely [I]');
+  addMainMenuIcon('brush', editColors, 'Edit colors [C]');
+  addMainMenuSeparator();
 
   mainPane = new Tweakpane.Pane({container: document.getElementById("mainPaneDiv")});
   mainPane.addButton({title: 'Hide menu [M]'}).on('click', () => { toggleMainPane(); });
@@ -65,6 +92,7 @@ function initializeMainPane() {
   mainPane.addButton({title: 'Edit colors [C]'}).on('click', () => { globalPaletteEditor.toggle(); });
 
   globalPaletteEditor.initializePane(mainPane);
+  toggleMainPane();
 }
 
 function initializeLoadPane() {
@@ -91,8 +119,8 @@ function documentKeyDown(e) {
 
 function windowKeyPress(e) {
   const c = String.fromCharCode(e.keyCode);
-  if (c == 'm') {
-    toggleMainPane();
+  if (c == 't') {
+    toggleMainMenu();
   }
   if (c == 'l') {
     if (!globalFractalSelector.active) { globalFractalSelector.show(); } else { globalFractalSelector.hide(); }

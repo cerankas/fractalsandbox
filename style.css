@@ -13,9 +13,51 @@ canvas {
 .icon-main {
     cursor: pointer;
     font-size: 150%;
-    background-color: #e8e8e8;
+    border: solid lightgrey 1px;
 }
 
 .icon-main:hover {
     background-color: lightgrey;
+}
+
+[class^="icon-"]:before, [class*=" icon-"]:before {
+    margin: .2em;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    font: normal 10pt Arial, sans-serif;
+    visibility: hidden;
+    background-color: #555;
+    color: #fff;
+    text-align: right;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    top: 125%;
+    right: 0%;
+    margin-left: -120px;
+    opacity: 0;
+    transition: opacity .3s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 0%;
+    /*margin-left: -5px;*/
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
 }

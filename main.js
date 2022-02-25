@@ -67,10 +67,6 @@ function onRestoreHistoryItem(item) {
   windowResize();
 }
 
-function toggleMainMenu() {
-  toggleDisplay('mainIconsHidingDiv');
-}
-
 function jsMain() {
   globalDrag = new Drag();
   globalHistory = new History(onRestoreHistoryItem);
