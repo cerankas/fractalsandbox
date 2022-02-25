@@ -7,7 +7,6 @@
     <meta name="author" content="Szymon Ceranka">
     <link href="lib/fontello-embedded.css" rel="stylesheet" type="text/css"/>
     <link href="style.css" rel="stylesheet" type="text/css"/>
-    <script src="lib/tweakpane.min.js"></script>
     <script src="global.js"></script>
     <script src="vector.js"></script>
     <script src="util.js"></script>
@@ -15,6 +14,7 @@
     <script src="viewport.js"></script>
     <script src="palette.js"></script>
     <script src="palette-editor.js"></script>
+    <script src="color-picker.js"></script>
     <script src="formula.js"></script>
     <script src="fractal-selector.js"></script>
     <script src="fractal-editor.js"></script>
@@ -29,17 +29,19 @@
     <a id="download" download="fractalsandbox.png" href="" style="display:none"></a>
     <div id="mainDiv">
       <div id="mainIconsDiv" style="position:absolute; height:16px; top:8px; right:8px;">
-        <span id="mainIconsHidingDiv">
+        <span id="mainIconsHidingDiv" style="display:none">
         </span>
         <div class="tooltip">
           <i class="icon-main icon-ellipsis" onclick="toggleMainMenu()"></i>
           <span class="tooltiptext">Toggle toolbar [T]</span>
         </div>
       </div>
-      <div id="mainPaneDiv" style="position:absolute; top:38px; right:8px; width:280px; height:auto; margin:0px; padding:0px;"></div>
       <canvas id="canvasFrac"></canvas><canvas id="canvasForm"></canvas>
       <div id="canvasColorDiv" style="position:absolute; height:20px; left:8px; right:8px; bottom:8px; display:none;">
         <canvas id="canvasColor"></canvas>
+      </div>
+      <div id="inputColorDiv" style="background:white; position:absolute; height:200px; left:8px; width:200px; bottom:40px; text-align:center;">
+        <input type="color" id="inputColorPicker" oninput="onColorPickerInput(this)" onchange="onColorPickerChange(this)"> 
       </div>
       <div id="colorPickerDiv" style="position:absolute; left:0px; height:100px; width:100px; bottom:80px; display:none;">
         <input type="color" id="colorPickerInput" value="#ff0000">
@@ -47,7 +49,13 @@
       </div>
     </div>
     <div id="fractalSelectorDiv" style="overflow-y:scroll; height:100%; display:none;">
-      <div id="loadPaneDiv" style="position:absolute; top:8px; right:8px; width:280px; height:auto;"></div>
+      <div id="loadToolbar" style="height:25px; width:100%; display:flex; justify-content:right;">
+        <div class="slidecontainer">
+          <input type="range" min="50" max="500" value="100" class="slider" id="tileSizeSlider" oninput="globalFractalSelector.tileSize=this.value;globalFractalSelector.update()">
+        </div>
+        &nbsp;&nbsp;
+        <i class="icon-main icon-ellipsis" onclick="globalFractalSelector.hide()"></i>
+      </div>
     </div>
   </body>
 

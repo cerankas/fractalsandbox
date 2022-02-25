@@ -64,7 +64,7 @@ class PaletteEditor {
   onDragEnd() {
     
   }
-  
+
   draw() {
     const ctx = this.ctx;
     const c  = ctx.canvas;
@@ -100,6 +100,15 @@ class PaletteEditor {
       ctx.lineTo(x + d, 0);
       ctx.stroke();
     }
+  }
+
+  setSelectedColor(color) {
+    const rgb = hexToRGB(color);
+    let p = this.paletteKeys[this.lastSelectedColor];
+    p.r = rgb[0];
+    p.g = rgb[1];
+    p.b = rgb[2];
+    this.palette = createPaletteFromKeys(this.paletteKeys);
   }
   
   initializePane(pane) {
@@ -161,14 +170,10 @@ class PaletteEditor {
   toggle() {
     if (toggleDisplay('canvasColorDiv')) {
       this.draw();
-      this.colorPicker.hidden = false;
-      this.buttonAddColor.hidden = false;
-      this.buttonRemoveColor.hidden = false;
+      //this.colorPicker.hidden = false;
     } 
     else {
-      this.colorPicker.hidden = true;
-      this.buttonAddColor.hidden = true;
-      this.buttonRemoveColor.hidden = true;
+      //this.colorPicker.hidden = true;
     }
   }
   

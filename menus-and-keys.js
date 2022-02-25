@@ -1,11 +1,7 @@
 // Menus and Keys
 
-function toggleMainMenu() {
+function toggleMainToolbox() {
   toggleDisplay('mainIconsHidingDiv');
-}
-
-function toggleMainPane() {
-  mainPane.hidden = ~mainPane.hidden;
 }
 
 function selectFractal() {
@@ -37,7 +33,7 @@ function editColors() {
 }
 
 
-function initializeMainPane() {
+function initializeMainToolbox() {
   function addMainMenuIcon(name, onclick, tooltip) {
     const menuDiv = document.getElementById("mainIconsHidingDiv");
     const icon = document.createElement('i');
@@ -78,33 +74,10 @@ function initializeMainPane() {
   addMainMenuIcon('infinity', drawInfinitely, 'Draw infinitely [I]');
   addMainMenuIcon('brush', editColors, 'Edit colors [C]');
   addMainMenuSeparator();
-
-  mainPane = new Tweakpane.Pane({container: document.getElementById("mainPaneDiv")});
-  mainPane.addButton({title: 'Hide menu [M]'}).on('click', () => { toggleMainPane(); });
-  mainPane.addButton({title: 'Load fractal [L]'}).on('click', () => { globalFractalSelector.show(); });
-  mainPane.addButton({title: 'Save fractal [S]'}).on('click', saveFractal);
-  mainPane.addButton({title: 'Download image [D]'}).on('click', downloadImage);
-  mainPane.addButton({title: 'Undo [Z]'}).on('click', () => { globalHistory.back(); });
-  mainPane.addButton({title: 'Redo [Y]'}).on('click', () => { globalHistory.forward(); });
-  mainPane.addButton({title: 'Add triangle [+]'}).on('click', () => { globalFractalEditor.addFormula(); });
-  mainPane.addButton({title: 'Remove triangle [-]'}).on('click', () => { globalFractalEditor.removeFormula(); });
-  mainPane.addButton({title: 'Draw infinitely [I]'}).on('click', () => { globalFractalViewer.infinite = !globalFractalViewer.infinite; });
-  mainPane.addButton({title: 'Edit colors [C]'}).on('click', () => { globalPaletteEditor.toggle(); });
-
-  globalPaletteEditor.initializePane(mainPane);
-  toggleMainPane();
-}
-
-function initializeLoadPane() {
-  loadPane = new Tweakpane.Pane({container: document.getElementById("loadPaneDiv")});
-  loadPane.addButton({title: 'Cancel [L]'}).on('click', () => { globalFractalSelector.hide(); });
-  loadPane.addInput(globalFractalSelector, 'tileSize', { label: 'Tile size', min: 50, max: 500, step: 1 }).on('change', () => { globalFractalSelector.update(); });
 }
 
 function initializeUserInterface() {
-  initializeMainPane();
-  initializeLoadPane();
-
+  initializeMainToolbox();
   window.addEventListener('resize', windowResize);
   window.addEventListener('keypress', windowKeyPress);
   document.addEventListener('keydown', documentKeyDown);
@@ -120,7 +93,7 @@ function documentKeyDown(e) {
 function windowKeyPress(e) {
   const c = String.fromCharCode(e.keyCode);
   if (c == 't') {
-    toggleMainMenu();
+    toggleMainToolbox();
   }
   if (c == 'l') {
     if (!globalFractalSelector.active) { globalFractalSelector.show(); } else { globalFractalSelector.hide(); }

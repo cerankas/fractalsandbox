@@ -2,9 +2,6 @@
 
 'use strict';
 
-let mainPane;
-let loadPane;
-
 let globalDrag;
 let globalHistory;
 
