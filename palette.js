@@ -1,6 +1,5 @@
 // Palette
 
-
 class PaletteKey {
   static PALETTE_LENGTH = 1000;
   static MAX_KEY_INDEX = 1000;
@@ -11,21 +10,18 @@ class PaletteKey {
     this.g = g;
     this.b = b;
   }
-
 }
 
-function coeffMul(v1, v2, coeff) {
-  return v1 * (1 - coeff) + v2 * coeff;
-}
 
 function createPaletteFromKeys(keys) {
-  function fmul(r, g, b, a) { return (r << 0) + (g << 8) + (b << 16) + (a << 24); }
+  function linearCombination(v1, v2, coeff) { return v1 * (1 - coeff) + v2 * coeff; }
+  function mergeRGBA(r, g, b, a) { return (r << 0) + (g << 8) + (b << 16) + (a << 24); }
   keys.sort(function(a, b){if (a.index < b.index) return -1; return a.index > b.index;});
   const palette = [];
   const firstKey = keys[0];
   const lastKey = keys[keys.length - 1];
   for (let i = 0; i <= firstKey.index; i++)
-    palette.push(fmul(firstKey.r, firstKey.g, firstKey.b, 0xff));
+    palette.push(mergeRGBA(firstKey.r, firstKey.g, firstKey.b, 0xff));
   for (let i = 1; i < keys.length; i++) {
     const prevKey = keys[i - 1];
     const nextKey = keys[i];
@@ -33,15 +29,15 @@ function createPaletteFromKeys(keys) {
     if (indexDifference == 0)
       continue;
     for (let j = prevKey.index + 1; j <= nextKey.index; j++) {
-      const coeff = (j - prevKey.index) / indexDifference;
-      const r = coeffMul(prevKey.r, nextKey.r, coeff);
-      const g = coeffMul(prevKey.g, nextKey.g, coeff);
-      const b = coeffMul(prevKey.b, nextKey.b, coeff);
-      palette.push(fmul(r, g, b, 0xff));
+      const coefficient = (j - prevKey.index) / indexDifference;
+      const r = linearCombination(prevKey.r, nextKey.r, coefficient);
+      const g = linearCombination(prevKey.g, nextKey.g, coefficient);
+      const b = linearCombination(prevKey.b, nextKey.b, coefficient);
+      palette.push(mergeRGBA(r, g, b, 0xff));
     }
   }
   for (let i = lastKey.index + 1; i < PaletteKey.MAX_KEY_INDEX; i++)
-    palette.push(fmul(lastKey.r, lastKey.g, lastKey.b, 0xff));
+    palette.push(mergeRGBA(lastKey.r, lastKey.g, lastKey.b, 0xff));
   return palette;
 }
 

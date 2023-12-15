@@ -168,6 +168,7 @@ class PaletteEditor {
   }
   
   toggle() {
+    toggleDisplay('inputColorDiv');
     if (toggleDisplay('canvasColorDiv')) {
       this.draw();
       //this.colorPicker.hidden = false;
