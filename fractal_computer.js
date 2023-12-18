@@ -1,6 +1,9 @@
 // FractalComputer
 
-class FractalComputer {
+import * as util from './util.js'
+import Formula from "./formula.js";
+
+export default class FractalComputer {
   static FORMULA_ARRAY_SIZE = 0x4000;
 
   static randomSamplesArray = [];
@@ -34,12 +37,12 @@ class FractalComputer {
   }
   
   initialize(formulas) {
-    this.startms = getMilliseconds();
+    this.startms = util.getMilliseconds();
     const attractor = formulas[0].getAttractor();
     this.x = attractor[0];
     this.y = attractor[1];
     this.randomXor = 0;
-    normalizeFormulas(formulas);
+    Formula.normalizeFormulas(formulas);
     for (let i = 0, formulaIndex = -1, accumulatedWeight = 0; i < FractalComputer.FORMULA_ARRAY_SIZE; i++) {
       if (i / FractalComputer.FORMULA_ARRAY_SIZE >= accumulatedWeight) {
         accumulatedWeight += formulas[++formulaIndex].p;

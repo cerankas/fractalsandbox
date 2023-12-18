@@ -1,6 +1,20 @@
 // Main
 
-function windowResize() {
+import * as util from './util.js'
+import glob from './global.js';
+import Drag from './drag.js';
+import History from './history.js';
+import FractalSelector from './fractal_selector.js';
+import FractalViewer from './fractal_viewer.js';
+import FractalEditor from './fractal_editor.js';
+import PaletteEditor from './palette_editor.js';
+import Formula from './formula.js';
+import * as pal from './palette.js'
+import { initializeUserInterface, toggleMainToolbox } from './menus_and_keys.js';
+
+window.toggleMainToolbox = toggleMainToolbox;
+
+export function windowResize() {
   function setWidthHeight(obj, width, height) { 
     const canvas = obj.ctx.canvas;
     if (canvas.width  != width)  canvas.width = width; 
@@ -10,51 +24,51 @@ function windowResize() {
   let height = window.innerHeight;
   if (width > height) width /= 2;
   else height /= 2;
-  setWidthHeight(globalFractalViewer, width, height);
-  setWidthHeight(globalFractalEditor, width, height);
-  globalFractalViewer.viewChanged = true;
-  globalFractalEditor.resizeFormulas();
-  globalPaletteEditor.mustRedraw = true;
+  setWidthHeight(glob.FractalViewer, width, height);
+  setWidthHeight(glob.FractalEditor, width, height);
+  glob.FractalViewer.viewChanged = true;
+  glob.FractalEditor.resizeFormulas();
+  glob.PaletteEditor.mustRedraw = true;
 }
 
 function processInBackground() {
-  if (globalFractalSelector.active) {
-    globalFractalSelector.processInBackground();
+  if (glob.FractalSelector.active) {
+    glob.FractalSelector.processInBackground();
   }
   else {
 
-    const fractalString = formulasToString(globalFractalEditor.formulas);
-    const paletteString = paletteKeysToString(globalPaletteEditor.paletteKeys);
+    const fractalString = Formula.formulasToString(glob.FractalEditor.formulas);
+    const paletteString = pal.paletteKeysToString(glob.PaletteEditor.paletteKeys);
 
-    if (globalFractalViewer.fractalString != fractalString || globalFractalViewer.viewChanged) {
-      globalFractalViewer.fractalString = fractalString;
-      globalFractalViewer.viewChanged = false;
-      globalFractalViewer.setFormulas(globalFractalEditor.formulas);
+    if (glob.FractalViewer.fractalString != fractalString || glob.FractalViewer.viewChanged) {
+      glob.FractalViewer.fractalString = fractalString;
+      glob.FractalViewer.viewChanged = false;
+      glob.FractalViewer.setFormulas(glob.FractalEditor.formulas);
     }
 
-    if (globalFractalViewer.paletteString != paletteString) {
-      globalFractalViewer.paletteString = paletteString;
-      globalFractalViewer.setPalette(globalPaletteEditor.palette);
+    if (glob.FractalViewer.paletteString != paletteString) {
+      glob.FractalViewer.paletteString = paletteString;
+      glob.FractalViewer.setPalette(glob.PaletteEditor.palette);
     }
 
-    globalFractalViewer.processInBackground();
+    glob.FractalViewer.processInBackground();
 
-    if (!globalDrag.isDragging()) {
+    if (!glob.Drag.isDragging()) {
       localStorage.lastFractal = fractalString;
       localStorage.lastPalette = paletteString;
-      globalHistory.store({ fractal: fractalString, palette: paletteString });
+      glob.History.store({ fractal: fractalString, palette: paletteString });
     }
 
-    if (globalFractalEditor.fractalString != fractalString || globalFractalEditor.viewChanged) {
-      globalFractalEditor.fractalString = fractalString;
-      globalFractalEditor.viewChanged = false;
-      globalFractalEditor.draw();
+    if (glob.FractalEditor.fractalString != fractalString || glob.FractalEditor.viewChanged) {
+      glob.FractalEditor.fractalString = fractalString;
+      glob.FractalEditor.viewChanged = false;
+      glob.FractalEditor.draw();
     }
 
-    if (globalPaletteEditor.paletteString != paletteString || globalPaletteEditor.mustRedraw) {
-      globalPaletteEditor.paletteString = paletteString;
-      globalPaletteEditor.mustRedraw = false;
-      globalPaletteEditor.draw();
+    if (glob.PaletteEditor.paletteString != paletteString || glob.PaletteEditor.mustRedraw) {
+      glob.PaletteEditor.paletteString = paletteString;
+      glob.PaletteEditor.mustRedraw = false;
+      glob.PaletteEditor.draw();
     }
 
   }
@@ -62,25 +76,26 @@ function processInBackground() {
 }
 
 function onRestoreHistoryItem(item) {
-  globalPaletteEditor.loadPalette(item.palette);
+  glob.PaletteEditor.loadPalette(item.palette);
   loadFractal(item.fractal);
   windowResize();
 }
 
 function jsMain() {
-  globalDrag = new Drag();
-  globalHistory = new History(onRestoreHistoryItem);
+  window.glob = glob;
+  glob.Drag = new Drag();
+  glob.History = new History(onRestoreHistoryItem);
 
-  globalFractalSelector = new FractalSelector(document.getElementById('fractalSelectorDiv'));
-  globalFractalViewer = new FractalViewer(getCanvasCtx('canvasFrac')).registerEventListeners();
-  globalFractalEditor = new FractalEditor(getCanvasCtx('canvasForm'));
-  globalPaletteEditor = new PaletteEditor(getCanvasCtx('canvasColor'));
-  
-  globalFractalViewer.displayStats = true;
-  globalPaletteEditor.loadPalette(localStorage.lastPalette);
+  glob.FractalSelector = new FractalSelector(document.getElementById('fractalSelectorDiv'));
+  glob.FractalViewer = new FractalViewer(util.getCanvasCtx('canvasFrac')).registerEventListeners();
+  glob.FractalEditor = new FractalEditor(util.getCanvasCtx('canvasForm'));
+  glob.PaletteEditor = new PaletteEditor(util.getCanvasCtx('canvasColor'));
+
+  glob.FractalViewer.displayStats = true;
+  glob.PaletteEditor.loadPalette(localStorage.lastPalette);
 
   const fernFractal = '-.653 .458 .270 .685 .374 .513#-.151 -.382 -.123 .239 .278 .426#.051 -.434 -.067 -.211 .597 .689#-.047 .725 .183 .147 .023 .231';
-  loadFractal(localStorage.lastFractal || fernFractal);
+  util.loadFractal(localStorage.lastFractal || fernFractal);
   windowResize();
   processInBackground();
 

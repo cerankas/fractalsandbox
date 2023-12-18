@@ -1,6 +1,6 @@
 // History
 
-class History {
+export default class History {
 
   constructor(onRestoreItem) {
     this.stack = [];

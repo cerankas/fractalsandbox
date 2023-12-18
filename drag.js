@@ -1,6 +1,9 @@
 // Drag
 
-class Drag {
+import * as util from './util.js'
+import Vec from './vector.js'
+
+export default class Drag {
 
     constructor() {
     this.dragOwner = null;
@@ -21,8 +24,8 @@ class Drag {
     if (this.dragOwner) {
       const rect = this.dragOwner.ctx.canvas.getBoundingClientRect();
       const canvasCorner = [rect.left, rect.top];
-      const mousePoint = getEventPageXY(e);
-      this.dragOwner.onDrag(mousePoint.sub(canvasCorner));
+      const mousePoint = util.getEventPageXY(e);
+      this.dragOwner.onDrag(Vec.from(mousePoint).sub(canvasCorner));
     }
   }
   

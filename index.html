@@ -8,22 +8,7 @@
     <link href="lib/fontello-embedded.css" rel="stylesheet" type="text/css"/>
     <link href="style.css" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.jsdelivr.net/npm/tweakpane@3.1.0/dist/tweakpane.min.js"></script>
-    <script src="global.js"></script>
-    <script src="vector.js"></script>
-    <script src="util.js"></script>
-    <script src="drag.js"></script>
-    <script src="viewport.js"></script>
-    <script src="palette.js"></script>
-    <script src="palette-editor.js"></script>
-    <script src="color-picker.js"></script>
-    <script src="formula.js"></script>
-    <script src="fractal-selector.js"></script>
-    <script src="fractal-editor.js"></script>
-    <script src="fractal-computer.js"></script>
-    <script src="fractal-viewer.js"></script>
-    <script src="history.js"></script>
-    <script src="menus-and-keys.js"></script>
-    <script src="main.js"></script>
+    <script type="module" src="main.js"></script>
   </head>
 
   <body style="overflow:hidden;"  oncontextmenu="return false">
@@ -56,10 +41,10 @@
     <div id="fractalSelectorDiv" style="overflow-y:scroll; height:100%; display:none;">
       <div id="loadToolbar" style="height:25px; width:100%; display:flex; justify-content:right;">
         <div class="slidecontainer">
-          <input type="range" min="50" max="500" value="100" class="slider" id="tileSizeSlider" oninput="globalFractalSelector.tileSize=this.value;globalFractalSelector.update()">
+          <input type="range" min="50" max="500" value="100" class="slider" id="tileSizeSlider" oninput="glob.FractalSelector.tileSize=this.value;glob.FractalSelector.update()">
         </div>
         &nbsp;&nbsp;
-        <i class="icon-main icon-ellipsis" onclick="globalFractalSelector.hide()"></i>
+        <i class="icon-main icon-ellipsis" onclick="glob.FractalSelector.hide()"></i>
       </div>
     </div>
     

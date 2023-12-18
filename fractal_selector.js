@@ -1,5 +1,10 @@
 // FractalSelector
 
+import * as util from './util.js'
+import glob from './global.js'
+import FractalViewer from './fractal_viewer.js';
+import Formula from './formula.js';
+
 class FractalSelectorItem {
 
   constructor(key, value) {
@@ -18,8 +23,8 @@ class FractalSelectorItem {
     div.appendChild(this.canvas);
     this.canvas = document.getElementById(this.key);
     this.viewPort = new FractalViewer(this.canvas.getContext('2d'));
-    this.viewPort.setPalette(globalPaletteEditor.palette);
-    this.viewPort.setFormulas(formulasFromString(this.value));
+    this.viewPort.setPalette(glob.PaletteEditor.palette);
+    this.viewPort.setFormulas(Formula.formulasFromString(this.value));
     this.viewPort.processInBackground();
   }
 
@@ -40,7 +45,7 @@ class FractalSelectorItem {
 
 }
 
-class FractalSelector {
+export default class FractalSelector {
 
   constructor(div) {
     this.active = false;
@@ -96,8 +101,8 @@ class FractalSelector {
   }
 
   processInBackground() {
-    const startms = getMilliseconds();
-    while (!this.updated && getMilliseconds() - startms < 40) {
+    const startms = util.getMilliseconds();
+    while (!this.updated && util.getMilliseconds() - startms < 40) {
       for (let item of this.items) {
         if (!item.canvas) {
           item.createCanvas(this.div, this.tileSize);

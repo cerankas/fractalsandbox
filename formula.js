@@ -1,6 +1,8 @@
 // Formula
 
-class Formula {
+import Vec from './vector.js'
+
+export default class Formula {
   
   constructor(string) {
     string = string || '.9 0 0 .9 0 0 .81';
@@ -67,19 +69,19 @@ class Formula {
 
   setRotation(rx, ry) {
     let s = this.getScale();
-    this.setAC([s[0], 0].vectorRotate(rx));
-    this.setBD([0, s[1]].vectorRotate(ry));
+    this.setAC(Vec.from([s[0], 0]).vectorRotate(rx));
+    this.setBD(Vec.from([0, s[1]]).vectorRotate(ry));
   }
 
   setScale(sx, sy) {
     const r = this.getRotation();
-    this.setAC([sx, 0].vectorRotate(r[0]));
-    this.setBD([0, sy].vectorRotate(r[1]));
+    this.setAC(Vec.from([sx, 0]).vectorRotate(r[0]));
+    this.setBD(Vec.from([0, sy]).vectorRotate(r[1]));
   }
 
   rotate(rx, ry) {
-    this.setAC([this.a, this.c].vectorRotate(rx));
-    this.setBD([this.b, this.d].vectorRotate(ry));
+    this.setAC(Vec.from([this.a, this.c]).vectorRotate(rx));
+    this.setBD(Vec.from([this.b, this.d]).vectorRotate(ry));
   }
 
   scale(sx, sy) {
@@ -94,30 +96,30 @@ class Formula {
     this.f += dy;
   }
 
-}
-
-function formulasFromString(fractalString) {
-  const formulas = [];
-  const strings = fractalString.replaceAll(',', '#').split('#');
-  for (let string of strings) {
-    formulas.push(new Formula(string));
+  static formulasFromString(fractalString) {
+    const formulas = [];
+    const strings = fractalString.replaceAll(',', '#').split('#');
+    for (let string of strings) {
+      formulas.push(new Formula(string));
+    }
+    return formulas;
   }
-  return formulas;
-}
-
-function formulasToString(formulas) {
-  let string = formulas[0].toString();
-  for (let i = 1; i < formulas.length; i++) {
-    string += '#' + formulas[i].toString();
+  
+  static formulasToString(formulas) {
+    let string = formulas[0].toString();
+    for (let i = 1; i < formulas.length; i++) {
+      string += '#' + formulas[i].toString();
+    }
+    return string;
   }
-  return string;
-}
-
-function normalizeFormulas(formulas) {
-  let area = 0;
-  for (let formula of formulas) {
-    area += formula.getArea();
+  
+  static normalizeFormulas(formulas) {
+    let area = 0;
+    for (let formula of formulas) {
+      area += formula.getArea();
+    }
+    for (let formula of formulas)
+      formula.p = formula.getArea() / area;
   }
-  for (let formula of formulas)
-    formula.p = formula.getArea() / area;
+
 }

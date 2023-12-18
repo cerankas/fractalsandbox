@@ -1,6 +1,12 @@
 // FractalEditor
 
-class FractalEditor extends Viewport {
+import * as util from "./util.js"
+import glob from './global.js'
+import Viewport from "./viewport.js";
+import Formula from "./formula.js";
+import Vec from './vector.js'
+
+export default class FractalEditor extends Viewport {
   
   constructor(ctx) {
     super(ctx, .6);
@@ -18,19 +24,19 @@ class FractalEditor extends Viewport {
 
   onPointerDown(e) {
     if (e.button == 0) {
-      const screenMousePoint = getEventOffsetXY(e);
+      const screenMousePoint = util.getEventOffsetXY(e);
       const dataMousePoint = this.fromScreen(screenMousePoint);
       this.selectNearestFormula(dataMousePoint);
       if (this.hasSelectedPoint()) {
         this.dragFormula = this.formulas[this.selectedFormula].clone();
         this.dragStart = dataMousePoint;
         this.dragLock = null;
-        globalDrag.startDrag(this);
+        glob.Drag.startDrag(this);
       }
       else {
         this.dragFormula = null;
         this.dragStart = this.manualShift.sub(screenMousePoint);
-        globalDrag.startDrag(this);
+        glob.Drag.startDrag(this);
       }
     }
     if (e.button == 2) {
@@ -40,8 +46,8 @@ class FractalEditor extends Viewport {
   }
 
   onPointerMove(e) {
-    if (globalDrag.isDragging()) return;
-    const dataMousePoint = this.fromScreen(getEventOffsetXY(e));
+    if (glob.Drag.isDragging()) return;
+    const dataMousePoint = this.fromScreen(util.getEventOffsetXY(e));
     this.selectNearestFormula(dataMousePoint);
     this.viewChanged = true;
   }
@@ -58,8 +64,8 @@ class FractalEditor extends Viewport {
 
   doDragFormula(dataMousePoint) {
     const tmpFormula = this.dragFormula.clone();
-    const basePoint = tmpFormula.iterate([0, 0]);
-    const deltaStartMouse = dataMousePoint.sub(this.dragStart);
+    const basePoint = Vec.from(tmpFormula.iterate([0, 0]));
+    const deltaStartMouse = Vec.from(dataMousePoint).sub(this.dragStart);
     const deltaBaseMouse = basePoint.sub(dataMousePoint);
     const deltaBaseStart = basePoint.sub(this.dragStart);
     const angle = deltaBaseStart.vectorAngleDifference(deltaBaseMouse);
@@ -87,7 +93,7 @@ class FractalEditor extends Viewport {
   }
 
   loadFormulas(formulaString) {
-    this.formulas = formulasFromString(formulaString);
+    this.formulas = Formula.formulasFromString(formulaString);
     this.resetToAuto();
     this.resizeFormulas();
     this.selectedFormula = 0;
@@ -96,7 +102,7 @@ class FractalEditor extends Viewport {
 
   selectNearestFormula(point) {
     const fractalPoints = this.getFractalPoints();
-    const nearestIndex = findNearestPoint(fractalPoints, point, 20 / this.scale);
+    const nearestIndex = util.findNearestPoint(fractalPoints, point, 20 / this.scale);
     if (nearestIndex != null) {
       this.selectedFormula = fractalPoints[nearestIndex][2];
       this.selectedPoint   = fractalPoints[nearestIndex][3];
@@ -136,7 +142,7 @@ class FractalEditor extends Viewport {
   resizeFormulas() {
     if (this.manualScale == 1 && this.manualShift[0] == 0 && this.manualShift[1] == 0) {
       const points = this.getFractalPoints().concat([[-1, -1], [1, 1]]);
-      const minMax = getBoundingBoxFrom2DArray(points);
+      const minMax = util.getBoundingBoxFrom2DArray(points);
       this.setMinMax(minMax);
     }
     else {
@@ -218,7 +224,7 @@ class FractalEditor extends Viewport {
     this.formulas.push(new Formula());
     this.selectedFormula = this.formulas.length - 1;
     this.selectedPoint = null;
-    normalizeFormulas(this.formulas);
+    Formula.normalizeFormulas(this.formulas);
   }
   
   removeFormula() {
@@ -227,7 +233,7 @@ class FractalEditor extends Viewport {
     }
     this.selectedFormula = 0;
     this.selectedPoint = null;
-    normalizeFormulas(this.formulas);
+    Formula.normalizeFormulas(this.formulas);
   }
 
 }

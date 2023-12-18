@@ -1,44 +1,50 @@
 // Menus and Keys
 
-function toggleMainToolbox() {
-  toggleDisplay('mainIconsHidingDiv');
+import * as util from './util.js'
+import glob from './global.js'
+import { windowResize } from './main.js';
+
+export function toggleMainToolbox() {
+  util.toggleDisplay('mainIconsHidingDiv');
 }
 
+window.toggleMainToolbox = toggleMainToolbox;
+
 function selectFractal() {
-  globalFractalSelector.show();
+  glob.FractalSelector.show();
 }
 
 function historyBack() {
-  globalHistory.back();
+  glob.History.back();
 }
 
 function historyForward() {
-  globalHistory.forward();
+  glob.History.forward();
 }
 
 function addTriangle() {
-  globalFractalEditor.addFormula();
+  glob.FractalEditor.addFormula();
 }
 
 function removeTriangle() {
-  globalFractalEditor.removeFormula();
+  glob.FractalEditor.removeFormula();
 }
 
 function drawInfinitely() {
-  globalFractalViewer.infinite = !globalFractalViewer.infinite;
+  glob.FractalViewer.infinite = !glob.FractalViewer.infinite;
 }
 
 function editColors() {
-  globalPaletteEditor.toggle();
+  glob.PaletteEditor.toggle();
 }
 
 
-function initializeMainToolbox() {
+export function initializeMainToolbox() {
   function addMainMenuIcon(name, onclick, tooltip) {
     const menuDiv = document.getElementById("mainIconsHidingDiv");
     const icon = document.createElement('i');
     icon.className = 'icon-main icon-' + name;
-    icon.onclick = onclick;
+    icon.addEventListener('click',onclick);
     if (tooltip) {
       const tooltipText = document.createElement('span');
       tooltipText.className = 'tooltiptext';
@@ -62,8 +68,8 @@ function initializeMainToolbox() {
   }
 
   addMainMenuIcon('download-cloud', selectFractal, 'Load fractal [L]');
-  addMainMenuIcon('upload-cloud', saveFractal, 'Save fractal [S]');
-  addMainMenuIcon('picture', downloadImage, 'Download image [D]');
+  addMainMenuIcon('upload-cloud', util.saveFractal, 'Save fractal [S]');
+  addMainMenuIcon('picture', util.downloadImage, 'Download image [D]');
   addMainMenuSeparator();
   addMainMenuIcon('reply', historyBack, 'Undo [Z]');
   addMainMenuIcon('forward', historyForward, 'Redo [Y]');
@@ -76,7 +82,7 @@ function initializeMainToolbox() {
   addMainMenuSeparator();
 }
 
-function initializeUserInterface() {
+export function initializeUserInterface() {
   initializeMainToolbox();
   window.addEventListener('resize', windowResize);
   window.addEventListener('keypress', windowKeyPress);
@@ -86,7 +92,7 @@ function initializeUserInterface() {
 
 function documentKeyDown(e) {
   if (e.keyCode == 27) { // Esc
-    if (globalFractalSelector.active) { globalFractalSelector.hide(); return; }
+    if (glob.FractalSelector.active) { glob.FractalSelector.hide(); return; }
   }
 }
 
@@ -96,36 +102,36 @@ function windowKeyPress(e) {
     toggleMainToolbox();
   }
   if (c == 'l') {
-    if (!globalFractalSelector.active) { globalFractalSelector.show(); } else { globalFractalSelector.hide(); }
+    if (!glob.FractalSelector.active) { glob.FractalSelector.show(); } else { glob.FractalSelector.hide(); }
   }
   if (c == 's') {
-    saveFractal();
+    util.saveFractal();
   }
   if (c == 'd') {
-    downloadImage();
+    util.downloadImage();
   }
   if (c == 'z') {
-    globalHistory.back();
+    glob.History.back();
   }
   if (c == 'y') {
-    globalHistory.forward();
+    glob.History.forward();
   }
   if (c == '+' || c == '=') {
-    globalFractalEditor.addFormula();
+    glob.FractalEditor.addFormula();
   }
   if (c == '-') {
-    globalFractalEditor.removeFormula();
+    glob.FractalEditor.removeFormula();
   }
   if (c == 'i') {
-    globalFractalViewer.infinite = !globalFractalViewer.infinite;
+    glob.FractalViewer.infinite = !glob.FractalViewer.infinite;
   }
   if (c == 'c') {
-    globalPaletteEditor.toggle();
+    glob.PaletteEditor.toggle();
   }
   if (c == 'a') {
-    globalPaletteEditor.addColor();
+    glob.PaletteEditor.addColor();
   }
   if (c == 'x') {
-    globalPaletteEditor.removeColor();
+    glob.PaletteEditor.removeColor();
   }
 }

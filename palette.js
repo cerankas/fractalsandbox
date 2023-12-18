@@ -1,6 +1,6 @@
 // Palette
 
-class PaletteKey {
+export default class PaletteKey {
   static PALETTE_LENGTH = 1000;
   static MAX_KEY_INDEX = 1000;
   
@@ -13,7 +13,7 @@ class PaletteKey {
 }
 
 
-function createPaletteFromKeys(keys) {
+export function createPaletteFromKeys(keys) {
   function linearCombination(v1, v2, coeff) { return v1 * (1 - coeff) + v2 * coeff; }
   function mergeRGBA(r, g, b, a) { return (r << 0) + (g << 8) + (b << 16) + (a << 24); }
   keys.sort(function(a, b){if (a.index < b.index) return -1; return a.index > b.index;});
@@ -46,15 +46,15 @@ function componentToHex(c) {
   return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex(r, g, b) {
+export function rgbToHex(r, g, b) {
   return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
-function paletteKeysFromString(string) {
+export function paletteKeysFromString(string) {
   return JSON.parse(string);
 }
 
-function paletteKeysToString(paletteKeys) {
+export function paletteKeysToString(paletteKeys) {
   return JSON.stringify(paletteKeys);
 }
 

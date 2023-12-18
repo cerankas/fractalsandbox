@@ -1,6 +1,12 @@
 // FractalViewer
 
-class FractalViewer extends Viewport {
+import * as util from './util.js'
+import glob from './global.js'
+import Viewport from './viewport.js';
+import FractalComputer from './fractal_computer.js';
+import PaletteKey, * as pal from './palette.js'
+
+export default class FractalViewer extends Viewport {
 
   constructor(ctx, zoom) {
     super(ctx, zoom);
@@ -21,8 +27,8 @@ class FractalViewer extends Viewport {
 
   onPointerDown(e) {
     if (e.button == 0) {
-      globalDrag.startDrag(this);
-      this.dragStart = this.manualShift.sub(getEventOffsetXY(e));
+      glob.Drag.startDrag(this);
+      this.dragStart = this.manualShift.sub(util.getEventOffsetXY(e));
     }
     if (e.button == 2) {
       this.resetToAuto();
@@ -69,12 +75,12 @@ class FractalViewer extends Viewport {
     
     this.fractalComputer.initialize(this.formulas);
     
-    this.lastPutImageTime = getMilliseconds();
+    this.lastPutImageTime = util.getMilliseconds();
     this.putImageInterval = 20;
   }
   
   processInBackground() {
-    this.startms = getMilliseconds();
+    this.startms = util.getMilliseconds();
     this.startpt = this.calculatedPointsCount;
     if (this.isFinished()) return;
     if (!this.calculatedPointsCount) {
@@ -84,12 +90,12 @@ class FractalViewer extends Viewport {
       this.doCalculateColorsAndDraw();
     }
     else {
-      while (getMilliseconds() - this.startms < Math.min(this.putImageInterval, 40) && !this.isFinished()) {
+      while (util.getMilliseconds() - this.startms < Math.min(this.putImageInterval, 40) && !this.isFinished()) {
         this.doCalculatePoints();
         this.doSumPoints();
       }
-      if (getMilliseconds() - this.lastPutImageTime > this.putImageInterval || this.isFinished()) {
-        this.lastPutImageTime = getMilliseconds();
+      if (util.getMilliseconds() - this.lastPutImageTime > this.putImageInterval || this.isFinished()) {
+        this.lastPutImageTime = util.getMilliseconds();
         if (this.putImageInterval < 1000) this.putImageInterval *= 1.5;
         this.doCalculateColorsAndDraw();
       }
@@ -107,7 +113,7 @@ class FractalViewer extends Viewport {
   }
   
   doAutoScale() {
-    const minMax = getBoundingBoxFrom1DArray(this.points);
+    const minMax = util.getBoundingBoxFrom1DArray(this.points);
     this.setMinMax(minMax);
   }
 
@@ -192,9 +198,9 @@ class FractalViewer extends Viewport {
   doDisplayStats() {
     if (this.isFinished()) document.title = 
     Math.floor(this.calculatedPointsCount / 1000000) + ' mp ' + 
-    (getMilliseconds() - this.fractalComputer.startms) + ' ms';
+    (util.getMilliseconds() - this.fractalComputer.startms) + ' ms';
     else document.title = 
-    Math.floor((this.calculatedPointsCount - this.startpt) / (getMilliseconds() - this.startms)) + ' : ' + 
+    Math.floor((this.calculatedPointsCount - this.startpt) / (util.getMilliseconds() - this.startms)) + ' : ' + 
     ~~(100 * this.calculatedPointsCount / this.maxpoints) + '% ';
   }
   
