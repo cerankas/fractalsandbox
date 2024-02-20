@@ -10,7 +10,6 @@ export default class PaletteEditor {
     this.ctx = ctx;
     this.maxx = 0;
     this.colorValue = {r: 0, g:0 , b: 0};
-    this.colorPosition = 3;
     this.paletteKeys = [];
     this.palette = [];
     this.selectedColor = null;
@@ -41,6 +40,18 @@ export default class PaletteEditor {
       if (this.selectedColor != null) {
         glob.Drag.startDrag(this);
         this.dragIndex = this.selectedColor;
+      }
+      else {
+        let ind = this.getIndex(util.getEventOffsetXY(e)[0]);
+        this.addColorAt(ind);
+        this.onPointerMove(e);
+      }
+    }
+    if (e.button == 2) {
+      this.selectNearestColor(util.getEventOffsetXY(e));
+      if (this.selectedColor != null) {
+        this.removeColor();
+        this.onPointerMove(e);
       }
     }
   }
@@ -107,7 +118,7 @@ export default class PaletteEditor {
   }
 
   setSelectedColor(color) {
-    const rgb = hexToRGB(color);
+    const rgb = pal.hexToRGB(color);
     let p = this.paletteKeys[this.lastSelectedColor];
     p.r = rgb[0];
     p.g = rgb[1];
@@ -115,7 +126,7 @@ export default class PaletteEditor {
     this.palette = pal.createPaletteFromKeys(this.paletteKeys);
   }
   
-  initializePane(pane) {
+  /*initializePane(pane) {
     this.colorPicker = pane.addInput(this, 'colorValue', { picker: 'inline', expanded: true }).on('change', () => {
       let p = this.paletteKeys[this.lastSelectedColor];
       p.r = this.colorValue.r;
@@ -125,10 +136,10 @@ export default class PaletteEditor {
     });
     this.buttonAddColor = pane.addButton({title: 'Add color [A]'}).on('click', this.addColor.bind(this));
     this.buttonRemoveColor = pane.addButton({title: 'Remove color [X]'}).on('click', this.removeColor.bind(this));
-    this.colorPicker.hidden = true;
-    this.buttonAddColor.hidden = true;
-    this.buttonRemoveColor.hidden = true;
-  }
+    // this.colorPicker.hidden = true;
+    // this.buttonAddColor.hidden = true;
+    // this.buttonRemoveColor.hidden = true;
+  }*/
 
   loadPalette(palette) {
     if (palette) {
@@ -154,20 +165,18 @@ export default class PaletteEditor {
   }
   
   addColor() {
-    if (this.colorPicker.hidden) return;
     let i = this.lastSelectedColor;
     if (i == this.paletteKeys.length - 1) i--;
     this.addColorAt(((this.paletteKeys[i].index + this.paletteKeys[i + 1].index) / 2) | 0);
   }
   
   removeColor() {
-    if (this.colorPicker.hidden) return;
     if (this.paletteKeys.length > 2) {
       this.paletteKeys.splice(this.lastSelectedColor, 1);
       if (this.lastSelectedColor > 0) {
         this.lastSelectedColor--;
       }
-      this.palette = createPaletteFromKeys(this.paletteKeys);
+      this.palette = pal.createPaletteFromKeys(this.paletteKeys);
     }
   }
   
@@ -187,10 +196,14 @@ export default class PaletteEditor {
     for (let key of this.paletteKeys) {
       points.push([this.getX(key.index), 10]);
     }
-    this.selectedColor = util.findNearestPoint(points, p, 100);
+    this.selectedColor = util.findNearestPoint(points, p, 20);
     if (this.selectedColor != null) {
       this.lastSelectedColor = this.selectedColor;
       this.colorValue = this.paletteKeys[this.selectedColor];
+      let inp = document.getElementById('inputColorPicker');
+      let key = this.paletteKeys[this.selectedColor];
+      let hex = pal.rgbToHex(key.r, key.g, key.b);
+      inp.value = hex;
       // this.colorPicker.refresh();
     }
   }

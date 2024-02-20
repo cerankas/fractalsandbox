@@ -11,8 +11,11 @@ import PaletteEditor from './palette_editor.js';
 import Formula from './formula.js';
 import * as pal from './palette.js'
 import { initializeUserInterface, toggleMainToolbox } from './menus_and_keys.js';
+import { onColorPickerInput, onColorPickerChange} from './color_picker.js';
 
 window.toggleMainToolbox = toggleMainToolbox;
+window.onColorPickerInput = onColorPickerInput;
+window.onColorPickerChange = onColorPickerChange;
 
 export function windowResize() {
   function setWidthHeight(obj, width, height) { 
