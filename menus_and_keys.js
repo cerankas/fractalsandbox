@@ -67,6 +67,7 @@ export function initializeMainToolbox() {
     menuDiv.appendChild(node);
   }
 
+  addMainMenuSeparator();
   addMainMenuIcon('download-cloud', selectFractal, 'Load fractal [L]');
   addMainMenuIcon('upload-cloud', util.saveFractal, 'Save fractal [S]');
   addMainMenuIcon('picture', util.downloadImage, 'Download image [D]');
@@ -79,7 +80,6 @@ export function initializeMainToolbox() {
   addMainMenuSeparator();
   addMainMenuIcon('infinity', drawInfinitely, 'Draw infinitely [I]');
   addMainMenuIcon('brush', editColors, 'Edit colors [C]');
-  addMainMenuSeparator();
 }
 
 export function initializeUserInterface() {

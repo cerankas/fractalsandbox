@@ -38,14 +38,14 @@ canvas {
     visibility: hidden;
     background-color: #555;
     color: #fff;
-    text-align: right;
+    text-align: left;
     border-radius: 6px;
     padding: 5px;
     position: absolute;
     z-index: 1;
     top: 125%;
-    right: 0%;
-    margin-left: -120px;
+    left: 0%;
+    margin-right: -120px;
     opacity: 0;
     transition: opacity .3s;
 }
@@ -54,7 +54,7 @@ canvas {
     content: "";
     position: absolute;
     bottom: 100%;
-    left: 0%;
+    right: 0%;
     border-width: 5px;
     border-style: solid;
     border-color: transparent;
