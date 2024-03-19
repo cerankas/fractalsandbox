@@ -12,6 +12,17 @@ export const fractalRouter = createTRPCRouter({
       };
     }),
 
+    create: publicProcedure
+    .input(z.object({ content: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.fractal.create({
+        data: {
+          authorId: "xyz",
+          content: input.content,
+        },
+      });
+    }),
+
     getFractalById: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ctx, input}) => {
