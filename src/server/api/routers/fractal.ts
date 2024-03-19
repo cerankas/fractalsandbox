@@ -1,0 +1,23 @@
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+
+export const fractalRouter = createTRPCRouter({
+  hello: publicProcedure
+    .input(z.object({ text: z.string() }))
+    .query(({ input }) => {
+      return {
+        greeting: `Hello ${input.text}`,
+      };
+    }),
+
+    getFractalById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ctx, input}) => {
+      const fractal = await ctx.db.fractal.findUnique({ where: { id: input.id } });
+      if (!fractal) throw new TRPCError({ code: "NOT_FOUND"});
+      return fractal;
+    }),    
+
+});

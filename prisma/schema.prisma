@@ -11,10 +11,10 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
-model fractal {
+model Fractal {
   id        Int       @id @default(autoincrement())
-  date      DateTime  @default(now())
-  author    String
-  data      String
-  @@index([author])
+  createdAt DateTime  @default(now())
+  authorId  String
+  content   String
+  @@index([authorId])
 }
