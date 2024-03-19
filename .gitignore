@@ -1,5 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+/to_be_ported
+
 # dependencies
 /node_modules
 /.pnp

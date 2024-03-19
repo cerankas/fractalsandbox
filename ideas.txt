@@ -1,6 +1,0 @@
-only draw selected parts of the fractal (e.g. last formula == (and the formula before last ==))
-animate triangles and parameters along curves
-layers
-color rotation
-generate randomized sets of parameters
-export / import / edit text definition of the scene
