@@ -3,8 +3,11 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 
 export default function Home() {
-  const hello = api.fractal.hello.useQuery({ text: "from tRPC" });
+  const hello = api.fractal.hello.useQuery({ text: "user" });
   const frac = api.fractal.getFractalById.useQuery({ id: 1 });
+  const { mutate } = api.fractal.create.useMutation({
+    onSuccess: (data) => { alert(data.content); }
+  })
 
   return (
     <>
@@ -22,6 +25,7 @@ export default function Home() {
           <p className="text-2xl text-black">
             {frac.data ? (frac.data.content ? frac.data.content : "no content") : "Loading tRPC query..."}
           </p>
+          <p onClick={() => mutate({ content: Date().split(' (')[0] ?? "" })}>Add</p>
         </div>
       </main>
     </>

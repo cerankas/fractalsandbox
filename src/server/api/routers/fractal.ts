@@ -8,14 +8,14 @@ export const fractalRouter = createTRPCRouter({
     .input(z.object({ text: z.string() }))
     .query(({ input }) => {
       return {
-        greeting: `Hello ${input.text}`,
+        greeting: `Hello ${input.text} from fractal router!`,
       };
     }),
 
-    create: publicProcedure
+  create: publicProcedure
     .input(z.object({ content: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.fractal.create({
+      return await ctx.db.fractal.create({
         data: {
           authorId: "xyz",
           content: input.content,
@@ -23,7 +23,7 @@ export const fractalRouter = createTRPCRouter({
       });
     }),
 
-    getFractalById: publicProcedure
+  getFractalById: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ctx, input}) => {
       const fractal = await ctx.db.fractal.findUnique({ where: { id: input.id } });
