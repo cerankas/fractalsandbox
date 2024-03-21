@@ -24,11 +24,21 @@ export const fractalRouter = createTRPCRouter({
     }),
 
   getFractalById: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ctx, input}) => {
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
       const fractal = await ctx.db.fractal.findUnique({ where: { id: input.id } });
-      if (!fractal) throw new TRPCError({ code: "NOT_FOUND"});
+      if (!fractal) throw new TRPCError({ code: "NOT_FOUND" });
       return fractal;
     }),    
+  
+  getLatest: publicProcedure
+    .query(async ({ ctx }) => {
+      const data = await ctx.db.fractal.findMany({
+        take: 1,
+        orderBy: [{ createdAt: "desc" }],
+      });
+      if (!data) throw new TRPCError({ code: "NOT_FOUND" });
+      return data[0];
+    }),
 
 });

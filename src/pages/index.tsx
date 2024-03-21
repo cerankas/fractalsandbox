@@ -3,8 +3,9 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 
 export default function Home() {
-  const hello = api.fractal.hello.useQuery({ text: "user" });
-  const frac = api.fractal.getFractalById.useQuery({ id: 1 });
+  const hello = api.fractal.hello.useQuery({ text: "*user*" });
+  // const frac = api.fractal.getFractalById.useQuery({ id: "1" });
+  const frac = api.fractal.getLatest.useQuery();
   const { mutate } = api.fractal.create.useMutation({
     onSuccess: (data) => { alert(data.content); }
   })
