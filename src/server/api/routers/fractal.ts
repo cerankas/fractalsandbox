@@ -1,6 +1,5 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const fractalRouter = createTRPCRouter({
@@ -10,18 +9,6 @@ export const fractalRouter = createTRPCRouter({
       return {
         greeting: `Hello ${input.text} from fractal router!`,
       };
-    }),
-
-  create: publicProcedure
-    .input(z.object({ form: z.string().min(1), color: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      return await ctx.db.fractal.create({
-        data: {
-          authorId: "",
-          form: input.form,
-          color: input.color,
-        },
-      });
     }),
 
   getFractalById: publicProcedure

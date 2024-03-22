@@ -4,11 +4,11 @@ import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
 
 export default function Home() {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const { isSignedIn, user } = useUser();
   const hello = api.fractal.hello.useQuery({ text: "*user*" });
-  // const frac = api.fractal.getFractalById.useQuery({ id: "1" });
   const frac = api.fractal.getLatest.useQuery();
-  const { mutate } = api.fractal.create.useMutation({
+  const { mutate } = api.fractalCreate.create.useMutation({
     onSuccess: (data) => { alert(data.form); }
   })
 
@@ -27,6 +27,7 @@ export default function Home() {
             </span></SignInButton>
           }
         </div>
+        {/*eslint-disable-next-line @typescript-eslint/no-unsafe-member-access*/}
         <div>Hello {user?.firstName} ({user?.primaryEmailAddress?.emailAddress})!</div>
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
           <p className="text-2xl text-white">

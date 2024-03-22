@@ -28,9 +28,10 @@ import { db } from "~/server/db";
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (_opts: CreateNextContextOptions) => {
+export const createTRPCContext = (opts: CreateNextContextOptions) => {
   return {
     db,
+    req: opts.req,
   };
 };
 

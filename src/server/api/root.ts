@@ -1,5 +1,6 @@
 import { fractalRouter } from "./routers/fractal";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { fractalCreateRouter } from "./routers/fractal_create";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +9,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   fractal: fractalRouter,
+  fractalCreate: fractalCreateRouter,
 });
 
 // export type definition of API
