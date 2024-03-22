@@ -2,16 +2,19 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
+import { getOldFractals } from "~/math/archive";
 
 export default function Home() {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const { isSignedIn, user } = useUser();
   const hello = api.fractal.hello.useQuery({ text: "*user*" });
   const frac = api.fractal.getLatest.useQuery();
-  const { mutate } = api.fractalCreate.create.useMutation({
-    onSuccess: (data) => { alert(data.form); }
-  })
+  const { mutate } = api.fractalCreate.create.useMutation({ onSuccess: (data) => { alert(data.form); }})
+  const { mutate: mutateMany } = api.fractalCreate.createMany.useMutation({ onSuccess: (data) => { alert(data.count); }})
 
+  const fractalsArray = getOldFractals();
+  console.log(fractalsArray.length);
+  
   return (
     <>
       <Head>
@@ -36,7 +39,9 @@ export default function Home() {
           <p className="text-2xl text-black">
             {frac.data ? (frac.data.form ? frac.data.form : "no content") : "..."}
           </p>
-          <p className="cursor-pointer" onClick={() => mutate({ form: Date().split(' (')[0] ?? "", color: "" })}>[Add]</p>
+          <p className="cursor-pointer" onClick={() => mutate({ form: Date().split(' (')[0] ?? "", color: "" })}>[Test add 1]</p>
+          <p className="cursor-pointer" onClick={() => mutateMany([1,2,3].map((i) => { return { createdAt: new Date(), form: `f${i}`, color: `c${i}` }; } ))}>[Test add 3]</p>
+          <p className="cursor-pointer" onClick={() => mutateMany(fractalsArray)}>[Add old fractals from archive]</p>
         </div>
       </main>
     </>

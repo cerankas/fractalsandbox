@@ -17,4 +17,17 @@ export const fractalCreateRouter = createTRPCRouter({
         },
       });
     }),
+
+    createMany: publicProcedure
+    .input(z.array(z.object({ createdAt: z.date(), form: z.string().min(1), color: z.string() })))
+    .mutation(async ({ ctx, input }) => {
+      const { userId } = getAuth(ctx.req);
+      if (typeof userId != 'string') throw new TRPCError({ code: "UNAUTHORIZED" });
+      return await ctx.db.fractal.createMany({
+        data: input.map(fractal => ({
+          ...fractal,
+          authorId: userId,
+        }))
+      });
+    }),
 });
