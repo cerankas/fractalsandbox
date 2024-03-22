@@ -9,7 +9,7 @@ export default function Home() {
   // const frac = api.fractal.getFractalById.useQuery({ id: "1" });
   const frac = api.fractal.getLatest.useQuery();
   const { mutate } = api.fractal.create.useMutation({
-    onSuccess: (data) => { alert(data.content); }
+    onSuccess: (data) => { alert(data.form); }
   })
 
   return (
@@ -33,9 +33,9 @@ export default function Home() {
             {hello.data ? hello.data.greeting : "..."}
           </p>
           <p className="text-2xl text-black">
-            {frac.data ? (frac.data.content ? frac.data.content : "no content") : "..."}
+            {frac.data ? (frac.data.form ? frac.data.form : "no content") : "..."}
           </p>
-          <p className="cursor-pointer" onClick={() => mutate({ content: Date().split(' (')[0] ?? "" })}>[Add]</p>
+          <p className="cursor-pointer" onClick={() => mutate({ form: Date().split(' (')[0] ?? "", color: "" })}>[Add]</p>
         </div>
       </main>
     </>

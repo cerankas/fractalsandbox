@@ -14,6 +14,7 @@ model Fractal {
   id        String    @id @default(cuid())
   createdAt DateTime  @default(now())
   authorId  String
-  content   String
+  form      String
+  color     String
   @@index([authorId])
 }
