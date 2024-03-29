@@ -45,6 +45,6 @@ export default function FractalView(props: {size: number, fractal: string, color
   }, [drawStep, drawStart]);
 
   return (
-    <canvas ref={canvasRef} width={props.size} height={props.size}></canvas>
+    <canvas ref={canvasRef} width={props.size} height={props.size} className="flex border-2 bg-slate-300 hover:border-black" />
   );
 }
