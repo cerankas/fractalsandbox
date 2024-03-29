@@ -2,20 +2,20 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
-// import { getOldFractals } from "~/math/archive";
-import FractalSelector from "~/components/FractalSelector";
+import { getOldFractals } from "~/math/archive";
+// import FractalSelector from "~/components/FractalSelector";
 
 export default function Home() {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const { isSignedIn } = useUser();
   // const hello = api.fractal.hello.useQuery({ text: "*user*" });
-  const fracs = api.fractal.getManyLatest.useQuery();
+  // const fracs = api.fractal.getManyLatest.useQuery();
   // const frac = api.fractal.getLatest.useQuery();
   // const { mutate } = api.fractalCreate.create.useMutation({ onSuccess: (data) => { alert(data.form); }})
-  // const { mutate: mutateMany } = api.fractalCreate.createMany.useMutation({ onSuccess: (data) => { alert(data.count); }})
+  const { mutate: mutateMany } = api.fractalCreate.createMany.useMutation({ onSuccess: (data) => { alert(data.count); }})
 
-  // const fractalsArray = getOldFractals();
-  // console.log(fractalsArray.length);
+  const fractalsArray = getOldFractals();
+  console.log(fractalsArray.length);
 
   // console.log('main', isSignedIn, !!user, !!hello, !!frac)
 
@@ -42,9 +42,9 @@ export default function Home() {
           {/* </p> */}
           {/* <p className="cursor-pointer" onClick={() => mutate({ form: Date().split(' (')[0] ?? "", color: "" })}>[Test add 1]</p> */}
           {/* <p className="cursor-pointer" onClick={() => mutateMany([1,2,3].map((i) => { return { createdAt: new Date(), form: `f${i}`, color: `c${i}` }; } ))}>[Test add 3]</p> */}
-          {/* <p className="cursor-pointer" onClick={() => mutateMany(fractalsArray)}>[Add old fractals from archive]</p> */}
+          <p className="cursor-pointer" onClick={() => mutateMany(fractalsArray)}>[Add old fractals from archive]</p>
         {/* </div> */}
-        { fracs.data && <FractalSelector fractals={fracs.data.map(f => ({ form: f.form, color: f.color }))} /> }
+        {/* { fracs.data && <FractalSelector fractals={fracs.data.map(f => ({ form: f.form, color: f.color }))} /> } */}
       </main>
     </>
   );

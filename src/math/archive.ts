@@ -397,6 +397,6 @@ export function getOldFractals() {
       nums[6] = '1';
       return nums.map((n) => fmt(parseFloat(n))).join(' ');
     });
-    return { createdAt: time, form: forms?.join(';')??'', color: "0 000000;1 FFFFFF"}
+    return { createdAt: time, form: forms?.join(',')??'', color: "0 FFFFFF,1 000000"}
   });
 }

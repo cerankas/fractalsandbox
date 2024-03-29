@@ -109,7 +109,7 @@ export default class Formula {
 
   static formulasFromString(fractalString: string) {
     const formulas = [];
-    const strings = fractalString.replaceAll(',', '#').replaceAll(';', '#').split('#');
+    const strings = fractalString.split(',');
     for (const string of strings) {
       formulas.push(new Formula(string));
     }
@@ -119,7 +119,7 @@ export default class Formula {
   static formulasToString(formulas: Formula[]) {
     let string = formulas[0]!.toString();
     for (let i = 1; i < formulas.length; i++) {
-      string += '#' + formulas[i]!.toString();
+      string += ',' + formulas[i]!.toString();
     }
     return string;
   }
