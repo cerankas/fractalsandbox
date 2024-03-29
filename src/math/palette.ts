@@ -48,9 +48,9 @@ export function rgbToHex(r: number, g: number, b: number) {
 }
 
 export function paletteKeysFromString(string: string): unknown {
-  return string.split(';').map(s => {
+  return string.split(',').map(s => {
     const [indstr, rgbstr] = s.split(' ') as [string, string];
-    const ind = ((1 - parseFloat(indstr)) * PaletteKey.MAX_KEY_INDEX) | 0;
+    const ind = (parseFloat(indstr) * PaletteKey.MAX_KEY_INDEX) | 0;
     const rgb = hexToRGB(rgbstr);
     return new PaletteKey(ind, ...rgb);
   });
