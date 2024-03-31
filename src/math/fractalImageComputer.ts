@@ -2,8 +2,10 @@ import type Formula from "./formula";
 import PaletteKey from "./palette";
 import FractalSumsComputer from "./fractalSumsComputer";
 import { getMs } from "./util";
+import BackgroundScheduler from "~/logic/scheduler";
 
 export default class FractalImageComputer extends FractalSumsComputer {
+  static scheduler = new BackgroundScheduler();
   sums = new Int32Array();
   imageData: ImageData;
 
@@ -22,6 +24,7 @@ export default class FractalImageComputer extends FractalSumsComputer {
   constructor(public ctx: CanvasRenderingContext2D, zoom: number) {
     super(zoom);
     this.imageData = ctx.createImageData(1,1);
+    FractalImageComputer.scheduler.addTask(this);
   }
 
   setFormulas(formulas: Formula[]) {
@@ -53,9 +56,11 @@ export default class FractalImageComputer extends FractalSumsComputer {
     
     this.lastPutImageTime = getMs();
     this.putImageInterval = 20;
+
+    FractalImageComputer.scheduler.run();
   }
   
-  processInBackground() {
+  process() {
     this.startMs = getMs();
     this.startPts = this.calculatedPointsCount;
     if (this.isFinished()) return;
@@ -73,6 +78,10 @@ export default class FractalImageComputer extends FractalSumsComputer {
         this.doCalculateColorsAndDraw();
       }
     }
+  }
+  
+  isPrepared() {
+    return this.calculatedPointsCount != 0;
   }
   
   isFinished() {
