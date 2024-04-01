@@ -12,7 +12,7 @@ export default class FractalSumsComputer extends Viewport {
 
   points = new Float64Array();
   densityPerCall = 2;    // average number of calculated points per image pixel per call
-  densityPerImage = 200; // average number of calculated points per image pixel per finished image
+  densityPerImage = 100; // average number of calculated points per image pixel per finished image
   pointsPerCall = 0;
 
   calculatedPointsCount = 0;

@@ -54,26 +54,6 @@ export default class IndexedDBManager {
       });
   }
 
-  async check(key: string): Promise<boolean> {
-      if (!this.db) {
-          await this.openDatabase();
-      }
-
-      return new Promise<boolean>((resolve, reject) => {
-          const transaction = this.db!.transaction(["data"], "readonly");
-          const objectStore = transaction.objectStore("data");
-          const request = objectStore.get(key);
-
-          request.onerror = () => {
-              reject(new Error("Failed to check data in IndexedDB"));
-          };
-
-          request.onsuccess = () => {
-              resolve(!!(request.result as DataItem));
-          };
-      });
-  }
-
   async fetch(key: string): Promise<Int32Array> {
       if (!this.db) {
           await this.openDatabase();
@@ -99,22 +79,3 @@ export default class IndexedDBManager {
       });
   }
 }
-
-// Example usage:
-export async function test() {
-  const indexedDBManager = new IndexedDBManager("myDB", 1);
-  await indexedDBManager.openDatabase();
-
-  const key = "exampleKey 4";
-  const data = new Int32Array([1, 2, 3, 4]);
-
-  await indexedDBManager.store(key, data);
-
-  const isStored = await indexedDBManager.check(key);
-  console.log("Is data stored:", isStored);
-
-  const fetchedData = await indexedDBManager.fetch(key);
-  console.log("Fetched data:", fetchedData);
-
-  return 0;
-};

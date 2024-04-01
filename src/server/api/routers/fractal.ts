@@ -32,7 +32,7 @@ export const fractalRouter = createTRPCRouter({
   getManyLatest: publicProcedure
     .query(async ({ ctx }) => {
       const data = await ctx.db.fractal.findMany({
-        take: 100, // 100
+        take: 1000, // 100
         orderBy: [{ createdAt: "desc" }],
       });
       if (!data) throw new TRPCError({ code: "NOT_FOUND" });
