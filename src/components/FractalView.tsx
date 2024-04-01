@@ -21,7 +21,7 @@ export default function FractalView(props: {size: number, fractal: string, color
   }, [props.size]);
   
   useEffect(() => {
-    fracRef.current?.setFormulas(Formula.formulasFromString(props.fractal));
+    void fracRef.current?.setFormulas(Formula.formulasFromString(props.fractal)); // todo: investigate, possibly use .then
   }, [props.fractal]);
   
   useEffect(() => {
