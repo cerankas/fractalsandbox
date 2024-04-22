@@ -1,8 +1,8 @@
 import { useState } from "react";
-import FractalView from "./FractalView";
+import FractalView, { type FormColor } from "./FractalView";
 
 
-export default function FractalSelector(props: { fractals: { form: string, color: string}[] }) {
+export default function FractalSelector(props: { fractals: FormColor[], onSelect: (fractalId: number) => void, selected: number }) {
   const sizes = [50, 100, 150, 200, 250];
   const [tileSize, setTileSize] = useState(parseInt(localStorage.tileSize as string)??1);
   return (
@@ -18,7 +18,15 @@ export default function FractalSelector(props: { fractals: { form: string, color
         />
       </div>
       <div className="flex flex-row flex-wrap">
-        { props.fractals.map(((f,i) => <FractalView key={i} size={sizes[tileSize]??50} fractal={f.form} color={f.color}/>)) }
+        { props.fractals.map(((f,i) => <FractalView 
+          key={i} 
+          id={i}
+          size={sizes[tileSize]??50} 
+          fractal={f.form} 
+          color={f.color} 
+          onclick={props.onSelect} 
+          selected={i == props.selected} 
+        />)) }
       </div>
     </>
   );

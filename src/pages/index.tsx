@@ -3,10 +3,27 @@ import { api } from "~/utils/api";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
 import FractalSelector from "~/components/FractalSelector";
+import { useEffect, useState } from "react";
+import FractalView from "~/components/FractalView";
 
 export default function Home() {
   const { isSignedIn } = useUser();
   const fracs = api.fractal.getManyLatest.useQuery();
+  const [selectedFractalId, setSelectedFractalId] = useState(0);
+  const [fractalViewMode, setFractalViewMode] = useState(false);
+  const selectedFractal = fracs.data?.[selectedFractalId];
+  
+  useEffect(() => {
+    const keyDownHandler = (e: KeyboardEvent) => {
+      console.log(e.key);
+      if (e.key == "ArrowLeft"  && selectedFractalId > 0)                      setSelectedFractalId(selectedFractalId - 1);
+      if (e.key == "ArrowRight" && selectedFractalId < fracs.data!.length - 1) setSelectedFractalId(selectedFractalId + 1);
+      if (e.key == "Escape") setFractalViewMode(false);
+      if (e.key == "Enter")  setFractalViewMode(!fractalViewMode);
+    };
+    document.addEventListener('keydown', keyDownHandler);
+    return () => { document.removeEventListener('keydown', keyDownHandler); }
+  });
 
   return (
     <>
@@ -23,7 +40,25 @@ export default function Home() {
             </span></SignInButton>
           }
         </div>
-        { fracs.data && <FractalSelector fractals={fracs.data.map(f => ({ form: f.form, color: f.color }))} /> }
+        <div className={fractalViewMode ? "flex h-screen" : "hidden"}>
+          <div className="m-auto">
+            {fractalViewMode && <FractalView 
+              size={800}
+              id={0}
+              fractal={selectedFractal!.form}
+              color={selectedFractal!.color}
+              onclick={(_fractalId) => setFractalViewMode(false)} key={0}
+              selected={false}
+            />}
+          </div>
+        </div>
+        <div className={fractalViewMode ? "hidden" : ""}>
+          {fracs.data && <FractalSelector 
+            fractals={fracs.data.map(f => ({ form: f.form, color: f.color }))} 
+            onSelect={(fractalId) => { setSelectedFractalId(fractalId); setFractalViewMode(true); }} 
+            selected={selectedFractalId}
+          />}
+        </div>
       </main>
     </>
   );
