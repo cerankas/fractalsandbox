@@ -1,4 +1,4 @@
-// Utils
+import { type vec2 } from "./vec2";
 
 export function getMs() { return Number(new Date()); }
 
@@ -8,7 +8,7 @@ export function getCanvasCtx(id: string) {
 }
 
 export function findNearestPoint(points: number[][], point: number[], distanceThreshold: number) {
-  function pointDistanceSquared(p1: [number, number], p2: [number, number]) { 
+  function pointDistanceSquared(p1: vec2, p2: vec2) { 
     const dx = p2[0] - p1[0];
     const dy = p2[1] - p1[1];
     return dx * dx + dy * dy;
@@ -16,17 +16,15 @@ export function findNearestPoint(points: number[][], point: number[], distanceTh
   let nearestDistance = distanceThreshold * distanceThreshold;
   let nearestIndex = null;
   for (let i = 0; i < points.length; i++) {
-    const distance = pointDistanceSquared(points[i] as [number, number], point as [number, number]);
+    const distance = pointDistanceSquared(points[i] as vec2, point as vec2);
     if (distance < nearestDistance) { nearestDistance = distance; nearestIndex = i; } 
   }
   return nearestIndex;
 }
 
-export function getBoundingBoxFrom2DArray(points: number[][]): [number, number, number, number] {
-  let minx = Infinity;
-  let miny = Infinity;
-  let maxx = -Infinity;
-  let maxy = -Infinity;
+export function getBoundingBoxFrom2DArray(points: number[][]): [min: vec2, max: vec2] {
+  let [minx, miny] = [ Infinity,  Infinity];
+  let [maxx, maxy] = [-Infinity, -Infinity];
   for (const point of points) {
     const x = point[0]!;
     const y = point[1]!;
@@ -35,14 +33,12 @@ export function getBoundingBoxFrom2DArray(points: number[][]): [number, number, 
     if (y < miny) miny = y;
     if (y > maxy) maxy = y;
   }
-  return [minx, miny, maxx, maxy];
+  return [[minx, miny], [maxx, maxy]];
 }
 
-export function getBoundingBoxFrom1DArray(points: Float64Array): [number, number, number, number] {
-  let minx = Infinity;
-  let miny = Infinity;
-  let maxx = -Infinity;
-  let maxy = -Infinity;
+export function getBoundingBoxFrom1DArray(points: Float64Array): [min: vec2, max: vec2] {
+  let [minx, miny] = [ Infinity,  Infinity];
+  let [maxx, maxy] = [-Infinity, -Infinity];
   for (let i = 0; i < points.length - 1000; i += 2) {
     const x = points[i]!;
     const y = points[i + 1]!;
@@ -51,5 +47,8 @@ export function getBoundingBoxFrom1DArray(points: Float64Array): [number, number
     if (y < miny) miny = y;
     if (y > maxy) maxy = y;
   }
-  return [minx, miny, maxx, maxy];
+  return [[minx, miny], [maxx, maxy]];
 }
+
+export function getEventOffsetXY(e: MouseEvent): vec2 { return [e.offsetX, e.offsetY]; }
+export function getEventPageXY  (e: MouseEvent): vec2 { return [e.pageX,   e.pageY  ]; }

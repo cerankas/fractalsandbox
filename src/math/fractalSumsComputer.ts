@@ -4,8 +4,8 @@ import { getBoundingBoxFrom1DArray } from './util';
 import Viewport from './viewport';
 
 export default class FractalSumsComputer extends Viewport {
-  width = 0;
-  height = 0;
+  screenWidth = 0;
+  screenHeight = 0;
 
   pointsComputer = new FractalPointsComputer();
   formulas: Formula[] = [];
@@ -22,11 +22,11 @@ export default class FractalSumsComputer extends Viewport {
     super(zoom);
   }
 
-  get area() { return this.width * this.height; }
+  get area() { return this.screenWidth * this.screenHeight; }
 
   setWidthHeight(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+    this.screenWidth = width;
+    this.screenHeight = height;
     this.pointsPerCall = this.area * this.densityPerCall;
     this.prepare();
   }
@@ -55,16 +55,17 @@ export default class FractalSumsComputer extends Viewport {
   }
   
   doAutoScale() {
-    const boundingBox = getBoundingBoxFrom1DArray(this.points);
-    this.setBoundingBox(...boundingBox);
+    const [min, max] = getBoundingBoxFrom1DArray(this.points);
+    this.setBoundingBox(min, max);
   }
 
   doSumPoints(sums: Int32Array) {
+    const [shiftX, shiftY] = this.shift;
     for (let i = 0; i < this.points.length; i += 2) {
-      const x = ( this.points[i    ]! * this.scale + this.shiftX) | 0;
-      const y = (-this.points[i + 1]! * this.scale + this.shiftY) | 0;
-      if (x > 0 && x <= this.width && y > 0 && y <= this.height) {
-        const j = x - 1 + this.width * (y - 1);
+      const x = ( this.points[i    ]! * this.scale + shiftX) | 0;
+      const y = (-this.points[i + 1]! * this.scale + shiftY) | 0;
+      if (x > 0 && x <= this.screenWidth && y > 0 && y <= this.screenHeight) {
+        const j = x - 1 + this.screenWidth * (y - 1);
         sums[j] ++;
       }
     }

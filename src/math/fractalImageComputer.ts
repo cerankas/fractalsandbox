@@ -51,14 +51,14 @@ export default class FractalImageComputer extends FractalSumsComputer {
     if (!this.formulas.length) return;
     super.prepare();
     
-    this.width  = this.ctx.canvas.width;
-    this.height = this.ctx.canvas.height;
+    this.screenWidth  = this.ctx.canvas.width;
+    this.screenHeight = this.ctx.canvas.height;
     
-    this.sums = new Int32Array(this.width * this.height);
-    this.imageData = this.ctx.createImageData(this.width, this.height);
+    this.sums = new Int32Array(this.screenWidth * this.screenHeight);
+    this.imageData = this.ctx.createImageData(this.screenWidth, this.screenHeight);
     this.maxSum = 0;
 
-    this.cacheKey = `${this.width}x${this.height}:${this.formulas.toString()}`;
+    this.cacheKey = `${this.screenWidth}x${this.screenHeight}:${this.formulas.toString()}`;
     try {
       this.sums = await FractalImageComputer.sumsCache.fetch(this.cacheKey);
       this.cached = true;

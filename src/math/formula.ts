@@ -1,4 +1,4 @@
-import Vec from "./vector";
+import { type vec2, vec2angle, vec2magnitude, vec2rotate } from "./vec2";
 
 export default class Formula {
   a: number;
@@ -30,16 +30,16 @@ export default class Formula {
     return `${this.a} ${this.b} ${this.c} ${this.d} ${this.e} ${this.f} ${this.p}`
   }
 
-  iterate(point: number[]) {
-    const x = point[0]!;
-    const y = point[1]!;
+  iterate(point: vec2): vec2 {
+    const x = point[0];
+    const y = point[1];
     return [
       this.a * x + this.b * y + this.e,
       this.c * x + this.d * y + this.f
     ];
   }
 
-  getAttractor() {
+  getAttractor(): vec2 {
     const aa = this.a - 1;
     const dd = this.d - 1;
     const w = aa * dd - this.b * this.c;
@@ -52,59 +52,59 @@ export default class Formula {
     return Math.abs(this.b * this.c - this.a * this.d);
   }
 
-  get rotation() { 
-    const rx = new Vec(this.a, this.c).angle;
-    const ry = new Vec(this.b, this.d).angle - 90;
+  get rotation(): vec2 { 
+    const rx = vec2angle([this.a, this.c]);
+    const ry = vec2angle([this.b, this.d]) - 90;
     return [rx, ry];
   }
 
-  set rotation(r: number[]) {
-    const rx = r[0]!;
-    const ry = r[1]!;
+  set rotation(r: vec2) {
+    const rx = r[0];
+    const ry = r[1];
     const s = this.scale;
-    this.setAC(new Vec(s[0]!, 0).rotate(rx));
-    this.setBD(new Vec(0, s[1]!).rotate(ry));
+    this.setAC(vec2rotate([s[0], 0], rx));
+    this.setBD(vec2rotate([0, s[1]], ry));
   }
 
-  get scale() { 
-    const sx = new Vec(this.a, this.c).magnitude;
-    const sy = new Vec(this.b, this.d).magnitude;
+  get scale(): vec2 { 
+    const sx = vec2magnitude([this.a, this.c]);
+    const sy = vec2magnitude([this.b, this.d]);
     return [sx, sy];
   }
 
-  set scale(s: number[]) {
-    const sx = s[0]!;
-    const sy = s[1]!;
+  set scale(s: vec2) {
+    const sx = s[0];
+    const sy = s[1];
     const r = this.rotation;
-    this.setAC(new Vec(sx, 0).rotate(r[0]!));
-    this.setBD(new Vec(0, sy).rotate(r[1]!));
+    this.setAC(vec2rotate([sx, 0], r[0]));
+    this.setBD(vec2rotate([0, sy], r[1]));
   }
 
-  setAC(v: number[]) {
-    this.a = v[0]!;
-    this.c = v[1]!;
+  setAC(v: vec2) {
+    this.a = v[0];
+    this.c = v[1];
   }
 
-  setBD(v: number[]) {
-    this.b = v[0]!;
-    this.d = v[1]!;
+  setBD(v: vec2) {
+    this.b = v[0];
+    this.d = v[1];
   }
 
-  rotate(rx: number, ry: number) {
-    this.setAC(new Vec(this.a, this.c).rotate(rx));
-    this.setBD(new Vec(this.b, this.d).rotate(ry));
+  rotate(r: vec2) {
+    this.setAC(vec2rotate([this.a, this.c], r[0]));
+    this.setBD(vec2rotate([this.b, this.d], r[1]));
   }
 
-  multiply(sx: number, sy: number) {
-    this.a *= sx;
-    this.c *= sx;
-    this.b *= sy;
-    this.d *= sy;
+  rescale(s: vec2) {
+    this.a *= s[0];
+    this.c *= s[0];
+    this.b *= s[1];
+    this.d *= s[1];
   }
 
-  shift(dx: number, dy: number) {
-    this.e += dx;
-    this.f += dy;
+  shift(d: vec2) {
+    this.e += d[0];
+    this.f += d[1];
   }
 
   static formulasFromString(fractalString: string) {

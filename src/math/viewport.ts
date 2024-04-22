@@ -1,78 +1,61 @@
+import { type vec2, vec2add, vec2sub, vec2mul, vec2div, vec2div1 } from "./vec2";
+
 export default class Viewport {
   scale = 1;
-  shiftX = 0;
-  shiftY = 0;
+  shift: vec2 = [0, 0];
   
-  width = 1;
-  height = 1;
+  screenWidth = 1;
+  screenHeight = 1;
 
   manualScale = 1;
-  manualShiftX = 0;
-  manualShiftY = 0;
+  manualShift: vec2 = [0, 0];
   
-  minX = 0;
-  maxX = 1;
-  minY = 0;
-  maxY = 1;
+  dataMin: vec2 = [0, 0];
+  dataMax: vec2 = [1, 1];
   
   constructor(public autoZoom: number) {}
 
-  toScreen(x: number, y: number): [number, number] {
-    return [
-       x * this.scale + this.shiftX,
-      -y * this.scale + this.shiftY
-    ];
+  toScreen(point: vec2): vec2 {
+    return vec2add(vec2mul(point, [this.scale, -this.scale]), this.shift);
   }
 
-  fromScreen(x: number, y: number): [number, number] {
-    return [
-      ( x - this.shiftX) / this.scale,
-      (-y + this.shiftY) / this.scale
-    ];
+  fromScreen(point: vec2): vec2 {
+    return vec2div(vec2sub(point, this.shift), [this.scale, -this.scale]);
   }
 
   setWidthHeight(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+    this.screenWidth = width;
+    this.screenHeight = height;
     this.updateTransform();
   }
 
   resetToAuto() {
     this.manualScale = 1;
-    this.manualShiftX = 0;
-    this.manualShiftY = 0;
+    this.manualShift = [0, 0];
     this.updateTransform();
   }
 
-  setBoundingBox(minX: number, minY: number, maxX: number, maxY: number) {
-    this.minX = minX;
-    this.minY = minY;
-    this.maxX = maxX;
-    this.maxY = maxY;
+  setBoundingBox(dataMin: vec2, dataMax: vec2) {
+    this.dataMin = dataMin;
+    this.dataMax = dataMax;
     this.updateTransform();
   }
 
   updateTransform() {
-    const centerX = this.width  / 2;
-    const centerY = this.height / 2;
-    const dataWidth   =  this.maxX - this.minX;
-    const dataHeight  =  this.maxY - this.minY;
-    const dataCenterX = (this.maxX + this.minX) / 2;
-    const dataCenterY = (this.maxY + this.minY) / 2;
-    this.scale = Math.min(this.width / dataWidth, this.height / dataHeight) * this.autoZoom * this.manualScale;
-    const tmpShiftX = centerX - dataCenterX * this.scale;
-    const tmpShiftY = centerY + dataCenterY * this.scale
-    this.shiftX = tmpShiftX + this.manualShiftX;
-    this.shiftY = tmpShiftY + this.manualShiftY;
+    const screenCenter = vec2div1([this.screenWidth, this.screenHeight], 2);
+    const dataCenter = vec2div1(vec2add(this.dataMax,  this.dataMin), 2);
+    const [dataWidth, dataHeight] =  vec2sub(this.dataMax, this.dataMin);
+    this.scale = Math.min(this.screenWidth / dataWidth, this.screenHeight / dataHeight) * this.autoZoom * this.manualScale;
+    const tmpShift = vec2sub(screenCenter, vec2mul(dataCenter, [this.scale, -this.scale]));
+    this.shift = vec2add(tmpShift, this.manualShift);
   }
   
-  rescale(scaleMultiplier: number, screenX: number, screenY: number) {
-    const [dataX, dataY] = this.fromScreen(screenX, screenY);
+  rescale(scaleMultiplier: number, screenPoint: vec2) {
+    const dataPoint = this.fromScreen(screenPoint);
     this.manualScale *= scaleMultiplier;
     this.updateTransform();
-    const [unshiftedX, unshiftedY] = this.toScreen(dataX, dataY);
-    this.manualShiftX += screenX - unshiftedX;
-    this.manualShiftY += screenY - unshiftedY;
+    const unshifted = this.toScreen(dataPoint);
+    this.manualShift = vec2add(this.manualShift, vec2sub(screenPoint, unshifted));
     this.updateTransform();
   }
 
