@@ -4,7 +4,7 @@ import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
 import FractalSelector from "~/components/FractalSelector";
 import { useEffect, useState } from "react";
-import FractalView from "~/components/FractalView";
+import FractalEditor from "~/components/FractalEditor";
 
 export default function Home() {
   const { isSignedIn } = useUser();
@@ -15,7 +15,6 @@ export default function Home() {
   
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      console.log(e.key);
       if (e.key == "ArrowLeft"  && selectedFractalId > 0)                      setSelectedFractalId(selectedFractalId - 1);
       if (e.key == "ArrowRight" && selectedFractalId < fracs.data!.length - 1) setSelectedFractalId(selectedFractalId + 1);
       if (e.key == "Escape") setFractalViewMode(false);
@@ -41,21 +40,17 @@ export default function Home() {
           }
         </div>
         <div className={fractalViewMode ? "flex h-screen" : "hidden"}>
-          <div className="m-auto">
-            {fractalViewMode && <FractalView 
-              size={800}
-              id={0}
-              fractal={selectedFractal!.form}
-              color={selectedFractal!.color}
-              onclick={(_fractalId) => setFractalViewMode(false)} key={0}
-              selected={false}
-            />}
-          </div>
+          {fractalViewMode && <FractalEditor
+            size={800}
+            fractal={selectedFractal!.form}
+            color={selectedFractal!.color}
+            returnCallback={() => setFractalViewMode(false)}
+          />}
         </div>
         <div className={fractalViewMode ? "hidden" : ""}>
           {fracs.data && <FractalSelector 
             fractals={fracs.data.map(f => ({ form: f.form, color: f.color }))} 
-            onSelect={(fractalId) => { setSelectedFractalId(fractalId); setFractalViewMode(true); }} 
+            onclick={(fractalId) => { setSelectedFractalId(fractalId); setFractalViewMode(true); }} 
             selected={selectedFractalId}
           />}
         </div>

@@ -4,9 +4,7 @@ import FractalImageComputer from "~/math/fractalImageComputer";
 import type PaletteKey from "~/math/palette";
 import { createPaletteFromKeys, paletteKeysFromString } from "~/math/palette";
 
-export type FormColor = { form: string, color: string };
-
-export default function FractalView(props: {size: number, id: number, fractal: string, color: string, onclick: ((fractalId: number) => void) | null, selected: boolean }) {
+export default function FractalView(props: { size: number, fractal: string, color: string, cached: boolean, onclick?: () => void }) {
   const canvasRef = useRef(null);
   const fracRef = useRef<FractalImageComputer | null>(null);
 
@@ -23,8 +21,9 @@ export default function FractalView(props: {size: number, id: number, fractal: s
   }, [props.size]);
   
   useEffect(() => {
-    void fracRef.current?.setFormulas(Formula.formulasFromString(props.fractal)); // todo: investigate, possibly use .then
-  }, [props.fractal]);
+    fracRef.current?.setCached(props.cached);
+    void fracRef.current?.setFormulas(Formula.formulasFromString(props.fractal));
+  }, [props.fractal, props.cached]);
   
   useEffect(() => {
     const palette = createPaletteFromKeys(paletteKeysFromString(props.color) as PaletteKey[]);
@@ -32,15 +31,11 @@ export default function FractalView(props: {size: number, id: number, fractal: s
   }, [props.color]);
 
   return (
-    <canvas 
+    <canvas onContextMenu={e => e.preventDefault()}
       ref={canvasRef} 
       width={props.size} 
       height={props.size} 
-      className={`flex border-2 bg-white ${props.selected ? "border-black" : ""} hover:border-slate-400`}
-      onClick={props.onclick ? 
-        () => { props.onclick!(props.id)} : 
-        undefined
-      }
+      onClick={props.onclick}
     />
   );
 }

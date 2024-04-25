@@ -34,10 +34,14 @@ export default class FractalImageComputer extends FractalSumsComputer {
     FractalImageComputer.scheduler.addTask(this);
   }
 
-  async setFormulas(formulas: Formula[]) {
+  setCached(cached: boolean) {
+    this.cached = cached;
+  }
+
+  setFormulas(formulas: Formula[]) {
     super.setFormulas(formulas);
     this.formString = this.formulas.toString();
-    await this.prepare();
+    this.prepare();
   }
 
   setPalette(palette: number[]) {
@@ -47,7 +51,7 @@ export default class FractalImageComputer extends FractalSumsComputer {
     }
   }
 
-  async prepare() {
+  prepare() {
     if (!this.formulas.length) return;
     super.prepare();
     
@@ -58,6 +62,13 @@ export default class FractalImageComputer extends FractalSumsComputer {
     this.imageData = this.ctx.createImageData(this.screenWidth, this.screenHeight);
     this.maxSum = 0;
 
+    if (this.cached) 
+      void this.prepareCached();
+    else 
+      this.prepareCalculated();
+  }
+
+  async prepareCached() {
     this.cacheKey = `${this.screenWidth}x${this.screenHeight}:${this.formulas.toString()}`;
     try {
       this.sums = await FractalImageComputer.sumsCache.fetch(this.cacheKey);
@@ -65,18 +76,22 @@ export default class FractalImageComputer extends FractalSumsComputer {
       this.draw();
     }
     catch (e) {
-      this.numPointsPerCall  = this.densityPerCall  * this.area;
-      this.numPointsPerImage = this.densityPerImage * this.area;
-  
-      this.lastPutImageTime = getMs();
-      this.putImageInterval = 20;
-      
-      this.cached = false;
-      FractalImageComputer.scheduler.run();
+      this.prepareCalculated();
     }   
   }
+
+  prepareCalculated() {
+    this.numPointsPerCall  = this.densityPerCall  * this.area;
+    this.numPointsPerImage = this.densityPerImage * this.area;
+
+    this.lastPutImageTime = getMs();
+    this.putImageInterval = 20;
+    
+    this.cached = false;
+    FractalImageComputer.scheduler.run();
+  }
   
-  async process() {
+  process() {
     this.startMs = getMs();
     this.startPts = this.calculatedPointsCount;
     if (this.isFinished()) return;
@@ -95,7 +110,7 @@ export default class FractalImageComputer extends FractalSumsComputer {
       }
     }
     if (this.isFinished() && !this.cached) {
-      await FractalImageComputer.sumsCache.store(this.cacheKey, this.sums);
+      void FractalImageComputer.sumsCache.store(this.cacheKey, this.sums);
     }
   }
   
@@ -119,6 +134,15 @@ export default class FractalImageComputer extends FractalSumsComputer {
       palData[i] = this.palette[(this.sums[i]! * palmul) | 0]!;
     }
     this.ctx.putImageData(this.imageData, 0, 0);
+    if (!this.isFinished()) this.drawProgressBar();
+  }
+
+  drawProgressBar() {
+    this.ctx.strokeStyle = "black";
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.screenWidth * this.calculatedPointsCount / this.numPointsPerImage, this.screenHeight);
+    this.ctx.lineTo(this.screenWidth, this.screenHeight);
+    this.ctx.stroke();
   }
 
 }
