@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import Formula from "~/math/formula";
 import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY } from "~/math/util";
-import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio } from "~/math/vec2";
+import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
 
 export default function FormulaEditor(props: { size: number, fractal: string, changeCallback: (fractal: string) => void }) {
@@ -100,7 +100,7 @@ class FormulaEditorGUI extends Viewport {
     const rect = this.ctx.canvas.getBoundingClientRect();
     const screenMousePoint = vec2sub(getEventPageXY(e), [rect.left, rect.top]);
     if (this.draggedFormula != null) {
-      this.doDragFormula(this.fromScreen(screenMousePoint));
+      this.doDragFormula(this.fromScreen(screenMousePoint), e);
       this.callChangeCallback();
       this.draw();
     }
@@ -116,7 +116,7 @@ class FormulaEditorGUI extends Viewport {
     this.resizeFormulas();
   }
 
-  doDragFormula(dataMousePoint: vec2) {
+  doDragFormula(dataMousePoint: vec2, e: MouseEvent) {
     const tmpFormula = this.draggedFormula!.clone();
     const basePoint = tmpFormula.iterate([0, 0]);
     const deltaStartMouse = vec2sub(dataMousePoint, this.dragStart);
@@ -125,19 +125,19 @@ class FormulaEditorGUI extends Viewport {
     const angle = vec2angleDifference(deltaBaseStart, deltaBaseMouse);
     const scale = vec2magnitudeRatio(deltaBaseStart, deltaBaseMouse);
     if (this.selectedPoint == 0) {
-      tmpFormula.shift(deltaStartMouse);
+      tmpFormula.shift(vec2mul(deltaStartMouse, [e.ctrlKey?0:1, e.shiftKey?0:1]));
       }
     if (this.selectedPoint == 2) {
-      tmpFormula.rotate([angle, angle]);
-      tmpFormula.rescale([scale, scale]);
+      e.shiftKey || tmpFormula.rotate([angle, angle]);
+      e.ctrlKey || tmpFormula.rescale([scale, scale]);
     }
     if (this.selectedPoint == 1) {
-      tmpFormula.rotate([0, angle]);
-      tmpFormula.rescale([1, scale]);
+      e.shiftKey || tmpFormula.rotate([0, angle]);
+      e.ctrlKey || tmpFormula.rescale([1, scale]);
     }
     if (this.selectedPoint == 3) {
-      tmpFormula.rotate([angle, 0]);
-      tmpFormula.rescale([scale, 1]);
+      e.shiftKey || tmpFormula.rotate([angle, 0]);
+      e.ctrlKey || tmpFormula.rescale([scale, 1]);
     }
     this.formulas[this.selectedFormula] = tmpFormula;
   }
