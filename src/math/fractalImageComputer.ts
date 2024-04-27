@@ -72,7 +72,7 @@ export default class FractalImageComputer extends FractalSumsComputer {
     this.cacheKey = `${this.screenWidth}x${this.screenHeight}:${this.formulas.toString()}`;
     try {
       this.sums = await FractalImageComputer.sumsCache.fetch(this.cacheKey);
-      this.cached = true;
+      this.calculatedPointsCount = this.numPointsPerImage;
       this.draw();
     }
     catch (e) {
@@ -87,7 +87,6 @@ export default class FractalImageComputer extends FractalSumsComputer {
     this.lastPutImageTime = getMs();
     this.putImageInterval = 20;
     
-    this.cached = false;
     FractalImageComputer.scheduler.run();
   }
   
@@ -109,17 +108,17 @@ export default class FractalImageComputer extends FractalSumsComputer {
         this.draw();
       }
     }
-    if (this.isFinished() && !this.cached) {
+    if (this.isFinished() && this.cached) {
       void FractalImageComputer.sumsCache.store(this.cacheKey, this.sums);
     }
   }
   
   isPrepared() {
-    return this.cached || this.calculatedPointsCount != 0;
+    return this.calculatedPointsCount != 0;
   }
   
   isFinished() {
-    return this.cached || this.calculatedPointsCount >= this.numPointsPerImage && !this.infinite;
+    return this.calculatedPointsCount >= this.numPointsPerImage && !this.infinite;
   }
   
   draw = () => {
