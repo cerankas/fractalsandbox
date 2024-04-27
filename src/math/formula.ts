@@ -27,7 +27,11 @@ export default class Formula {
   }
 
   toString() {
-    return `${this.a} ${this.b} ${this.c} ${this.d} ${this.e} ${this.f} ${this.p}`
+    const fmt = (n: number) => {
+      const s = parseFloat(n.toFixed(5)).toString();
+      return (s.startsWith('0.') || s.startsWith('-0.')) ? s.replace('0.', '.') : s;
+    };
+    return `${fmt(this.a)} ${fmt(this.b)} ${fmt(this.c)} ${fmt(this.d)} ${fmt(this.e)} ${fmt(this.f)} 1`;
   }
 
   iterate(point: vec2): vec2 {
