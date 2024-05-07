@@ -1,5 +1,5 @@
 import type Formula from './formula';
-import FractalIterator from './fractalPointsComputer';
+import FractalIterator from './fractalIterator';
 import { getBoundingBoxFrom1DArray } from './util';
 import Viewport from './viewport';
 

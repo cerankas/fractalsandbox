@@ -1,6 +1,6 @@
 import Formula from "./formula";
 import PaletteKey, { createPaletteFromKeys, paletteKeysFromString } from "./palette";
-import FractalSummator from "./fractalSumsComputer";
+import FractalSummator from "./fractalSummator";
 import { getMs } from "./util";
 import BackgroundScheduler from "~/logic/scheduler";
 import IndexedDBManager from "~/logic/cache";

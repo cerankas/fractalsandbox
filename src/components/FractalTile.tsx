@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import FractalRenderer from "~/math/fractalImageComputer";
+import FractalRenderer from "~/math/fractalRenderer";
 
 export default function FractalTile(props: { id: number, size: number, fractal: string, color: string, onclick: (fractalId: number) => void, selected: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
