@@ -2,27 +2,32 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
-import FractalSelector from "~/components/FractalSelector";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import FractalEditor from "~/components/FractalEditor";
+import FractalBrowser from "~/components/FractalBrowser";
+import FractalView from "~/components/FractalView";
 
 export default function Home() {
   const { isSignedIn } = useUser();
   const fracs = api.fractal.getManyLatest.useQuery();
   const [selectedFractalId, setSelectedFractalId] = useState(0);
-  const [fractalViewMode, setFractalViewMode] = useState(false);
+  const [viewEdit, setViewEdit] = useState(false);
+  const [viewFull, setViewFull] = useState(false);
   const selectedFractal = fracs.data?.[selectedFractalId];
+  const selectPrevFractal = useCallback(() => { if (selectedFractalId > 0)                      setSelectedFractalId(selectedFractalId - 1); }, [selectedFractalId]);
+  const selectNextFractal = useCallback(() => { if (selectedFractalId < fracs.data!.length - 1) setSelectedFractalId(selectedFractalId + 1); }, [selectedFractalId, fracs.data]);
   
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      if (e.key == "ArrowLeft"  && selectedFractalId > 0)                      setSelectedFractalId(selectedFractalId - 1);
-      if (e.key == "ArrowRight" && selectedFractalId < fracs.data!.length - 1) setSelectedFractalId(selectedFractalId + 1);
-      if (e.key == "Escape") setFractalViewMode(false);
-      if (e.key == "Enter")  setFractalViewMode(!fractalViewMode);
+      if (e.key == "ArrowLeft")  selectPrevFractal();
+      if (e.key == "ArrowRight") selectNextFractal();
+      if (e.key == "Escape") { if (viewFull) setViewFull(false); else setViewEdit(false); }
+      if (e.key == " ")  setViewFull(true);
+      if (e.key == "Enter")  setViewEdit(true);
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  });
+  }, [viewEdit, viewFull, selectPrevFractal, selectNextFractal]);
 
   return (
     <>
@@ -31,7 +36,8 @@ export default function Home() {
         <meta name="description" content="interactive fractal generator" />
         <meta name="author" content="Szymon Ceranka" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center self-start bg-gradient-to-b from-[orange] to-[blue]">
+      {/* <main className="flex min-h-screen flex-col items-center self-start bg-gradient-to-b from-[orange] to-[blue]"> */}
+      <main className="flex min-h-screen flex-col items-center self-start bg-gray-500">
         <div className="absolute right-2 top-2 hover:cursor-pointer hover:brightness-110">
           {isSignedIn && <UserButton userProfileMode="modal" afterSignOutUrl={window.location.href} appearance={{ elements: { userButtonAvatarBox: { width: 32, height: 32 }}}} />}
           {!isSignedIn && <SignInButton mode="modal">
@@ -39,20 +45,39 @@ export default function Home() {
             </span></SignInButton>
           }
         </div>
-        <div className={fractalViewMode ? "flex h-screen" : "hidden"}>
-          {fractalViewMode && <FractalEditor
-            size={800}
-            fractal={selectedFractal!.form}
-            color={selectedFractal!.color}
-            returnCallback={() => setFractalViewMode(false)}
-          />}
+        <div className={viewFull ? "size-full v-screen h-screen" : "hidden"}>
+          {viewFull && selectedFractal && 
+            <FractalView
+              fractal={selectedFractal.form}
+              color={selectedFractal.color}
+              cached={false}
+            />
+          }
         </div>
-        <div className={fractalViewMode ? "hidden" : ""}>
-          {fracs.data && <FractalSelector 
-            fractals={fracs.data.map(f => ({ form: f.form, color: f.color }))} 
-            onclick={(fractalId) => { setSelectedFractalId(fractalId); setFractalViewMode(true); }} 
-            selected={selectedFractalId}
-          />}
+        <div className={!viewFull && viewEdit ? "flex h-screen" : "hidden"}>
+          {viewEdit && selectedFractal && 
+            <FractalEditor
+              size={800}
+              fractal={selectedFractal.form}
+              color={selectedFractal.color}
+              returnCallback={() => setViewEdit(false)}
+              selectPrev={selectPrevFractal}
+              selectNext={selectNextFractal}
+            />
+          }
+        </div>
+        <div className={!viewFull && !viewEdit ? "" : "hidden"}>
+          {fracs.data &&
+            <FractalBrowser 
+              fractals={fracs.data.map(f => ({ form: f.form, color: f.color }))}
+              onclick={fractalId => setSelectedFractalId(fractalId)}
+              selected={selectedFractalId}
+              selectPrev={selectPrevFractal} 
+              selectNext={selectNextFractal}
+              viewFull={() => setViewFull(true)}
+              viewEdit={() => setViewEdit(true)}
+            />
+          }
         </div>
       </main>
     </>

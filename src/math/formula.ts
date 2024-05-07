@@ -1,3 +1,4 @@
+import { floatToShortString } from "./util";
 import { type vec2, vec2angle, vec2magnitude, vec2rotate } from "./vec2";
 
 export default class Formula {
@@ -7,31 +8,28 @@ export default class Formula {
   d: number;
   e: number;
   f: number;
-  p: number;
+  w: number;
+  p = 1;
   
   constructor(string?: string) {
     string = string ?? '.9 0 0 .9 0 0 1';
-    const numbers = string.split(' ');
-    const values: number[] = numbers.map(s => parseFloat(s));
+    const values: number[] = string.split(' ').map(parseFloat);
+    if (values.some(value => !Number.isFinite(value))) throw new Error('Error creating Formula from string: ' + string);
     this.a = values[0]!;
     this.b = values[1]!;
     this.c = values[2]!;
     this.d = values[3]!;
     this.e = values[4]!;
     this.f = values[5]!;
-    this.p = values[6]!;
+    this.w = values[6]!;
   }
 
-  clone() {
+  clone(): Formula {
     return new Formula(this.toString());
   }
 
-  toString() {
-    const fmt = (n: number) => {
-      const s = parseFloat(n.toFixed(5)).toString();
-      return (s.startsWith('0.') || s.startsWith('-0.')) ? s.replace('0.', '.') : s;
-    };
-    return `${fmt(this.a)} ${fmt(this.b)} ${fmt(this.c)} ${fmt(this.d)} ${fmt(this.e)} ${fmt(this.f)} 1`;
+  toString(): string {
+    return [this.a, this.b, this.c, this.d, this.e, this.f, this.w].map(floatToShortString).join(' ');
   }
 
   iterate(point: vec2): vec2 {
@@ -52,8 +50,8 @@ export default class Formula {
     return [wx / w, wy / w];
   }
 
-  get area() {
-    return Math.abs(this.b * this.c - this.a * this.d);
+  get area(): number {
+    return Math.abs(this.b * this.c - this.a * this.d) * this.w;
   }
 
   get rotation(): vec2 { 
@@ -111,30 +109,18 @@ export default class Formula {
     this.f += d[1];
   }
 
-  static formulasFromString(fractalString: string) {
-    const formulas = [];
-    const strings = fractalString.split(',');
-    for (const string of strings) {
-      formulas.push(new Formula(string));
-    }
-    return formulas;
-  }
-  
-  static formulasToString(formulas: Formula[]) {
-    let string = formulas[0]!.toString();
-    for (let i = 1; i < formulas.length; i++) {
-      string += ',' + formulas[i]!.toString();
-    }
-    return string;
-  }
-  
-  static normalizeFormulas(formulas: Formula[]) {
+  static normalize(formulas: Formula[]) {
     let area = 0;
-    for (const formula of formulas) {
-      area += formula.area;
-    }
-    for (const formula of formulas)
-      formula.p = formula.area / area;
+    for (const formula of formulas) area += formula.area;
+    for (const formula of formulas) formula.p = formula.area / area;
   }
-
+  
+  static fromString(fractalString: string): Formula[] {
+    return fractalString.split(',').map(s => new Formula(s));
+  }
+  
+  static toString(formulas: Formula[]): string {
+    return formulas.map(f => f.toString()).join(',');
+  }
+  
 }

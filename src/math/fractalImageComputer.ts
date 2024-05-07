@@ -1,66 +1,91 @@
-import type Formula from "./formula";
-import PaletteKey from "./palette";
-import FractalSumsComputer from "./fractalSumsComputer";
+import Formula from "./formula";
+import PaletteKey, { createPaletteFromKeys, paletteKeysFromString } from "./palette";
+import FractalSummator from "./fractalSumsComputer";
 import { getMs } from "./util";
 import BackgroundScheduler from "~/logic/scheduler";
 import IndexedDBManager from "~/logic/cache";
 
-export default class FractalImageComputer extends FractalSumsComputer {
+export default class FractalRenderer extends FractalSummator {
   static scheduler = new BackgroundScheduler();
   static sumsCache = new IndexedDBManager("SumsCache", 1);
 
+  ctx: CanvasRenderingContext2D | null = null;
+  imageData: ImageData | null = null;
   sums = new Int32Array();
-  imageData: ImageData;
 
-  numPointsPerCall = 0;
-  numPointsPerImage = 0;
+  pointsPerImage = 0;
   
-  lastPutImageTime = 0;
-  putImageInterval = 0;
+  lastStageTime = 0;
+  stageInterval = 0;
   
-  startMs = 0;
-  startPts = 0;
-  
-  infinite = false;
+  renderInfinitely = false;
   palette: number[] = [];
 
   formString = "";
   cacheKey = "";
   cached = false;
 
-  constructor(public ctx: CanvasRenderingContext2D, zoom: number) {
-    super(zoom);
-    this.imageData = ctx.createImageData(1,1);
-    FractalImageComputer.scheduler.addTask(this);
+  fractal = "";
+  color = "";
+
+  mustRecalc = false;
+  mustRedraw = false;
+
+  constructor() {
+    super(.9);
+  }
+
+  setCtx(ctx: CanvasRenderingContext2D) {
+    if (this.width != ctx.canvas.width || this.height != ctx.canvas.height) {
+      super.setSize([ctx.canvas.width, ctx.canvas.height]);
+      this.mustRecalc = true;
+    }
+    this.ctx = ctx;
   }
 
   setCached(cached: boolean) {
     this.cached = cached;
   }
 
-  setFormulas(formulas: Formula[]) {
-    super.setFormulas(formulas);
-    this.formString = this.formulas.toString();
-    this.prepare();
+  setFractal(fractal: string) {
+    if (this.fractal === fractal) return;
+    this.fractal = fractal;
+    this.formulas = Formula.fromString(fractal);
+    this.mustRecalc = true;
   }
 
-  setPalette(palette: number[]) {
-    this.palette = palette;
-    if (this.calculatedPointsCount) {
-      this.draw();
-    }
+  setColor(color: string) {
+    if (this.color === color) return;
+    this.color = color;
+    this.palette = createPaletteFromKeys(paletteKeysFromString(color));
+    this.mustRedraw = true;
   }
 
-  prepare() {
+  touch() {
+    if (this.isFinished()) this.mustRedraw = true;
+  }
+
+  render() {
+    if (!this.ctx) return;
+    if (!this.area) return;
     if (!this.formulas.length) return;
+
+    if (!this.mustRecalc) {
+      if (this.mustRedraw) {
+        this.draw();
+      }
+      return;
+    }
+
+    this.mustRecalc = false;
     super.prepare();
     
-    this.screenWidth  = this.ctx.canvas.width;
-    this.screenHeight = this.ctx.canvas.height;
-    
-    this.sums = new Int32Array(this.screenWidth * this.screenHeight);
-    this.imageData = this.ctx.createImageData(this.screenWidth, this.screenHeight);
+    this.sums = new Int32Array(this.width * this.height);
+    this.imageData = this.ctx.createImageData(this.width, this.height);
     this.maxSum = 0;
+
+    this.pointsPerImage = this.densityPerImage * this.area;
+    this.pointsCount = 0;
 
     if (this.cached) 
       void this.prepareCached();
@@ -69,10 +94,10 @@ export default class FractalImageComputer extends FractalSumsComputer {
   }
 
   async prepareCached() {
-    this.cacheKey = `${this.screenWidth}x${this.screenHeight}:${this.formulas.toString()}`;
+    this.cacheKey = `${this.width}x${this.height}:${this.fractal}`;
     try {
-      this.sums = await FractalImageComputer.sumsCache.fetch(this.cacheKey);
-      this.calculatedPointsCount = this.numPointsPerImage;
+      this.sums = await FractalRenderer.sumsCache.fetch(this.cacheKey);
+      this.pointsCount = this.pointsPerImage;
       this.draw();
     }
     catch (e) {
@@ -81,47 +106,40 @@ export default class FractalImageComputer extends FractalSumsComputer {
   }
 
   prepareCalculated() {
-    this.numPointsPerCall  = this.densityPerCall  * this.area;
-    this.numPointsPerImage = this.densityPerImage * this.area;
-
-    this.lastPutImageTime = getMs();
-    this.putImageInterval = 20;
+    this.lastStageTime = getMs();
+    this.stageInterval = 20;
     
-    FractalImageComputer.scheduler.run();
+    FractalRenderer.scheduler.addTask(this);
   }
   
   process() {
-    this.startMs = getMs();
-    this.startPts = this.calculatedPointsCount;
     if (this.isFinished()) return;
-    if (!this.calculatedPointsCount) {
-      super.compute(this.sums, true)
+    const startMs = getMs();
+    if (!this.pointsCount) {
+      super.process(this.sums, true);
       this.draw();
     }
     else {
-      while (getMs() - this.startMs < Math.min(this.putImageInterval, 40) && !this.isFinished()) {
-        super.compute(this.sums);
+      while (getMs() - startMs < Math.min(this.stageInterval, 40) && !this.isFinished()) {
+        super.process(this.sums);
       }
-      if (getMs() - this.lastPutImageTime > this.putImageInterval || this.isFinished()) {
-        this.lastPutImageTime = getMs();
-        if (this.putImageInterval < 1000) this.putImageInterval *= 1.5;
+      if (getMs() - this.lastStageTime > this.stageInterval || this.isFinished()) {
+        this.lastStageTime = getMs();
+        if (this.stageInterval < 1000) this.stageInterval *= 1.5;
         this.draw();
       }
     }
     if (this.isFinished() && this.cached) {
-      void FractalImageComputer.sumsCache.store(this.cacheKey, this.sums);
+      void FractalRenderer.sumsCache.store(this.cacheKey, this.sums);
     }
   }
   
-  isPrepared() {
-    return this.calculatedPointsCount != 0;
-  }
+  isPrepared() { return this.pointsCount != 0 || this.pointsPerImage == 0; }
   
-  isFinished() {
-    return this.calculatedPointsCount >= this.numPointsPerImage && !this.infinite;
-  }
+  isFinished() { return this.pointsCount >= this.pointsPerImage && !this.renderInfinitely; }
   
   draw = () => {
+    if (!this.ctx || !this.imageData) return;
     for (const sum of this.sums) {
       if (this.maxSum < sum) {
         this.maxSum = sum;
@@ -133,15 +151,7 @@ export default class FractalImageComputer extends FractalSumsComputer {
       palData[i] = this.palette[(this.sums[i]! * palmul) | 0]!;
     }
     this.ctx.putImageData(this.imageData, 0, 0);
-    if (!this.isFinished()) this.drawProgressBar();
-  }
-
-  drawProgressBar() {
-    this.ctx.strokeStyle = "black";
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.screenWidth * this.calculatedPointsCount / this.numPointsPerImage, this.screenHeight);
-    this.ctx.lineTo(this.screenWidth, this.screenHeight);
-    this.ctx.stroke();
+    this.mustRedraw = false;
   }
 
 }

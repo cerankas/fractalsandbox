@@ -1,5 +1,10 @@
 import { type vec2 } from "./vec2";
 
+export function floatToShortString(n: number): string {
+  const s = parseFloat(n.toFixed(5)).toString();
+  return (s.startsWith('0.') || s.startsWith('-0.')) ? s.replace('0.', '.') : s;
+};
+
 export function getMs() { return Number(new Date()); }
 
 export function getCanvasCtx(id: string) {

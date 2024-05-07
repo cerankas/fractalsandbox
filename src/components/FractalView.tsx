@@ -1,40 +1,44 @@
 import React, { useEffect, useRef } from "react";
-import Formula from "~/math/formula";
-import FractalImageComputer from "~/math/fractalImageComputer";
-import type PaletteKey from "~/math/palette";
-import { createPaletteFromKeys, paletteKeysFromString } from "~/math/palette";
+import FractalRenderer from "~/math/fractalImageComputer";
 
-export default function FractalView(props: { size: number, fractal: string, color: string, cached: boolean, onclick?: () => void }) {
-  const canvasRef = useRef(null);
-  const fracRef = useRef<FractalImageComputer | null>(null);
+export default function FractalView(props: { fractal: string, color: string, cached: boolean, onclick?: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fracRef = useRef<FractalRenderer | null>(null);
+  if (fracRef.current === null) {
+    fracRef.current = new FractalRenderer();
+  }
 
   useEffect(() => {
-    const canvas = canvasRef.current as unknown as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d')!;
-    if (fracRef.current === null) {
-      fracRef.current = new FractalImageComputer(ctx, .9);
-    }
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
   }, []);
 
-  useEffect(() => {
-    fracRef.current?.setWidthHeight(props.size, props.size);
-  }, [props.size]);
-  
-  useEffect(() => {
-    fracRef.current?.setCached(props.cached);
-    void fracRef.current?.setFormulas(Formula.formulasFromString(props.fractal));
-  }, [props.fractal, props.cached]);
-  
-  useEffect(() => {
-    const palette = createPaletteFromKeys(paletteKeysFromString(props.color) as PaletteKey[]);
-    fracRef.current?.setPalette(palette);
-  }, [props.color]);
+  const updateCanvasSize = () => {
+    const frac = fracRef.current;
+    if (!frac) return;
+    const canvas = canvasRef.current!;
+    const { width, height } = canvas.parentElement!.getBoundingClientRect();
+    canvas.width = width;
+    canvas.height = height;
+    frac.setCtx(canvas.getContext('2d')!);
+    frac.touch();
+    frac.render();
+  };
 
+  useEffect(() => {
+    const frac = fracRef.current;
+
+    if (!frac) return;
+    frac.setCached(props.cached);
+    frac.setFractal(props.fractal);
+    frac.setColor(props.color);
+    updateCanvasSize();
+  }, [props.cached, props.fractal, props.color]);
+  
   return (
-    <canvas onContextMenu={e => e.preventDefault()}
-      ref={canvasRef} 
-      width={props.size} 
-      height={props.size} 
+    <canvas className="size-full"
+      ref={canvasRef}
+      onContextMenu={e => e.preventDefault()}
       onClick={props.onclick}
     />
   );

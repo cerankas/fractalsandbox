@@ -8,8 +8,7 @@ export default function FractalSelector(props: { fractals: FormColor[], onclick:
   const [tileSize, setTileSize] = useState(parseInt(localStorage.tileSize as string)??1);
   return (
     <>
-      <div className="flex text-xl p-2">
-        Fractal Sandbox &nbsp;&nbsp;&nbsp;&nbsp;
+      <div className="absolute top-[5px] text-xl">
         <input
           type="range"
           min={0}
@@ -18,7 +17,7 @@ export default function FractalSelector(props: { fractals: FormColor[], onclick:
           onChange={(e) => { setTileSize(parseInt(e.target.value)); localStorage.tileSize = e.target.value; }}
         />
       </div>
-      <div className="flex flex-row flex-wrap">
+      <div className="flex flex-wrap">
         { props.fractals.map(((f,i) => <FractalTile 
           key={i} 
           id={i}

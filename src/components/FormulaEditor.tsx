@@ -4,31 +4,46 @@ import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEvent
 import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
 
-export default function FormulaEditor(props: { size: number, fractal: string, changeCallback: (fractal: string) => void }) {
-  const canvasRef = useRef(null);
+export default function FormulaEditor(props: { fractal: string, changeCallback: (fractal: string) => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const guiRef = useRef<FormulaEditorGUI | null>(null);
+  if (guiRef.current === null) {
+    guiRef.current = new FormulaEditorGUI(props.changeCallback);
+  }
 
   useEffect(() => {
-    const canvas = canvasRef.current as unknown as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d')!;
-    if (guiRef.current === null) {
-      guiRef.current = new FormulaEditorGUI(ctx, props.changeCallback);
-    }
-  }, [props.changeCallback]);
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
 
-  useEffect(() => {
-    guiRef.current?.setWidthHeight(props.size, props.size);
-  }, [props.size]);
+  const updateCanvasSize = () => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const { width, height } = canvas.parentElement!.getBoundingClientRect();
+    canvas.width = width;
+    canvas.height = height;
+    guiRef.current?.setSize([width, height]);
+    guiRef.current?.draw();
+  };
   
   useEffect(() => {
     void guiRef.current?.loadFormulas(props.fractal);
   }, [props.fractal]);
+  
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    if (!guiRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d')!;
+    guiRef.current.setCtx(ctx);
+    updateCanvasSize();
+  }, []);
 
   return (
-    <canvas onContextMenu={e => e.preventDefault()}
+    <canvas className="size-full"
       ref={canvasRef} 
-      width={props.size} 
-      height={props.size} 
+      onContextMenu={e => e.preventDefault()}
     />
   );
 }
@@ -37,21 +52,24 @@ class FormulaEditorGUI extends Viewport {
   formulas: Formula[] = [];
   selectedFormula = 0;
   selectedPoint: number | null = null;
-  ctx: CanvasRenderingContext2D;
+  ctx: CanvasRenderingContext2D | null = null;
   isDragging = false;
   dragStart: vec2 = [0, 0];
   draggedFormula: Formula | null = null;
   changeCallback: (fractal: string) => void;
   
-  constructor(ctx: CanvasRenderingContext2D, changeCallback: (fractal: string) => void) {
+  constructor(changeCallback: (fractal: string) => void) {
     super(.6);
-    this.ctx = ctx;
     this.changeCallback = changeCallback;
+    window.addEventListener('pointermove', this.onWindowPointerMove);
+    window.addEventListener('pointerup',   this.onWindowPointerUp);
+  }
+
+  setCtx(ctx: CanvasRenderingContext2D) {
+    this.ctx = ctx;
     ctx.canvas.addEventListener('wheel', this.onWheel, { passive: true });
     ctx.canvas.addEventListener('pointerdown', this.onPointerDown);
     ctx.canvas.addEventListener('pointermove', this.onPointerMove);
-    window.addEventListener('pointermove', this.onWindowPointerMove);
-    window.addEventListener('pointerup',   this.onWindowPointerUp);
   }
 
   onWheel = (e: WheelEvent) => {
@@ -96,6 +114,7 @@ class FormulaEditorGUI extends Viewport {
   }
 
   onWindowPointerMove = (e: MouseEvent) => {
+    if (!this.ctx) return;
     if (!this.isDragging) return;
     const rect = this.ctx.canvas.getBoundingClientRect();
     const screenMousePoint = vec2sub(getEventPageXY(e), [rect.left, rect.top]);
@@ -143,12 +162,12 @@ class FormulaEditorGUI extends Viewport {
   }
 
   callChangeCallback() {
-    const fractal = Formula.formulasToString(this.formulas);
+    const fractal = Formula.toString(this.formulas);
     this.changeCallback(fractal);
   }
 
   loadFormulas(formulaString: string) {
-    this.formulas = Formula.formulasFromString(formulaString);
+    this.formulas = Formula.fromString(formulaString);
     this.callChangeCallback();
     this.selectedFormula = 0;
     this.selectedPoint = null;
@@ -208,6 +227,7 @@ class FormulaEditorGUI extends Viewport {
   }
   
   draw() {
+    if (!this.ctx) return;
     const ctx = this.ctx;
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -221,6 +241,7 @@ class FormulaEditorGUI extends Viewport {
   }
 
   drawFormula(formulaIndex: number, isSelected: boolean, selectedPoint: number) {
+    if (!this.ctx) return;
     function drawEndPoint(th: FormulaEditorGUI, pointIndex: number, size: number) {
       const point = screenPoints[pointIndex];
       ctx.strokeStyle = (pointIndex == selectedPoint) ? 'red' : 'orange';
@@ -244,7 +265,7 @@ class FormulaEditorGUI extends Viewport {
   }
   
   drawBaseFormula() {
-    this.ctx.strokeStyle = 'lightgrey';
+    this.ctx!.strokeStyle = 'lightgrey';
     this.drawTriangle([
       this.toScreen([ 0, 0]),
       this.toScreen([ 0, 1]),
@@ -254,34 +275,33 @@ class FormulaEditorGUI extends Viewport {
   }
 
   drawTriangle(points: vec2[]) {
-    this.ctx.beginPath();
+    this.ctx!.beginPath();
     this.moveTo(points[0]!);
     this.lineTo(points[1]!);
     this.lineTo(points[2]!);
     this.lineTo(points[3]!);
     this.lineTo(points[1]!);
-    this.ctx.stroke();
+    this.ctx!.stroke();
   }
 
   moveTo(point: vec2) {
-    this.ctx.moveTo(point[0], point[1]);
+    this.ctx!.moveTo(point[0], point[1]);
   }
   
   lineTo(point: vec2) {
-    this.ctx.lineTo(point[0], point[1]);
+    this.ctx!.lineTo(point[0], point[1]);
   }
 
   drawCircle(point: vec2, radius: number) {
-    this.ctx.beginPath();
-    this.ctx.arc(point[0], point[1], radius, 0, 2 * Math.PI);
-    this.ctx.stroke();
+    this.ctx!.beginPath();
+    this.ctx!.arc(point[0], point[1], radius, 0, 2 * Math.PI);
+    this.ctx!.stroke();
   }
 
   addFormula() {
     this.formulas.push(new Formula());
     this.selectedFormula = this.formulas.length - 1;
     this.selectedPoint = null;
-    Formula.normalizeFormulas(this.formulas);
   }
   
   removeFormula() {
@@ -290,7 +310,6 @@ class FormulaEditorGUI extends Viewport {
     }
     this.selectedFormula = 0;
     this.selectedPoint = null;
-    Formula.normalizeFormulas(this.formulas);
   }
 
 }

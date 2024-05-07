@@ -1,18 +1,32 @@
-import React from "react";
-import FractalView from "./FractalView";
+import React, { useEffect, useRef } from "react";
+import FractalRenderer from "~/math/fractalImageComputer";
 
-export type FormColor = { form: string, color: string };
+export default function FractalTile(props: { id: number, size: number, fractal: string, color: string, onclick: (fractalId: number) => void, selected: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fracRef = useRef<FractalRenderer | null>(null);
+  if (fracRef.current === null) {
+    fracRef.current = new FractalRenderer();
+  }
+  
+  useEffect(() => {
+    const frac = fracRef.current;
+    if (!frac) return;
+    frac.setCtx(canvasRef.current!.getContext('2d')!);
+    frac.setCached(true);
+    frac.setFractal(props.fractal);
+    frac.setColor(props.color);
+    frac.render();
+  }, [props.size, props.fractal, props.color]);
 
-export default function FractalTile(props: { id: number, size: number, fractal: string, color: string, onclick?: (fractalId: number) => void, selected: boolean }) {
   return (
-    <div className={`flex border-2 bg-white ${props.selected ? "border-black" : ""} hover:border-slate-400`}>
-      <FractalView 
-        size={props.size} 
-        fractal={props.fractal} 
-        color={props.color}
-        cached={true}
-        onclick={props.onclick ? () => { props.onclick!(props.id)} : undefined} 
-      />  
+    <div className={`size-[${props.size}px] box-border border-2 bg-white ${props.selected ? "border-black" : "border-transparent hover:border-slate-200"} `}>
+      <canvas
+        ref={canvasRef}
+        width={props.size}
+        height={props.size}
+        onContextMenu={e => e.preventDefault()}
+        onClick={() => { props.onclick(props.id)}}
+        />  
     </div>
   );
 }

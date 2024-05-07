@@ -1,6 +1,6 @@
 import Formula from "./formula";
 
-export default class FractalPointsComputer {
+export default class FractalIterator {
   static FORMULA_ARRAY_SIZE = 0x4000;
   static randomSamplesArray = new Int16Array();
   static formulaRandomizerArray = new Int16Array();
@@ -33,7 +33,7 @@ export default class FractalPointsComputer {
   
   constructor() {
     this.formulas = [];
-    for (let i = 0; i < FractalPointsComputer.FORMULA_ARRAY_SIZE; i++)
+    for (let i = 0; i < FractalIterator.FORMULA_ARRAY_SIZE; i++)
       this.formulas.push(null);
   }
   
@@ -42,17 +42,17 @@ export default class FractalPointsComputer {
     this.x = attractor[0]!;
     this.y = attractor[1]!;
     this.randomXor = 0;
-    Formula.normalizeFormulas(formulas);
-    for (let i = 0, formulaIndex = -1, accumulatedWeight = 0; i < FractalPointsComputer.FORMULA_ARRAY_SIZE; i++) {
-      if (i / FractalPointsComputer.FORMULA_ARRAY_SIZE >= accumulatedWeight) {
+    Formula.normalize(formulas);
+    for (let i = 0, formulaIndex = -1, accumulatedWeight = 0; i < FractalIterator.FORMULA_ARRAY_SIZE; i++) {
+      if (i / FractalIterator.FORMULA_ARRAY_SIZE >= accumulatedWeight) {
         accumulatedWeight += formulas[++formulaIndex]!.p;
       }
-      this.formulas[FractalPointsComputer.formulaRandomizerArray[i]!] = formulas[formulaIndex]!;
+      this.formulas[FractalIterator.formulaRandomizerArray[i]!] = formulas[formulaIndex]!;
     }
   }
 
   compute(points: Float64Array) {
-    FractalPointsComputer.ensureRandomArraySize(points.length / 2);
+    FractalIterator.ensureRandomArraySize(points.length / 2);
     if (!this.randomXor) {
       this.computeFirst(points);
       return;
@@ -64,14 +64,14 @@ export default class FractalPointsComputer {
     let pointPtr = points.length;
     let randomPtr = 0;
     while (pointPtr) {
-      const f = formulas[FractalPointsComputer.randomSamplesArray[randomPtr++]! ^ randomXor]!;
+      const f = formulas[FractalIterator.randomSamplesArray[randomPtr++]! ^ randomXor]!;
       const tmp              = f.a * x + f.b * y + f.e;
       y = points[--pointPtr] = f.c * x + f.d * y + f.f;
       x = points[--pointPtr] = tmp;
     }
     this.x = x;
     this.y = y;
-    if (++this.randomXor >= FractalPointsComputer.FORMULA_ARRAY_SIZE) this.randomXor = 0;
+    if (++this.randomXor >= FractalIterator.FORMULA_ARRAY_SIZE) this.randomXor = 0;
   }
 
   computeFirst(points: Float64Array) {
@@ -81,7 +81,7 @@ export default class FractalPointsComputer {
     let pointPtr = points.length;
     let randomPtr = 0;
     while (pointPtr) {
-      const f = formulas[FractalPointsComputer.randomSamplesArray[randomPtr++]!]!;
+      const f = formulas[FractalIterator.randomSamplesArray[randomPtr++]!]!;
       const tmp              = f.a * x + f.b * y + f.e;
       y = points[--pointPtr] = f.c * x + f.d * y + f.f;
       x = points[--pointPtr] = tmp;

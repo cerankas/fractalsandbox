@@ -4,8 +4,9 @@ export default class Viewport {
   scale = 1;
   shift: vec2 = [0, 0];
   
-  screenWidth = 1;
-  screenHeight = 1;
+  size: vec2 = [1, 1];
+  get width()  { return this.size[0]; }
+  get height() { return this.size[1]; }
 
   manualScale = 1;
   manualShift: vec2 = [0, 0];
@@ -23,9 +24,8 @@ export default class Viewport {
     return vec2div(vec2sub(point, this.shift), [this.scale, -this.scale]);
   }
 
-  setWidthHeight(width: number, height: number) {
-    this.screenWidth = width;
-    this.screenHeight = height;
+  setSize(size: vec2) {
+    this.size = size;
     this.updateTransform();
   }
 
@@ -42,11 +42,11 @@ export default class Viewport {
   }
 
   updateTransform() {
-    const screenCenter = vec2div1([this.screenWidth, this.screenHeight], 2);
+    const center = vec2div1(this.size, 2);
     const dataCenter = vec2div1(vec2add(this.dataMax,  this.dataMin), 2);
-    const [dataWidth, dataHeight] =  vec2sub(this.dataMax, this.dataMin);
-    this.scale = Math.min(this.screenWidth / dataWidth, this.screenHeight / dataHeight) * this.autoZoom * this.manualScale;
-    const tmpShift = vec2sub(screenCenter, vec2mul(dataCenter, [this.scale, -this.scale]));
+    const dataSize =  vec2sub(this.dataMax, this.dataMin);
+    this.scale = Math.min(...vec2div(this.size, dataSize)) * this.autoZoom * this.manualScale;
+    const tmpShift = vec2sub(center, vec2mul(dataCenter, [this.scale, -this.scale]));
     this.shift = vec2add(tmpShift, this.manualShift);
   }
   

@@ -7,43 +7,60 @@ export interface SchedulerTask {
 }
 
 export default class BackgroundScheduler {
-  queue = new Array<SchedulerTask>();
+  queue = new SchedulerQueue();
   timer: NodeJS.Timeout | null = null;
-  start = 0;
 
   addTask(task: SchedulerTask) {
-    this.queue.push(task);
+    this.queue.addTask(task);
+    if (this.isFinished()) this.scheduleNextCall();
   }
 
-  run() {
-    if (this.timer === null) {
-      this.scheduleNextCall();
-      this.start = getMs();
+  removeTask(task: SchedulerTask) {
+    this.queue.removeTask(task);
+    if (this.queue.getTaskToProcess() == null) this.timer = null;
+  }
+
+  process = () => {
+    const startMs = getMs();
+    while (getMs() - startMs < 20) {
+      const task = this.queue.getTaskToProcess();
+      if (task) {
+        task.process();
+        if (task.isFinished()) this.removeTask(task);
+      }
+      else {
+        this.timer = null;
+        return;
+      }
     }
+    this.scheduleNextCall();
   }
 
-  scheduleNextCall() { this.timer = setTimeout(this.process, 1); }
- 
+  scheduleNextCall() { 
+    this.timer = setTimeout(this.process, 0); 
+  }
+
+  isFinished() { 
+    return this.timer === null; 
+  }
+}
+
+class SchedulerQueue {
+  queue = new Array<SchedulerTask>();
+
   getTaskToProcess() {
     for (const task of this.queue) if (!task.isPrepared()) return task;
     for (const task of this.queue) if (!task.isFinished()) return task;
     return null;
   }
 
-  process = () => {
-    const start = getMs();
-    
-    while (getMs() - start < 40) {
-      const task = this.getTaskToProcess();
-      if (task) {
-        task.process();
-      }
-      else {
-        this.timer = null;
-        console.log(getMs() - this.start);
-        return;
-      }
-    }
-    this.scheduleNextCall();
+  addTask(task: SchedulerTask) {
+    if (this.queue.includes(task)) return;
+    this.queue.push(task);
+  }
+
+  removeTask(task: SchedulerTask) {
+    if (!this.queue.includes(task)) return;
+    this.queue.splice(this.queue.indexOf(task), 1);
   }
 }
