@@ -11,10 +11,12 @@ export default function FractalEditor(props: {
   selected: number, 
   viewFull: () => void,
   viewEdit: () => void,
+  hidden: boolean;
 }) {
   const iconStyle = "size-8 hover:cursor-pointer m-1";
+  console.log('FractalBrowser', props.selected, props.hidden)
   return (
-    <div className="flex p-8 gap-8 h-screen w-screen">
+    <div className={"flex p-8 gap-8 h-screen w-screen" + (props.hidden ? " hidden" : "")}>
       <div className="relative aspect-square h-full">
         <div className="absolute top-0 right-0 flex flex-row">
           <IoArrowBackCircleOutline    className={iconStyle} onClick={props.selectPrev} title="Previous [Left]"/>
@@ -27,6 +29,7 @@ export default function FractalEditor(props: {
           color={props.fractals[props.selected]!.color}
           cached={false}
           onclick={props.viewFull}
+          hidden={props.hidden}
         />
       </div>
       <div className="overflow-hidden">

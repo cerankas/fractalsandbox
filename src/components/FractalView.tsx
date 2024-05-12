@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
 
-export default function FractalView(props: { fractal: string, color: string, cached: boolean, onclick?: () => void }) {
+export default function FractalView(props: { fractal: string, color: string, cached: boolean, onclick?: () => void, hidden?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fracRef = useRef<FractalRenderer | null>(null);
   if (fracRef.current === null) {
@@ -26,14 +26,15 @@ export default function FractalView(props: { fractal: string, color: string, cac
   };
 
   useEffect(() => {
+    if (props.hidden) return;
+    if (!fracRef.current) return;
     const frac = fracRef.current;
-
-    if (!frac) return;
     frac.setCached(props.cached);
     frac.setFractal(props.fractal);
     frac.setColor(props.color);
     updateCanvasSize();
-  }, [props.cached, props.fractal, props.color]);
+    console.log('FractalView', fracRef.current?.ctx?.canvas.width)
+  }, [props.cached, props.fractal, props.color, props.hidden]);
   
   return (
     <canvas className="size-full"

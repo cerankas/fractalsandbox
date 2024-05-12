@@ -66,7 +66,7 @@ export default function Home() {
             />
           }
         </div>
-        <div className={!viewFull && !viewEdit ? "" : "hidden"}>
+        <div>
           {fracs.data &&
             <FractalBrowser 
               fractals={fracs.data.map(f => ({ form: f.form, color: f.color }))}
@@ -76,6 +76,7 @@ export default function Home() {
               selectNext={selectNextFractal}
               viewFull={() => setViewFull(true)}
               viewEdit={() => setViewEdit(true)}
+              hidden={viewFull || viewEdit}
             />
           }
         </div>
