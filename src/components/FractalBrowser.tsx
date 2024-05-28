@@ -3,7 +3,7 @@ import FractalSelector, { type FormColor } from "./FractalSelector";
 import { IoArrowBackCircleOutline, IoArrowForwardCircleOutline } from "react-icons/io5";
 import { AiOutlineEdit, AiOutlineFullscreen } from "react-icons/ai";
 
-export default function FractalEditor(props: { 
+export default function FractalBrowser(props: { 
   fractals: FormColor[], 
   selectPrev: () => void, 
   selectNext: () => void, 
@@ -14,7 +14,6 @@ export default function FractalEditor(props: {
   hidden: boolean;
 }) {
   const iconStyle = "size-8 hover:cursor-pointer m-1";
-  console.log('FractalBrowser', props.selected, props.hidden)
   return (
     <div className={"flex p-8 gap-8 h-screen w-screen" + (props.hidden ? " hidden" : "")}>
       <div className="relative aspect-square h-full">
