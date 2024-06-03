@@ -48,8 +48,8 @@ export function rgbToHex(r: number, g: number, b: number): string {
 }
 
 export function paletteKeysFromString(string: string): PaletteKey[] {
-  return string.split(',').map(s => {
-    const [indstr, rgbstr] = s.split(' ') as [string, string];
+  return string.split(';').map(s => {
+    const [indstr, rgbstr] = s.split(',') as [string, string];
     const ind = (parseFloat(indstr) * PaletteKey.MAX_KEY_INDEX) | 0;
     const rgb = hexToRGB(rgbstr);
     return new PaletteKey(ind, ...rgb);
@@ -57,7 +57,7 @@ export function paletteKeysFromString(string: string): PaletteKey[] {
 }
 
 export function paletteKeysToString(paletteKeys: PaletteKey[]): string {
-  return paletteKeys.map(k => `${k.index} ${rgbToHex(k.r, k.g, k.b)}`).join(';');
+  return paletteKeys.map(k => `${k.index},${rgbToHex(k.r, k.g, k.b)}`).join(';');
 }
 
 export function hexToRGB(hex: string): [number, number, number] {

@@ -12,8 +12,8 @@ export default class Formula {
   p = 1;
   
   constructor(string?: string) {
-    string = string ?? '.9 0 0 .9 0 0 1';
-    const values: number[] = string.split(' ').map(parseFloat);
+    string = string ?? '.9,0,0,.9,0,0,1';
+    const values: number[] = string.split(',').map(parseFloat);
     if (values.some(value => !Number.isFinite(value))) throw new Error('Error creating Formula from string: ' + string);
     this.a = values[0]!;
     this.b = values[1]!;
@@ -29,7 +29,7 @@ export default class Formula {
   }
 
   toString(): string {
-    return [this.a, this.b, this.c, this.d, this.e, this.f, this.w].map(floatToShortString).join(' ');
+    return [this.a, this.b, this.c, this.d, this.e, this.f, this.w].map(floatToShortString).join(',');
   }
 
   iterate(point: vec2): vec2 {
@@ -116,11 +116,11 @@ export default class Formula {
   }
   
   static fromString(fractalString: string): Formula[] {
-    return fractalString.split(',').map(s => new Formula(s));
+    return fractalString.split(';').map(s => new Formula(s));
   }
   
   static toString(formulas: Formula[]): string {
-    return formulas.map(f => f.toString()).join(',');
+    return formulas.map(f => f.toString()).join(';');
   }
   
 }
