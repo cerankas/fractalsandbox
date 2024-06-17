@@ -36,8 +36,9 @@ export default function Home() {
         <meta name="description" content="interactive fractal generator" />
         <meta name="author" content="Szymon Ceranka" />
       </Head>
-      {/* <main className="flex min-h-screen flex-col items-center self-start bg-gradient-to-b from-[orange] to-[blue]"> */}
+      
       <main className="flex min-h-screen flex-col items-center self-start bg-gray-500">
+
         <div className="absolute right-2 top-2 hover:cursor-pointer hover:brightness-110">
           {isSignedIn && <UserButton userProfileMode="modal" afterSignOutUrl={window.location.href} appearance={{ elements: { userButtonAvatarBox: { width: 32, height: 32 }}}} />}
           {!isSignedIn && <SignInButton mode="modal">
@@ -45,6 +46,7 @@ export default function Home() {
             </span></SignInButton>
           }
         </div>
+
         <div className={viewFull ? "size-full v-screen h-screen" : "hidden"}>
           {viewFull && selectedFractal && 
             <FractalView
@@ -54,6 +56,7 @@ export default function Home() {
             />
           }
         </div>
+
         <div className={!viewFull && viewEdit ? "flex h-screen" : "hidden"}>
           {viewEdit && selectedFractal && 
             <FractalEditor
@@ -66,6 +69,7 @@ export default function Home() {
             />
           }
         </div>
+
         <div>
           {fracs.data &&
             <FractalBrowser 
@@ -80,6 +84,7 @@ export default function Home() {
             />
           }
         </div>
+
       </main>
     </>
   );

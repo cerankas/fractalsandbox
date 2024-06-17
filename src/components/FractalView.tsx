@@ -17,9 +17,11 @@ export default function FractalView(props: { fractal: string, color: string, cac
     const frac = fracRef.current;
     if (!frac) return;
     const canvas = canvasRef.current!;
-    const { width, height } = canvas.parentElement!.getBoundingClientRect();
-    canvas.width = width;
-    canvas.height = height;
+    const parent = canvas.parentElement!.getBoundingClientRect();
+    if (canvas.width != parent.width || canvas.height != parent.height) {
+      canvas.width = parent.width;
+      canvas.height = parent.height;
+    }
     frac.setCtx(canvas.getContext('2d')!);
     frac.touch();
     frac.render();
