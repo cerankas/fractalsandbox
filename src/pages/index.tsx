@@ -40,9 +40,9 @@ export default function Home() {
       <main className="flex min-h-screen flex-col items-center self-start bg-gray-500">
 
         <div className="absolute right-2 top-2 hover:cursor-pointer hover:brightness-110">
-          {isSignedIn && <UserButton userProfileMode="modal" afterSignOutUrl={window.location.href} appearance={{ elements: { userButtonAvatarBox: { width: 32, height: 32 }}}} />}
+          {isSignedIn && <UserButton userProfileMode="modal" afterSignOutUrl={window.location.href} appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} />}
           {!isSignedIn && <SignInButton mode="modal">
-            <span className="flex text-base rounded-full bg-slate-700 w-8 h-8 justify-center items-center"><FaUser/>
+            <span className="flex text-base rounded-full bg-slate-700 size-6 justify-center items-center"><FaUser/>
             </span></SignInButton>
           }
         </div>
