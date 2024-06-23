@@ -18,7 +18,7 @@ export default function FractalView(props: { fractal: string, color: string, cac
     if (!frac) return;
     const canvas = canvasRef.current!;
     const parent = canvas.parentElement!.getBoundingClientRect();
-    if (canvas.width != parent.width || canvas.height != parent.height) {
+    if (canvas.width != (parent.width | 0) || canvas.height != (parent.height | 0)) {
       canvas.width = parent.width;
       canvas.height = parent.height;
     }

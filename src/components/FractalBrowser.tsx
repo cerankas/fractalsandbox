@@ -17,7 +17,7 @@ export default function FractalBrowser(props: {
   const iconStyle = "size-6 hover:cursor-pointer m-1";
   return (
     <div className={props.hidden ? " hidden" : ""}>
-      <HorizontalOrVertical percent={50}>
+      <HorizontalOrVertical>
         <div className="relative size-full">
           <div className="absolute top-0 right-0 flex flex-row">
             <IoArrowBackCircleOutline    className={iconStyle} onClick={props.selectPrev} title="Previous [Left]"/>

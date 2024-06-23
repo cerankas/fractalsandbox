@@ -20,7 +20,7 @@ export default function FractalEditor(props: { size: number, fractal: string, co
   const modified = (fractal !== props.fractal);
 
   return (
-    <HorizontalOrVertical percent={50}>
+    <HorizontalOrVertical>
       <div className="relative size-full">
         <div className="absolute top-0 right-0 flex flex-row">
           <IoCloudUploadOutline        className={iconStyle + (modified ? "" : " text-gray-500 hover:cursor-auto")} onClick={() => modified && mutate({form: fractal, color: props.color})} title="Upload"/>
