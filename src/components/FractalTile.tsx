@@ -19,7 +19,7 @@ export default function FractalTile(props: { id: number, size: number, fractal: 
   }, [props.size, props.fractal, props.color]);
 
   return (
-    <div className={`size-[${props.size}px] box-border border-2 bg-white ${props.selected ? "border-black" : "border-transparent hover:border-slate-200"} `}>
+    <div className={`flex flex-grow justify-center size-[${props.size}px] box-border border-2 bg-white ${props.selected ? "border-black" : "border-transparent hover:border-slate-200"} `}>
       <canvas
         ref={canvasRef}
         width={props.size}

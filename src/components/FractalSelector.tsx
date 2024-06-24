@@ -17,7 +17,7 @@ export default function FractalSelector(props: { fractals: FormColor[], onclick:
           onChange={(e) => { setTileSize(parseInt(e.target.value)); localStorage.tileSize = e.target.value; }}
         />
       </div>
-      <div className="flex flex-wrap overflow-x-hidden overflow-y-scroll">
+      <div className="flex flex-wrap overflow-y-auto justify-around">
         { props.fractals.map(((f,i) => <FractalTile 
           key={i} 
           id={i}
