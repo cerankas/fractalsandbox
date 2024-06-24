@@ -41,7 +41,6 @@ export default function FractalView(props: { fractal: string, color: string, cac
   return (
     <canvas className="size-full"
       ref={canvasRef}
-      onContextMenu={e => e.preventDefault()}
       onClick={props.onclick}
     />
   );

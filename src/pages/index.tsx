@@ -37,7 +37,7 @@ export default function Home() {
         <meta name="author" content="Szymon Ceranka" />
       </Head>
       
-      <main className="flex min-h-screen flex-col items-center self-start bg-gray-500">
+      <main className="bg-gray-500" onContextMenu={e => e.preventDefault()}>
 
         <div className="absolute right-2 top-2 hover:cursor-pointer hover:brightness-110">
           {isSignedIn && <UserButton userProfileMode="modal" afterSignOutUrl={window.location.href} appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} />}

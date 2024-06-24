@@ -24,7 +24,6 @@ export default function FractalTile(props: { id: number, size: number, fractal: 
         ref={canvasRef}
         width={props.size}
         height={props.size}
-        onContextMenu={e => e.preventDefault()}
         onClick={() => { props.onclick(props.id)}}
         />  
     </div>

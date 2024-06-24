@@ -43,7 +43,6 @@ export default function FormulaEditor(props: { fractal: string, changeCallback: 
   return (
     <canvas className="size-full"
       ref={canvasRef} 
-      onContextMenu={e => e.preventDefault()}
     />
   );
 }
