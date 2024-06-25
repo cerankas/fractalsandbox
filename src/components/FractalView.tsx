@@ -1,11 +1,13 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
+import ProgressIndicator from "./ProgressIndicator";
 
 export default function FractalView(props: { fractal: string, color: string, cached: boolean, onclick?: () => void, hidden?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fracRef = useRef<FractalRenderer | null>(null);
+  const [progress, setProgress] = useState(0);
   if (fracRef.current === null) {
-    fracRef.current = new FractalRenderer();
+    fracRef.current = new FractalRenderer(setProgress);
   }
 
   useEffect(() => {
@@ -39,9 +41,17 @@ export default function FractalView(props: { fractal: string, color: string, cac
   }, [props.cached, props.fractal, props.color, props.hidden]);
   
   return (
-    <canvas className="size-full"
-      ref={canvasRef}
-      onClick={props.onclick}
-    />
+    <div className="size-full">
+      
+      <div className="absolute top-0 left-0">
+        <ProgressIndicator progress={progress} />
+      </div>
+
+      <canvas className="size-full"
+        ref={canvasRef}
+        onClick={props.onclick}
+        />
+    
+    </div>
   );
 }

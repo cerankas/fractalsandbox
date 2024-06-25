@@ -31,7 +31,7 @@ export default class FractalRenderer extends FractalSummator {
   mustRecalc = false;
   mustRedraw = false;
 
-  constructor() {
+  constructor(private onprogress?: (progress: number) => void) {
     super(.9);
   }
 
@@ -99,6 +99,7 @@ export default class FractalRenderer extends FractalSummator {
       this.sums = await FractalRenderer.sumsCache.fetch(this.cacheKey);
       this.pointsCount = this.pointsPerImage;
       this.draw();
+      this.onprogress?.(1);
     }
     catch (e) {
       this.prepareCalculated();
@@ -132,6 +133,7 @@ export default class FractalRenderer extends FractalSummator {
     if (this.isFinished() && this.cached) {
       void FractalRenderer.sumsCache.store(this.cacheKey, this.sums);
     }
+    this.onprogress?.(this.pointsCount / this.pointsPerImage);
   }
   
   isPrepared() { return this.pointsCount != 0 || this.pointsPerImage == 0; }
