@@ -9,6 +9,7 @@ export default function HorizontalOrVertical(props: { children: ReactNode }) {
     const clampedPercent = Math.max(10, Math.min(90, percent));
     setFirstComponentPercent(clampedPercent);
     localStorage.setItem('firstComponentPercent', clampedPercent.toString());
+    window.dispatchEvent(new Event('resize'));
   };
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export default function HorizontalOrVertical(props: { children: ReactNode }) {
       setIsHorizontal(window.innerWidth >= window.innerHeight);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, {capture: true});
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
