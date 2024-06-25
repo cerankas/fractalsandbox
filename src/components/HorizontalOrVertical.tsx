@@ -1,9 +1,15 @@
-import React, { useCallback, useEffect, useState, type ReactNode } from 'react';
+import React, { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 
 export default function HorizontalOrVertical(props: { children: ReactNode }) {
   const [isHorizontal, setIsHorizontal] = useState(window.innerWidth >= window.innerHeight);
   const [firstComponentPercent, setFirstComponentPercent] = useState(Number(localStorage.getItem('firstComponentPercent')) || 50);
   const [isDragging, setIsDragging] = useState(false);
+
+  const setAndSaveFirstComponentPercent = (percent: number) => {
+    const clampedPercent = Math.max(10, Math.min(90, percent));
+    setFirstComponentPercent(clampedPercent);
+    localStorage.setItem('firstComponentPercent', clampedPercent.toString());
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -14,8 +20,9 @@ export default function HorizontalOrVertical(props: { children: ReactNode }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleMouseDown = () => {
-    setIsDragging(true);
+  const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
+    if (e.button == 0) setIsDragging(true);
+    if (e.button == 1) setAndSaveFirstComponentPercent(50);
   };
 
   const handleMouseUp = () => {
@@ -23,11 +30,9 @@ export default function HorizontalOrVertical(props: { children: ReactNode }) {
   };
 
   const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+    (e: MouseEvent) => { 
       if (isDragging) {
-        const newSize = 100 * (isHorizontal ? e.clientX / window.innerWidth : e.clientY / window.innerHeight);
-        setFirstComponentPercent(Math.max(10, Math.min(90, newSize)));
-        localStorage.setItem('firstComponentPercent', newSize.toString());
+        setAndSaveFirstComponentPercent(100 * (isHorizontal ? e.clientX / window.innerWidth : e.clientY / window.innerHeight));
       }
     },
     [isDragging, isHorizontal]
