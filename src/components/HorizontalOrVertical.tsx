@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 
 export default function HorizontalOrVertical(props: { children: ReactNode }) {
   const [isHorizontal, setIsHorizontal] = useState(window.innerWidth >= window.innerHeight);
@@ -9,8 +9,11 @@ export default function HorizontalOrVertical(props: { children: ReactNode }) {
     const clampedPercent = Math.max(10, Math.min(90, percent));
     setFirstComponentPercent(clampedPercent);
     localStorage.setItem('firstComponentPercent', clampedPercent.toString());
-    window.dispatchEvent(new Event('resize'));
   };
+  
+  useLayoutEffect(() => {
+    window.dispatchEvent(new Event('resize'));
+  }, [isHorizontal, firstComponentPercent]);
 
   useEffect(() => {
     const handleResize = () => {
