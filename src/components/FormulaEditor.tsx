@@ -4,7 +4,7 @@ import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEvent
 import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
 
-export default function FormulaEditor(props: { fractal: string, changeCallback: (fractal: string) => void }) {
+export default function FormulaEditor(props: { form: string, changeCallback: (fractal: string) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const guiRef = useRef<FormulaEditorGUI | null>(null);
   if (guiRef.current === null) {
@@ -27,8 +27,8 @@ export default function FormulaEditor(props: { fractal: string, changeCallback: 
   };
   
   useEffect(() => {
-    void guiRef.current?.loadFormulas(props.fractal);
-  }, [props.fractal]);
+    void guiRef.current?.loadFormulas(props.form);
+  }, [props.form]);
   
 
   useEffect(() => {

@@ -1,14 +1,13 @@
 import { useState } from "react";
 import FractalTile from "./FractalTile";
+import { type Fractal } from "@prisma/client";
 
-export type FormColor = { form: string, color: string };
-
-export default function FractalSelector(props: { fractals: FormColor[], onclick: (fractalId: number) => void, selected: number }) {
+export default function FractalSelector(props: { fractals: Fractal[], onclick: (fractalId: string) => void, selected: string }) {
   const sizes = [50, 100, 150, 200, 250];
   const [tileSize, setTileSize] = useState(parseInt(localStorage.tileSize as string)??1);
   return (
-    <div className="flex flex-col size-full">
-      <div>
+    <div className="flex flex-col size-full gap-2">
+      <div className="bg-white">
         <input
           type="range"
           min={0}
@@ -18,14 +17,12 @@ export default function FractalSelector(props: { fractals: FormColor[], onclick:
         />
       </div>
       <div className="flex flex-wrap overflow-y-auto justify-around">
-        { props.fractals.map(((f,i) => <FractalTile 
-          key={i} 
-          id={i}
+        { props.fractals.map(((f) => <FractalTile 
+          key={f.id}
+          fractal={f}
           size={sizes[tileSize]??50} 
-          fractal={f.form} 
-          color={f.color} 
-          onclick={() => props.onclick(i)}
-          selected={i == props.selected}
+          onclick={() => props.onclick(f.id)}
+          selected={f.id == props.selected}
         />)) }
       </div>
     </div>

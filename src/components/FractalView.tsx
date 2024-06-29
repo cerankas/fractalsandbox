@@ -2,43 +2,44 @@ import React, { useEffect, useRef, useState } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
 import ProgressIndicator from "./ProgressIndicator";
 
-export default function FractalView(props: { fractal: string, color: string, cached: boolean, onclick?: () => void, hidden?: boolean }) {
+export default function FractalView(props: { form: string, color: string, cached: boolean, hidden?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fracRef = useRef<FractalRenderer | null>(null);
+  const rendererRef = useRef<FractalRenderer | null>(null);
   const [progress, setProgress] = useState(0);
-  if (fracRef.current === null) {
-    fracRef.current = new FractalRenderer(setProgress);
+
+  if (rendererRef.current === null) {
+    rendererRef.current = new FractalRenderer(setProgress);
+    console.log("create FractalRenderer")
   }
 
-  useEffect(() => {
-    window.addEventListener('resize', updateCanvasSize);
-    return () => window.removeEventListener('resize', updateCanvasSize);
-  }, []);
-
   const updateCanvasSize = () => {
-    const frac = fracRef.current;
-    if (!frac) return;
+    const renderer = rendererRef.current!;
     const canvas = canvasRef.current!;
     const parent = canvas.parentElement!.getBoundingClientRect();
     if (canvas.width != (parent.width | 0) || canvas.height != (parent.height | 0)) {
       canvas.width = parent.width;
       canvas.height = parent.height;
     }
-    frac.setCtx(canvas.getContext('2d')!);
-    frac.touch();
-    frac.render();
+    renderer.setCtx(canvas.getContext('2d')!);
+    renderer.touch();
+    renderer.render();
+    console.log('updateCanvasSize FractalView', rendererRef.current?.ctx?.canvas.width)
   };
 
   useEffect(() => {
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
+
+  useEffect(() => {
     if (props.hidden) return;
-    if (!fracRef.current) return;
-    const frac = fracRef.current;
-    frac.setCached(props.cached);
-    frac.setFractal(props.fractal);
-    frac.setColor(props.color);
+    const renderer = rendererRef.current!;
+    renderer.setCached(props.cached);
+    renderer.setFractal(props.form);
+    renderer.setColor(props.color);
     updateCanvasSize();
-    console.log('FractalView', fracRef.current?.ctx?.canvas.width)
-  }, [props.cached, props.fractal, props.color, props.hidden]);
+    console.log('FractalView', rendererRef.current?.ctx?.canvas.width)
+  }, [props.cached, props.form, props.color, props.hidden]);
   
   return (
     <div className="size-full">
@@ -49,8 +50,7 @@ export default function FractalView(props: { fractal: string, color: string, cac
 
       <canvas className="size-full"
         ref={canvasRef}
-        onClick={props.onclick}
-        />
+      />
     
     </div>
   );

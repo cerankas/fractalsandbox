@@ -1,7 +1,8 @@
+import { type Fractal } from "@prisma/client";
 import React, { useEffect, useRef } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
 
-export default function FractalTile(props: { id: number, size: number, fractal: string, color: string, onclick: (fractalId: number) => void, selected: boolean }) {
+export default function FractalTile(props: { fractal: Fractal, size: number, onclick: (fractalId: string) => void, selected: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fracRef = useRef<FractalRenderer | null>(null);
   if (fracRef.current === null) {
@@ -13,10 +14,10 @@ export default function FractalTile(props: { id: number, size: number, fractal: 
     if (!frac) return;
     frac.setCtx(canvasRef.current!.getContext('2d')!);
     frac.setCached(true);
-    frac.setFractal(props.fractal);
-    frac.setColor(props.color);
+    frac.setFractal(props.fractal.form);
+    frac.setColor(props.fractal.color);
     frac.render();
-  }, [props.size, props.fractal, props.color]);
+  }, [props.size, props.fractal]);
 
   return (
     <div className={`flex flex-grow justify-center size-[${props.size}px] box-border border-2 bg-white ${props.selected ? "border-black" : "border-transparent hover:border-slate-200"} `}>
@@ -24,7 +25,7 @@ export default function FractalTile(props: { id: number, size: number, fractal: 
         ref={canvasRef}
         width={props.size}
         height={props.size}
-        onClick={() => { props.onclick(props.id)}}
+        onClick={() => { props.onclick(props.fractal.id)}}
         />  
     </div>
   );
