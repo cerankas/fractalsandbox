@@ -5,7 +5,5 @@ export default clerkMiddleware((auth) => {
 });
 
 export const config = {
-  matcher: [
-    '/api/trpc/fractalCreate.create(.*)'
-  ]
+  matcher: ['/api/trpc/fractalMutate(.*)']
 };

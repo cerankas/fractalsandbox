@@ -7,7 +7,7 @@ import FractalView from "~/components/FractalView";
 import HorizontalOrVertical from "~/components/HorizontalOrVertical";
 import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
-import { AiOutlineEdit, AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlineQuestionCircle } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineEdit, AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlineQuestionCircle } from "react-icons/ai";
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { GrMultiple } from "react-icons/gr";
 
@@ -16,7 +16,8 @@ export default function Home() {
   const isInitialLoad = useRef(true);
 
   const fractals = api.fractal.getManyLatest.useQuery();
-  const { mutate } = api.fractalCreate.create.useMutation({ onSuccess: (data) => { alert("Uploaded " + data.id); }});
+  const { mutate } = api.fractalMutate.create.useMutation({ onSuccess: (data) => { alert("Uploaded " + data.id); }});
+  const delfrac = api.fractalMutate.delete.useMutation({ onSuccess: (data) => { alert("Deleted " + data.id); }})
   
   const [selectedFractalId, setSelectedFractalId] = useState("");
   const selectedFractal = useMemo(() => fractals.data?.find(fractal => fractal.id === selectedFractalId), [fractals.data, selectedFractalId]);
@@ -68,7 +69,7 @@ export default function Home() {
         {fractals.data && fullscreen && selectedFractal && 
           <div className="size-full relative">
             <div className="absolute top-2 right-2 flex flex-row">
-              <AiOutlineFullscreenExit className={iconStyle} onClick={() => setFullscreen(false)} title="Full screen exit [f]"/>
+              <AiOutlineFullscreenExit className={iconStyle} onClick={() => setFullscreen(false)} title="Exit full screen [f]"/>
             </div>
             <FractalView
               form={form}
@@ -83,12 +84,13 @@ export default function Home() {
 
             <div className="relative size-full">
               <div className="absolute top-0 right-0 flex flex-row">
-              <IoCloudUploadOutline
-                className={iconStyle + (modified && isSignedIn ? "" : " text-gray-500 hover:cursor-default")} 
-                onClick={() => modified && isSignedIn && mutate({form: form, color: color})} title="Upload"
-              />
-              <AiOutlineQuestionCircle className={iconStyle} onClick={() => {alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '))}} title="Fractal coefficients"/>
-              <AiOutlineFullscreen className={iconStyle} onClick={() => setFullscreen(true)} title="Full screen [f]"/>
+                <AiOutlineDelete className={iconStyle} onClick={() => delfrac.mutate({id: selectedFractalId})} />
+                {modified && <IoCloudUploadOutline
+                  className={iconStyle + (isSignedIn ? "" : " text-gray-500 hover:cursor-default")} 
+                  onClick={() => isSignedIn && mutate({form: form, color: color})} title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
+                />}
+                <AiOutlineQuestionCircle className={iconStyle} onClick={() => {alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '))}} title="Fractal coefficients"/>
+                <AiOutlineFullscreen className={iconStyle} onClick={() => setFullscreen(true)} title="Full screen [f]"/>
               </div>
               <FractalView
                 form={form}
@@ -105,7 +107,7 @@ export default function Home() {
                 <div className="m-1 hover:cursor-pointer hover:brightness-110">
                   {isSignedIn && <UserButton userProfileMode="modal" afterSignOutUrl={window.location.href} appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} />}
                   {!isSignedIn && <SignInButton mode="modal">
-                    <span className="flex text-base rounded-full bg-gray-500 size-6 justify-center items-center"><FaUser/>
+                    <span className="flex text-base rounded-full bg-gray-500 size-6 justify-center items-center"><FaUser title="Sign in"/>
                     </span></SignInButton>
                   }
                 </div>
