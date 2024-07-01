@@ -1,7 +1,9 @@
-import { authMiddleware } from '@clerk/nextjs/server';
- 
-export default authMiddleware();
- 
+import { clerkMiddleware } from '@clerk/nextjs/server';
+
+export default clerkMiddleware((auth) => {
+    auth().protect();
+});
+
 export const config = {
   matcher: [
     '/api/trpc/fractalCreate.create(.*)'
