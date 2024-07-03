@@ -4,7 +4,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const fractalRouter = createTRPCRouter({
   getFractalById: publicProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
       const fractal = await ctx.db.fractal.findUnique({ where: { id: input.id } });
       if (!fractal) throw new TRPCError({ code: "NOT_FOUND" });

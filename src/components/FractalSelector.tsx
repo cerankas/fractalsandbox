@@ -2,7 +2,7 @@ import { useState } from "react";
 import FractalTile from "./FractalTile";
 import { type Fractal } from "@prisma/client";
 
-export default function FractalSelector(props: { fractals: Fractal[], onclick: (fractalId: string) => void, selected: string }) {
+export default function FractalSelector(props: { fractals: Fractal[], onclick: (fractalId: number) => void, selected: number }) {
   const sizes = [50, 100, 150, 200, 250];
   const [tileSize, setTileSize] = useState(parseInt(localStorage.tileSize as string)??1);
   return (

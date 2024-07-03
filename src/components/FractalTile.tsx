@@ -2,7 +2,7 @@ import { type Fractal } from "@prisma/client";
 import React, { useEffect, useRef } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
 
-export default function FractalTile(props: { fractal: Fractal, size: number, onclick: (fractalId: string) => void, selected: boolean }) {
+export default function FractalTile(props: { fractal: Fractal, size: number, onclick: (fractalId: number) => void, selected: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fracRef = useRef<FractalRenderer | null>(null);
   if (fracRef.current === null) {
