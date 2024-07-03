@@ -2,7 +2,7 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FractalView from "~/components/FractalView";
 import HorizontalOrVertical from "~/components/HorizontalOrVertical";
 import FractalSelector from "~/components/FractalSelector";
@@ -26,9 +26,21 @@ export default function Home() {
   enum Mode { Browse, Edit }
   const [mode, setMode] = useState(Mode.Browse);
   const [fullscreen, setFullscreen] = useState(false);
+  const [fullBefore, setFullBefore] = useState(false);
 
   const [form, setForm] = useState("");
   const [color, setColor] = useState("");
+
+  const enterFullscreen = useCallback(() => {
+    setFullBefore(document.fullscreenElement !== null);
+    setFullscreen(true);
+    void document.body.requestFullscreen({navigationUI: 'hide'});
+  }, []);
+  
+  const exitFullscreen = useCallback(() => {
+    setFullscreen(false);
+    if (!fullBefore && document.fullscreenElement != null) void document.exitFullscreen();
+  }, [fullBefore]);
   
   useEffect(() => {
     if (isInitialLoad.current && fractals.data?.[0]?.id) {
@@ -45,14 +57,14 @@ export default function Home() {
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { if (fullscreen) setFullscreen(false); }
-      if (e.key === "f")  setFullscreen(!fullscreen);
+      if (e.key === "Escape") { if (fullscreen) exitFullscreen(); }
+      if (e.key === "f")  { if (fullscreen) exitFullscreen(); else enterFullscreen(); }
       if (e.key === "e" && !fullscreen)  setMode(Mode.Edit);
       if (e.key === "b" && !fullscreen)  setMode(Mode.Browse);
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  }, [Mode, fullscreen]);
+  }, [Mode, fullscreen, enterFullscreen, exitFullscreen]);
 
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
@@ -69,8 +81,8 @@ export default function Home() {
 
         {fractals.data && fullscreen && selectedFractal && 
           <div className="size-full relative">
-            <div className="absolute top-2 right-2 flex flex-row">
-              <AiOutlineFullscreenExit className={iconStyle} onClick={() => setFullscreen(false)} title="Exit full screen [f]"/>
+            <div className="absolute top-0 right-0 flex flex-row">
+              <AiOutlineFullscreenExit className={iconStyle} onClick={() => exitFullscreen()} title="Exit full screen [f]"/>
             </div>
             <FractalView
               form={form}
@@ -91,7 +103,7 @@ export default function Home() {
                   onClick={() => isSignedIn && mutate({form: form, color: color})} title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
                 />}
                 <AiOutlineQuestionCircle className={iconStyle} onClick={() => {alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '))}} title="Fractal coefficients"/>
-                <AiOutlineFullscreen className={iconStyle} onClick={() => setFullscreen(true)} title="Full screen [f]"/>
+                <AiOutlineFullscreen className={iconStyle} onClick={() => enterFullscreen()} title="Full screen [f]"/>
               </div>
               <FractalView
                 form={form}
