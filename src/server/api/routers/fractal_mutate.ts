@@ -18,19 +18,19 @@ export const fractalMutateRouter = createTRPCRouter({
       });
     }),
 
-    createMany: publicProcedure
-    .input(z.array(z.object({ createdAt: z.date(), authorId: z.string(), form: z.string(), color: z.string() })))
-    .mutation(async ({ ctx, input }) => {
-      const { userId } = getAuth(ctx.req);
-      if (typeof userId != 'string') throw new TRPCError({ code: "UNAUTHORIZED" });
-      return await ctx.db.fractal.createMany({
-        data: input
-        // data: input.map(fractal => ({
-        //   ...fractal,
-        //   authorId: userId,
-        // }))
-      });
-    }),
+    // createMany: publicProcedure
+    // .input(z.array(z.object({ createdAt: z.date(), authorId: z.string(), form: z.string(), color: z.string() })))
+    // .mutation(async ({ ctx, input }) => {
+    //   const { userId } = getAuth(ctx.req);
+    //   if (typeof userId != 'string') throw new TRPCError({ code: "UNAUTHORIZED" });
+    //   return await ctx.db.fractal.createMany({
+    //     data: input
+    //     // data: input.map(fractal => ({
+    //     //   ...fractal,
+    //     //   authorId: userId,
+    //     // }))
+    //   });
+    // }),
 
     delete: publicProcedure
     .input(z.object({ id: z.number() }))

@@ -11,7 +11,6 @@ import { AiOutlineEdit, AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlineQ
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { GrMultiple } from "react-icons/gr";
 import { MdOutlineDeleteForever } from "react-icons/md";
-import { FiArrowDown, FiArrowUp, FiArrowUpRight } from "react-icons/fi";
 
 export default function Home() {
   const { isSignedIn } = useUser();
@@ -19,7 +18,6 @@ export default function Home() {
 
   const fractals = api.fractal.getManyLatest.useQuery();
   const { mutate } = api.fractalMutate.create.useMutation({ onSuccess: (data) => { alert("Uploaded " + data.id); }});
-  const createMany = api.fractalMutate.createMany.useMutation({ onSuccess: (data) => { alert("Uploaded many " + data.count); }});
   const delfrac = api.fractalMutate.delete.useMutation({ onSuccess: (data) => { alert("Deleted " + data.id); }})
   
   const [selectedFractalId, setSelectedFractalId] = useState(0);
@@ -87,36 +85,6 @@ export default function Home() {
 
             <div className="relative size-full">
               <div className="absolute top-0 right-0 flex flex-row">
-                <FiArrowDown className={iconStyle} onClick={() => {
-                  const keys = new Set<string>;
-                  const ff = [];
-                  for (const f of fractals.data.slice().reverse()) { 
-                    const key = f.form + f.color;
-                    if (keys.has(key)) continue;
-                    keys.add(key);
-                    ff.push({createdAt:f.createdAt, authorId:f.authorId, form:f.form, color:f.color})
-                  }
-                  // const ff = [...new Set(fractals.data.map((f) => {return {...f, id:''}}))].sort((a,b) => (a as unknown as Fractal).createdAt > (b as unknown as Fractal).createdAt ? 1 : -1);
-                  console.log(ff)
-                  const dump = JSON.stringify(ff);
-                  // localStorage.setItem("dump", dump);
-                  void navigator.clipboard.writeText(dump);
-                }}/>
-                <FiArrowUp className={iconStyle} onClick={() => {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                  const dump = JSON.parse(localStorage.getItem("dump")!);
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                  const ff = dump.map((f: { createdAt: string | number | Date; }) => {return {...f, createdAt: new Date(f.createdAt)}})
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                  createMany.mutate(ff);
-                  console.log(ff);
-                }}/>
-                <FiArrowUpRight className={iconStyle} onClick={() => {
-                  mutate({
-                    form: ".74313,-.17892,.33147,.53864,-1.17869,-4.61531,1;-.18995,.77788,.58868,.39915,-3.79112,-6.89896,1;.52647,.30986,-.17342,.47067,.8566,-3.15277,1",
-                    color: "0,FFFFFF;1,000000"
-                  });
-                }}/>
                 {isSignedIn && !modified && <MdOutlineDeleteForever className={iconStyle} onClick={() => delfrac.mutate({id: selectedFractalId})} title="Delete"/>}
                 {modified && <IoCloudUploadOutline
                   className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
