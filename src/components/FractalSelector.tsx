@@ -2,12 +2,12 @@ import { useState } from "react";
 import FractalTile from "./FractalTile";
 import { type Fractal } from "@prisma/client";
 
-export default function FractalSelector(props: { fractals: Fractal[], onclick: (fractalId: number) => void, selected: number }) {
+export default function FractalSelector(props: { fractals: Fractal[], onclick: (fractalId: number) => void, selected: number, menu: React.ReactNode }) {
   const sizes = [50, 100, 150, 200, 250];
   const [tileSize, setTileSize] = useState(parseInt(localStorage.tileSize as string)??1);
   return (
     <div className="flex flex-col size-full gap-2">
-      <div className="bg-white">
+      <div className="flex flex-row bg-white justify-between">
         <input
           type="range"
           min={0}
@@ -15,6 +15,7 @@ export default function FractalSelector(props: { fractals: Fractal[], onclick: (
           value={tileSize}
           onChange={(e) => { setTileSize(parseInt(e.target.value)); localStorage.tileSize = e.target.value; }}
         />
+        {props.menu}
       </div>
       <div className="flex flex-wrap overflow-y-auto justify-around">
         { props.fractals.map(((f) => <FractalTile 

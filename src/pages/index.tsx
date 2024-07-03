@@ -41,7 +41,7 @@ export default function Home() {
     setFullscreen(false);
     if (!fullBefore && document.fullscreenElement != null) void document.exitFullscreen();
   }, [fullBefore]);
-  
+
   useEffect(() => {
     if (isInitialLoad.current && fractals.data?.[0]?.id) {
       setSelectedFractalId(fractals.data[0].id);
@@ -69,6 +69,23 @@ export default function Home() {
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
   const iconStyle = "size-6 hover:cursor-pointer m-1";
+
+  const commonMenu = (
+    <div className="flex flex-row">
+      <GrMultiple className={iconStyle + (mode === Mode.Browse ? " bg-gray-300" : " bg-white")} onClick={() => setMode(Mode.Browse)} title="Browse [b]"/>
+      <AiOutlineEdit className={iconStyle + (mode === Mode.Edit ? " bg-gray-300" : " bg-white")} onClick={() => setMode(Mode.Edit)} title="Edit [e]"/>
+      <div className="m-1 hover:cursor-pointer hover:brightness-110">
+        {isSignedIn && <div className="size-6">
+          <UserButton userProfileMode="modal" afterSignOutUrl={window.location.href} appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} />
+        </div>}
+        {!isSignedIn && <SignInButton mode="modal">
+          <span className="flex text-base rounded-full bg-gray-500 size-6 justify-center items-center"><FaUser title="Sign in"/>
+          </span></SignInButton>
+        }
+      </div>
+    </div>
+  );
+
   return (
     <>
       <Head>
@@ -113,23 +130,11 @@ export default function Home() {
             </div>
 
             <>
-              {/* Common Menu */}
-              <div className="absolute top-2 right-2 flex flex-row">
-                <GrMultiple className={iconStyle + (mode === Mode.Browse ? " bg-gray-300" : "")} onClick={() => setMode(Mode.Browse)} title="Browse [b]"/>
-                <AiOutlineEdit className={iconStyle + (mode === Mode.Edit ? " bg-gray-300" : "")} onClick={() => setMode(Mode.Edit)} title="Edit [e]"/>
-                <div className="m-1 hover:cursor-pointer hover:brightness-110">
-                  {isSignedIn && <UserButton userProfileMode="modal" afterSignOutUrl={window.location.href} appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} />}
-                  {!isSignedIn && <SignInButton mode="modal">
-                    <span className="flex text-base rounded-full bg-gray-500 size-6 justify-center items-center"><FaUser title="Sign in"/>
-                    </span></SignInButton>
-                  }
-                </div>
-              </div>
-
               {mode===Mode.Edit && selectedFractal && 
                 <FormulaEditor
                   form={selectedFractal.form}
                   changeCallback={setForm}
+                  menu={commonMenu}
                 />
               }
 
@@ -138,6 +143,7 @@ export default function Home() {
                   fractals={fractals.data} 
                   onclick={fractalId => setSelectedFractalId(fractalId)} 
                   selected={selectedFractalId}
+                  menu={commonMenu}
                 />
               </div>
             </>
