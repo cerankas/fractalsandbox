@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const fractalRouter = createTRPCRouter({
-  getFractalById: publicProcedure
+  findUnique: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
       const fractal = await ctx.db.fractal.findUnique({ where: { id: input.id } });
@@ -11,7 +11,7 @@ export const fractalRouter = createTRPCRouter({
       return fractal;
     }),    
   
-  getManyLatest: publicProcedure
+  findMany: publicProcedure
     .query(async ({ ctx }) => {
       const data = await ctx.db.fractal.findMany({
         take: 1000, // 100

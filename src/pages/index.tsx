@@ -11,14 +11,45 @@ import { AiOutlineEdit, AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlineQ
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { GrMultiple } from "react-icons/gr";
 import { MdOutlineDeleteForever } from "react-icons/md";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Home() {
   const { isSignedIn, user } = useUser();
   const isInitialLoad = useRef(true);
 
-  const fractals = api.fractal.getManyLatest.useQuery();
-  const { mutate } = api.fractalMutate.create.useMutation({ onSuccess: (data) => { alert("Uploaded " + data.id); }});
-  const delfrac = api.fractalMutate.delete.useMutation({ onSuccess: (data) => { alert("Deleted " + data.id); }})
+  const queryClient = useQueryClient();
+  const fractals = api.fractal.findMany.useQuery();
+  const getManyQueryKey = [["fractal","findMany"],{"type":"query"}];
+  
+  const { mutate: uploadFractal } = api.fractalMutate.create.useMutation({
+    onSuccess: (newFractal) => {
+      queryClient.setQueryData(
+        getManyQueryKey,
+        (oldData: typeof fractals.data) => {
+          return oldData ? [newFractal, ...oldData] : [newFractal];
+        }
+      );
+      setSelectedFractalId(newFractal.id);
+      console.log("Uploaded " + newFractal.id);
+    },
+  });
+  
+  const { mutate: deleteFractal } = api.fractalMutate.delete.useMutation({
+    onSuccess: (deletedFractal) => {
+      if (fractals.data!.length > 1) {
+        const deletedIndex = fractals.data!.findIndex((f) => f.id == deletedFractal.id);
+        const delta = deletedIndex < fractals.data!.length - 1 ? 1 : -1;
+        setSelectedFractalId(fractals.data![deletedIndex + delta]!.id);
+      }
+      queryClient.setQueryData(
+        getManyQueryKey,
+        (oldData: typeof fractals.data) => {
+          return oldData ? oldData.filter(fractal => fractal.id !== deletedFractal.id) : [];
+        }
+      );
+      console.log("Deleted " + deletedFractal.id);
+    },
+  });
   
   const [selectedFractalId, setSelectedFractalId] = useState(0);
   const selectedFractal = useMemo(() => fractals.data?.find(fractal => fractal.id === selectedFractalId), [fractals.data, selectedFractalId]);
@@ -115,11 +146,11 @@ export default function Home() {
             <div className="relative size-full">
               <div className="absolute top-0 right-0 flex flex-row">
                 {isSignedIn && !modified && selectedFractal.authorId === user.id &&
-                  <MdOutlineDeleteForever className={iconStyle} onClick={() => delfrac.mutate({id: selectedFractalId})} title="Delete"/>
+                  <MdOutlineDeleteForever className={iconStyle} onClick={() => deleteFractal({id: selectedFractalId})} title="Delete"/>
                 }
                 {modified && <IoCloudUploadOutline
                   className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
-                  onClick={() => isSignedIn && mutate({form: form, color: color})} title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
+                  onClick={() => isSignedIn && uploadFractal({form: form, color: color})} title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
                 />}
                 <AiOutlineQuestionCircle className={iconStyle} onClick={() => {alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '))}} title="Fractal coefficients"/>
                 <AiOutlineFullscreen className={iconStyle} onClick={() => enterFullscreen()} title="Full screen [f]"/>
