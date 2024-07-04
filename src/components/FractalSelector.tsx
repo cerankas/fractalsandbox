@@ -9,11 +9,13 @@ export default function FractalSelector(props: { fractals: Fractal[], onclick: (
     <div className="flex flex-col size-full gap-2">
       <div className="flex flex-row bg-white justify-between">
         <input
+          className="w-[100px] ml-1 mr-1 accent-gray-500 cursor-pointer"
           type="range"
           min={0}
           max={sizes.length - 1}
           value={tileSize}
           onChange={(e) => { setTileSize(parseInt(e.target.value)); localStorage.tileSize = e.target.value; }}
+          title="Tile size"
         />
         {props.menu}
       </div>
