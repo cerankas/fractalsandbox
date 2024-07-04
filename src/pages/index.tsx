@@ -13,7 +13,7 @@ import { GrMultiple } from "react-icons/gr";
 import { MdOutlineDeleteForever } from "react-icons/md";
 
 export default function Home() {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
   const isInitialLoad = useRef(true);
 
   const fractals = api.fractal.getManyLatest.useQuery();
@@ -114,7 +114,9 @@ export default function Home() {
 
             <div className="relative size-full">
               <div className="absolute top-0 right-0 flex flex-row">
-                {isSignedIn && !modified && <MdOutlineDeleteForever className={iconStyle} onClick={() => delfrac.mutate({id: selectedFractalId})} title="Delete"/>}
+                {isSignedIn && !modified && selectedFractal.authorId === user.id &&
+                  <MdOutlineDeleteForever className={iconStyle} onClick={() => delfrac.mutate({id: selectedFractalId})} title="Delete"/>
+                }
                 {modified && <IoCloudUploadOutline
                   className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
                   onClick={() => isSignedIn && mutate({form: form, color: color})} title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
