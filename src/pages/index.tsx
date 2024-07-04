@@ -32,9 +32,10 @@ export default function Home() {
   const [color, setColor] = useState("");
 
   const enterFullscreen = useCallback(() => {
-    setFullBefore(document.fullscreenElement !== null);
+    const isFull = document.fullscreenElement !== null;
+    setFullBefore(isFull);
     setFullscreen(true);
-    void document.body.requestFullscreen({navigationUI: 'hide'});
+    if (!isFull) void document.body.requestFullscreen({navigationUI: 'hide'});
   }, []);
   
   const exitFullscreen = useCallback(() => {
@@ -57,7 +58,6 @@ export default function Home() {
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { if (fullscreen) exitFullscreen(); }
       if (e.key === "f")  { if (fullscreen) exitFullscreen(); else enterFullscreen(); }
       if (e.key === "e" && !fullscreen)  setMode(Mode.Edit);
       if (e.key === "b" && !fullscreen)  setMode(Mode.Browse);
