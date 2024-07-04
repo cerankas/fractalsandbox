@@ -103,16 +103,25 @@ export default function Home() {
 
   const commonMenu = (
     <div className="flex flex-row">
-      <GrMultiple className={iconStyle + (mode === Mode.Browse ? " bg-gray-300" : " bg-white")} onClick={() => setMode(Mode.Browse)} title="Browse [b]"/>
-      <AiOutlineEdit className={iconStyle + (mode === Mode.Edit ? " bg-gray-300" : " bg-white")} onClick={() => setMode(Mode.Edit)} title="Edit [e]"/>
+      <GrMultiple 
+        className={iconStyle + (mode === Mode.Browse ? " bg-gray-300" : " bg-white")} 
+        onClick={() => setMode(Mode.Browse)} 
+        title="Browse [b]"
+      />
+      <AiOutlineEdit 
+        className={iconStyle + (mode === Mode.Edit ? " bg-gray-300" : " bg-white")} 
+        onClick={() => setMode(Mode.Edit)} 
+        title="Edit [e]"
+      />
       <div className="m-1 hover:cursor-pointer hover:brightness-110">
-        {isSignedIn && <div className="size-6">
-          <UserButton userProfileMode="modal" afterSignOutUrl={window.location.href} appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} />
-        </div>}
+        {isSignedIn && <div className="size-6"><UserButton 
+            userProfileMode="modal" 
+            afterSignOutUrl={window.location.href} 
+            appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} 
+        /></div>}
         {!isSignedIn && <SignInButton mode="modal">
-          <span className="flex text-base rounded-full bg-gray-500 size-6 justify-center items-center"><FaUser title="Sign in"/>
-          </span></SignInButton>
-        }
+          <span className="flex text-base rounded-full bg-gray-500 size-6 justify-center items-center"> <FaUser title="Sign in"/> </span>
+        </SignInButton>}
       </div>
     </div>
   );
@@ -130,8 +139,13 @@ export default function Home() {
         {fractals.data && fullscreen && selectedFractal && 
           <div className="size-full relative">
             <div className="absolute top-0 right-0 flex flex-row">
-              <AiOutlineFullscreenExit className={iconStyle} onClick={() => exitFullscreen()} title="Exit full screen [f]"/>
+              <AiOutlineFullscreenExit 
+                className={iconStyle} 
+                onClick={() => exitFullscreen()} 
+                title="Exit full screen [f]"
+              />
             </div>
+
             <FractalView
               form={form}
               color={color}
@@ -145,16 +159,28 @@ export default function Home() {
 
             <div className="relative size-full">
               <div className="absolute top-0 right-0 flex flex-row">
-                {isSignedIn && !modified && selectedFractal.authorId === user.id &&
-                  <MdOutlineDeleteForever className={iconStyle} onClick={() => deleteFractal({id: selectedFractalId})} title="Delete"/>
-                }
+                {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
+                  className={iconStyle}
+                  onClick={() => deleteFractal({id: selectedFractalId})} 
+                  title="Delete"
+                />}
                 {modified && <IoCloudUploadOutline
                   className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
-                  onClick={() => isSignedIn && uploadFractal({form: form, color: color})} title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
+                  onClick={() => isSignedIn && uploadFractal({form: form, color: color})} 
+                  title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
                 />}
-                <AiOutlineQuestionCircle className={iconStyle} onClick={() => {alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '))}} title="Fractal coefficients"/>
-                <AiOutlineFullscreen className={iconStyle} onClick={() => enterFullscreen()} title="Full screen [f]"/>
+                <AiOutlineQuestionCircle 
+                  className={iconStyle} 
+                  onClick={() => {alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '))}} 
+                  title="Fractal coefficients"
+                />
+                <AiOutlineFullscreen 
+                  className={iconStyle} 
+                  onClick={() => enterFullscreen()} 
+                  title="Full screen [f]"
+                />
               </div>
+
               <FractalView
                 form={form}
                 color={color}
@@ -177,6 +203,11 @@ export default function Home() {
                   onclick={fractalId => setSelectedFractalId(fractalId)} 
                   selected={selectedFractalId}
                   menu={commonMenu}
+                  refreshCallback={() => { 
+                    isInitialLoad.current = true; 
+                    queryClient.setQueryData(getManyQueryKey, () => []); 
+                    void queryClient.invalidateQueries({queryKey: getManyQueryKey});
+                  }}
                 />
               </div>
             </>
