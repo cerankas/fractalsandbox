@@ -1,19 +1,26 @@
+'use client';
 import Head from "next/head";
 import { api } from "~/utils/api";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ComponentType, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import FractalView from "~/components/FractalView";
-import HorizontalOrVertical from "~/components/HorizontalOrVertical";
 import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
-import { AiOutlineEdit, AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlineQuestionCircle } from "react-icons/ai";
+import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlineQuestionCircle } from "react-icons/ai";
 import { IoCloudUploadOutline } from "react-icons/io5";
-import { GrMultiple } from "react-icons/gr";
 import { MdOutlineDeleteForever } from "react-icons/md";
+import { PiLayout } from "react-icons/pi";
+import { HiOutlineViewColumns } from "react-icons/hi2";
 import { useQueryClient } from "@tanstack/react-query";
+import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import useHorizontal from "~/components/useHorizontal";
+import useLocalStorage from "~/components/useLocalStorage";
+import dynamic from "next/dynamic";
 
-export default function Home() {
+const withNoSSR = <P extends object>(Component: ComponentType<P>) => dynamic<P>(() => Promise.resolve(Component), { ssr: false });
+
+function Home() {
   const { isSignedIn, user } = useUser();
   const isInitialLoad = useRef(true);
 
@@ -54,13 +61,17 @@ export default function Home() {
   const [selectedFractalId, setSelectedFractalId] = useState(0);
   const selectedFractal = useMemo(() => fractals.data?.find(fractal => fractal.id === selectedFractalId), [fractals.data, selectedFractalId]);
   
-  enum Mode { Browse, Edit }
-  const [mode, setMode] = useState(Mode.Browse);
   const [fullscreen, setFullscreen] = useState(false);
   const [fullBefore, setFullBefore] = useState(false);
 
   const [form, setForm] = useState("");
   const [color, setColor] = useState("");
+
+  const isHorizontal = useHorizontal();
+  const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
+  const secondaryDirection = isHorizontal ? 'vertical' : 'horizontal';
+
+  const [layout, setLayout] = useLocalStorage('layout', 'L2');
 
   const enterFullscreen = useCallback(() => {
     const isFull = document.fullscreenElement !== null;
@@ -90,29 +101,51 @@ export default function Home() {
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
       if (e.key === "f")  { if (fullscreen) exitFullscreen(); else enterFullscreen(); }
-      if (e.key === "e" && !fullscreen)  setMode(Mode.Edit);
-      if (e.key === "b" && !fullscreen)  setMode(Mode.Browse);
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  }, [Mode, fullscreen, enterFullscreen, exitFullscreen]);
+  }, [fullscreen, enterFullscreen, exitFullscreen]);
 
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
   const iconStyle = "size-6 hover:cursor-pointer m-1";
 
+  const [C21, setC21] = useState<number[]>([]);
+  const [C22, setC22] = useState<number[]>([]);
+  const [C3, setC3] = useState<number[]>([]);
+
+  useLayoutEffect(() => {
+    window.dispatchEvent(new Event('resize'));
+  }, [isHorizontal, C21, C22, C3])
+
+
+  const fPRef = useRef<ImperativePanelHandle>(null);
+  const bPRef = useRef<ImperativePanelHandle>(null);
+  const ePRef = useRef<ImperativePanelHandle>(null);
+  const bePRef = useRef<ImperativePanelHandle>(null);
+
+  const bP = !bPRef.current?.isCollapsed();
+  const eP = !ePRef.current?.isCollapsed();
+  const beP = !bePRef.current?.isCollapsed();
+  
+  const L2H = layout === 'L2' && isHorizontal;
+  const L2V = layout === 'L2' && !isHorizontal;
+  const L3H = layout === 'L3' && isHorizontal;
+  const L3V = layout === 'L3' && !isHorizontal;
+
+  const fPMenu = (L2H && !beP) || (L3H && !eP) || L2V || (L3V &&  !bP);
+  const bPMenu = bP && ((L2H && beP) || L3V);
+  const ePMenu = eP && ((L2H && beP && !bP) || L3H);
+
   const commonMenu = (
     <div className="flex flex-row">
-      <GrMultiple 
-        className={iconStyle + (mode === Mode.Browse ? " bg-gray-300" : " bg-white")} 
-        onClick={() => setMode(Mode.Browse)} 
-        title="Browse [b]"
-      />
-      <AiOutlineEdit 
-        className={iconStyle + (mode === Mode.Edit ? " bg-gray-300" : " bg-white")} 
-        onClick={() => setMode(Mode.Edit)} 
-        title="Edit [e]"
-      />
+      <div
+        className={iconStyle}
+        onClick={() => setLayout(layout === 'L2' ? 'L3' : 'L2')}
+        title="Toggle layout"
+      >
+        {layout === 'L2' ? <HiOutlineViewColumns/> : <PiLayout/>}
+      </div>
       <div className="m-1 hover:cursor-pointer hover:brightness-110">
         {isSignedIn && <div className="size-6"><UserButton 
             userProfileMode="modal" 
@@ -125,6 +158,66 @@ export default function Home() {
       </div>
     </div>
   );
+
+
+  const fractalPanel = (<>{fractals.data &&
+    <Panel ref={fPRef} id="f" order={2} minSize={10} className="relative size-full">
+      <div className="absolute top-0 right-0 flex flex-row">
+        {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
+          className={iconStyle}
+          onClick={() => deleteFractal({id: selectedFractalId})} 
+          title="Delete"
+        />}
+        {modified && <IoCloudUploadOutline
+          className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
+          onClick={() => isSignedIn && uploadFractal({form: form, color: color})} 
+          title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
+        />}
+        <AiOutlineQuestionCircle 
+          className={iconStyle} 
+          onClick={() => {alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '))}} 
+          title="Fractal coefficients"
+        />
+        <AiOutlineFullscreen 
+          className={iconStyle} 
+          onClick={() => enterFullscreen()} 
+          title="Full screen [f]"
+        />
+        {fPMenu && commonMenu}
+      </div>
+      <FractalView
+        form={form}
+        color={color}
+        cached={form === selectedFractal?.form && color === selectedFractal?.color}
+      />
+    </Panel>
+  }</>);
+
+  const browserPanel = (<>{fractals.data &&
+    <Panel ref={bPRef} id="b" order={1} collapsible={true} minSize={3.5} className="size-full">
+      <FractalSelector 
+        fractals={fractals.data} 
+        onclick={fractalId => setSelectedFractalId(fractalId)} 
+        selected={selectedFractalId}
+        menu={bPMenu && commonMenu}
+        refreshCallback={() => { 
+          isInitialLoad.current = true; 
+          queryClient.setQueryData(getManyQueryKey, () => []); 
+          void queryClient.invalidateQueries({queryKey: getManyQueryKey});
+        }}
+      />
+    </Panel>
+  }</>);
+
+  const editorPanel = (<>{selectedFractal &&
+    <Panel ref={ePRef} id="e" order={3} collapsible={true} minSize={3.5}>
+      <FormulaEditor
+        form={selectedFractal.form}
+        changeCallback={setForm}
+        menu={ePMenu && commonMenu}
+      />
+    </Panel>
+  }</>);
 
   return (
     <>
@@ -154,68 +247,33 @@ export default function Home() {
           </div>
         }
 
-        <div className={fullscreen ? "hidden" : ""}>
-          {fractals.data && <HorizontalOrVertical>
+        {layout==='L2' &&
+          <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} id="L21" onLayout={setC21} autoSaveId='L21'>
+            {fractalPanel}
+            <PanelResizeHandle className={beP ? (isHorizontal ? 'w-2' : 'h-2') : ''} />
+            <Panel ref={bePRef} id="be" order={3} collapsible={true} minSize={3.5}>
+              <PanelGroup direction={secondaryDirection} id="L22" onLayout={setC22} autoSaveId='L22'>
+                {browserPanel}
+                <PanelResizeHandle className={bP && eP ? (!isHorizontal ? 'w-2' : 'h-2') : ''} />
+                {editorPanel}
+              </PanelGroup>
+            </Panel>
+          </PanelGroup>
+        }
 
-            <div className="relative size-full">
-              <div className="absolute top-0 right-0 flex flex-row">
-                {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
-                  className={iconStyle}
-                  onClick={() => deleteFractal({id: selectedFractalId})} 
-                  title="Delete"
-                />}
-                {modified && <IoCloudUploadOutline
-                  className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
-                  onClick={() => isSignedIn && uploadFractal({form: form, color: color})} 
-                  title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
-                />}
-                <AiOutlineQuestionCircle 
-                  className={iconStyle} 
-                  onClick={() => {alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '))}} 
-                  title="Fractal coefficients"
-                />
-                <AiOutlineFullscreen 
-                  className={iconStyle} 
-                  onClick={() => enterFullscreen()} 
-                  title="Full screen [f]"
-                />
-              </div>
-
-              <FractalView
-                form={form}
-                color={color}
-                cached={form === selectedFractal?.form && color === selectedFractal?.color}
-              />
-            </div>
-
-            <>
-              {mode===Mode.Edit && selectedFractal && 
-                <FormulaEditor
-                  form={selectedFractal.form}
-                  changeCallback={setForm}
-                  menu={commonMenu}
-                />
-              }
-
-              <div className={`size-full ${mode!=Mode.Browse ? "hidden" : ""}`}>
-                <FractalSelector 
-                  fractals={fractals.data} 
-                  onclick={fractalId => setSelectedFractalId(fractalId)} 
-                  selected={selectedFractalId}
-                  menu={commonMenu}
-                  refreshCallback={() => { 
-                    isInitialLoad.current = true; 
-                    queryClient.setQueryData(getManyQueryKey, () => []); 
-                    void queryClient.invalidateQueries({queryKey: getManyQueryKey});
-                  }}
-                />
-              </div>
-            </>
-
-          </HorizontalOrVertical>}
-        </div>
+        {layout==='L3' &&
+          <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} id="L3" onLayout={setC3} autoSaveId='L3'>
+            {browserPanel}
+            <PanelResizeHandle className={!bP ? '' : isHorizontal ? 'w-2' : 'h-2'} />
+            {fractalPanel}
+            <PanelResizeHandle className={!eP ? '' : isHorizontal ? 'w-2' : 'h-2'} />
+            {editorPanel}
+          </PanelGroup>
+        }
 
       </main>
     </>
   );
 }
+
+export default withNoSSR(Home);
