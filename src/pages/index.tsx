@@ -160,7 +160,7 @@ function Home() {
   );
 
 
-  const fractalPanel = (<>{fractals.data &&
+  const fractalPanel = (<>{fractals.data && selectedFractal &&
     <Panel ref={fPRef} id="f" order={2} minSize={10} className="relative size-full">
       <div className="absolute top-0 right-0 flex flex-row">
         {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
@@ -193,7 +193,7 @@ function Home() {
     </Panel>
   }</>);
 
-  const browserPanel = (<>{fractals.data &&
+  const browserPanel = (<>{fractals.data && selectedFractal &&
     <Panel ref={bPRef} id="b" order={1} collapsible={true} minSize={3.5} className="size-full">
       <FractalSelector 
         fractals={fractals.data} 
@@ -209,7 +209,7 @@ function Home() {
     </Panel>
   }</>);
 
-  const editorPanel = (<>{selectedFractal &&
+  const editorPanel = (<>{fractals.data && selectedFractal &&
     <Panel ref={ePRef} id="e" order={3} collapsible={true} minSize={3.5}>
       <FormulaEditor
         form={selectedFractal.form}

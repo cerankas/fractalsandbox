@@ -1,6 +1,7 @@
 import { type Fractal } from "@prisma/client";
 import React, { useEffect, useRef } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
+import { backgroundColor } from "~/math/palette";
 
 export default function FractalTile(props: { fractal: Fractal, size: number, onclick: (fractalId: number) => void, selected: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,7 +21,10 @@ export default function FractalTile(props: { fractal: Fractal, size: number, onc
   }, [props.size, props.fractal]);
 
   return (
-    <div className={`flex flex-grow justify-center size-[${props.size}px] box-border border-2 bg-white ${props.selected ? "border-black" : "border-transparent hover:border-slate-200"} `}>
+    <div className={
+      `flex flex-grow justify-center size-[${props.size}px] box-border border-2 ${props.selected ? "border-black" : "border-transparent hover:border-slate-200"}`}
+      style={{backgroundColor: backgroundColor(props.fractal.color)}}
+    >
       <canvas
         ref={canvasRef}
         width={props.size}

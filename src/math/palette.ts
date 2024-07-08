@@ -47,8 +47,8 @@ export function rgbToHex(r: number, g: number, b: number): string {
   return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
-export function paletteKeysFromString(string: string): PaletteKey[] {
-  return string.split(';').map(s => {
+export function paletteKeysFromString(paletteString: string): PaletteKey[] {
+  return paletteString.split(';').map(s => {
     const [indstr, rgbstr] = s.split(',') as [string, string];
     const ind = (parseFloat(indstr) * PaletteKey.MAX_KEY_INDEX) | 0;
     const rgb = hexToRGB(rgbstr);
@@ -65,4 +65,11 @@ export function hexToRGB(hex: string): [number, number, number] {
   const g = parseInt(hex.slice(2, 4), 16);
   const b = parseInt(hex.slice(4, 6), 16);
   return [r, g, b];
+}
+
+export function backgroundColor(paletteString: string): string {
+  if (paletteString === '') return '#FFF'; 
+  const k = paletteKeysFromString(paletteString)[0]!;
+  const rgb = rgbToHex(k.r, k.g, k.b);
+  return rgb;
 }

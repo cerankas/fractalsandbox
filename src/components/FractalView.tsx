@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
 import ProgressIndicator from "./ProgressIndicator";
+import { backgroundColor } from "~/math/palette";
 
 export default function FractalView(props: { form: string, color: string, cached: boolean, hidden?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -40,9 +41,9 @@ export default function FractalView(props: { form: string, color: string, cached
     updateCanvasSize();
     console.log('FractalView', rendererRef.current?.ctx?.canvas.width)
   }, [props.cached, props.form, props.color, props.hidden]);
-  
+
   return (
-    <div className="size-full">
+    <div className="size-full" style={{backgroundColor: backgroundColor(props.color)}}>
       
       <div className="absolute top-0 left-0">
         <ProgressIndicator progress={progress} />
