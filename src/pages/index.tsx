@@ -3,24 +3,18 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
-import { type ComponentType, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import FractalView from "~/components/FractalView";
 import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
 import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlineQuestionCircle } from "react-icons/ai";
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { MdOutlineDeleteForever } from "react-icons/md";
-import { PiLayout } from "react-icons/pi";
-import { HiOutlineViewColumns } from "react-icons/hi2";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import useHorizontal from "~/components/useHorizontal";
-import useLocalStorage from "~/components/useLocalStorage";
-import dynamic from "next/dynamic";
 
-const withNoSSR = <P extends object>(Component: ComponentType<P>) => dynamic<P>(() => Promise.resolve(Component), { ssr: false });
-
-function Home() {
+export default function Home() {
   const { isSignedIn, user } = useUser();
   const isInitialLoad = useRef(true);
 
@@ -71,8 +65,6 @@ function Home() {
   const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
   const secondaryDirection = isHorizontal ? 'vertical' : 'horizontal';
 
-  const [layout, setLayout] = useLocalStorage('layout', 'L2');
-
   const enterFullscreen = useCallback(() => {
     const isFull = document.fullscreenElement !== null;
     setFullBefore(isFull);
@@ -110,13 +102,12 @@ function Home() {
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
   const iconStyle = "size-6 hover:cursor-pointer m-1";
 
-  const [C21, setC21] = useState<number[]>([]);
-  const [C22, setC22] = useState<number[]>([]);
-  const [C3, setC3] = useState<number[]>([]);
+  const [panelConfig1, setPanelConfig1] = useState<number[]>([]);
+  const [panelConfig2, setPanelConfig2] = useState<number[]>([]);
 
   useLayoutEffect(() => {
     window.dispatchEvent(new Event('resize'));
-  }, [isHorizontal, C21, C22, C3])
+  }, [isHorizontal, panelConfig1, panelConfig2])
 
 
   const fPRef = useRef<ImperativePanelHandle>(null);
@@ -128,24 +119,12 @@ function Home() {
   const eP = !ePRef.current?.isCollapsed();
   const beP = !bePRef.current?.isCollapsed();
   
-  const L2H = layout === 'L2' && isHorizontal;
-  const L2V = layout === 'L2' && !isHorizontal;
-  const L3H = layout === 'L3' && isHorizontal;
-  const L3V = layout === 'L3' && !isHorizontal;
-
-  const fPMenu = (L2H && !beP) || (L3H && !eP) || L2V || (L3V &&  !bP);
-  const bPMenu = bP && ((L2H && beP) || L3V);
-  const ePMenu = eP && ((L2H && beP && !bP) || L3H);
+  const fPMenu = !isHorizontal || !beP;
+  const bPMenu = !fPMenu && bP;
+  const ePMenu = !fPMenu && !bPMenu;
 
   const commonMenu = (
     <div className="flex flex-row">
-      <div
-        className={iconStyle}
-        onClick={() => setLayout(layout === 'L2' ? 'L3' : 'L2')}
-        title="Toggle layout"
-      >
-        {layout === 'L2' ? <HiOutlineViewColumns/> : <PiLayout/>}
-      </div>
       <div className="m-1 hover:cursor-pointer hover:brightness-110">
         {isSignedIn && <div className="size-6"><UserButton 
             userProfileMode="modal" 
@@ -247,33 +226,19 @@ function Home() {
           </div>
         }
 
-        {layout==='L2' &&
-          <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} id="L21" onLayout={setC21} autoSaveId='L21'>
-            {fractalPanel}
-            <PanelResizeHandle className={beP ? (isHorizontal ? 'w-2' : 'h-2') : ''} />
-            <Panel ref={bePRef} id="be" order={3} collapsible={true} minSize={3.5}>
-              <PanelGroup direction={secondaryDirection} id="L22" onLayout={setC22} autoSaveId='L22'>
-                {browserPanel}
-                <PanelResizeHandle className={bP && eP ? (!isHorizontal ? 'w-2' : 'h-2') : ''} />
-                {editorPanel}
-              </PanelGroup>
-            </Panel>
-          </PanelGroup>
-        }
-
-        {layout==='L3' &&
-          <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} id="L3" onLayout={setC3} autoSaveId='L3'>
-            {browserPanel}
-            <PanelResizeHandle className={!bP ? '' : isHorizontal ? 'w-2' : 'h-2'} />
-            {fractalPanel}
-            <PanelResizeHandle className={!eP ? '' : isHorizontal ? 'w-2' : 'h-2'} />
-            {editorPanel}
-          </PanelGroup>
-        }
+        <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} id="L1" onLayout={setPanelConfig1} autoSaveId='L1'>
+          {fractalPanel}
+          <PanelResizeHandle className={beP ? (isHorizontal ? 'w-2' : 'h-2') : ''} />
+          <Panel ref={bePRef} id="be" order={3} collapsible={true} minSize={3.5}>
+            <PanelGroup direction={secondaryDirection} id="L2" onLayout={setPanelConfig2} autoSaveId='L2'>
+              {browserPanel}
+              <PanelResizeHandle className={bP && eP ? (!isHorizontal ? 'w-2' : 'h-2') : ''} />
+              {editorPanel}
+            </PanelGroup>
+          </Panel>
+        </PanelGroup>
 
       </main>
     </>
   );
 }
-
-export default withNoSSR(Home);
