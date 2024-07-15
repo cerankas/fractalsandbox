@@ -1,46 +1,48 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
 import ProgressIndicator from "./ProgressIndicator";
 import { backgroundColor } from "~/math/palette";
 
-export default function FractalView(props: { form: string, color: string, cached: boolean, hidden?: boolean }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rendererRef = useRef<FractalRenderer | null>(null);
+export default function FractalView(props: { form: string, color: string, cached: boolean }) {
   const [progress, setProgress] = useState(0);
-
-  if (rendererRef.current === null) {
-    rendererRef.current = new FractalRenderer(setProgress);
-    console.log("create FractalRenderer")
-  }
-
-  const updateCanvasSize = () => {
-    const renderer = rendererRef.current!;
-    const canvas = canvasRef.current!;
-    const parent = canvas.parentElement!.getBoundingClientRect();
-    if (canvas.width != (parent.width | 0) || canvas.height != (parent.height | 0)) {
-      canvas.width = parent.width;
-      canvas.height = parent.height;
-    }
-    renderer.setCtx(canvas.getContext('2d')!);
-    renderer.touch();
-    renderer.render();
-    console.log('updateCanvasSize FractalView', rendererRef.current?.ctx?.canvas.width)
-  };
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const renderer = useMemo(() => new FractalRenderer(setProgress), []);
 
   useEffect(() => {
-    window.addEventListener('resize', updateCanvasSize);
-    return () => window.removeEventListener('resize', updateCanvasSize);
-  }, []);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.target === canvas) {
+          const { width, height } = entry.contentRect;
+          canvas.width = width;
+          canvas.height = height;
+          renderer.setCtx(canvas.getContext('2d')!);
+          renderer.render();
+            }
+      });
+    });
+
+    resizeObserver.observe(canvas);
+    return () => resizeObserver.disconnect();
+  }, [renderer]);
+
 
   useEffect(() => {
-    if (props.hidden) return;
-    const renderer = rendererRef.current!;
     renderer.setCached(props.cached);
-    renderer.setFractal(props.form);
+    renderer.render();
+  }, [renderer, props.cached]);
+
+  useEffect(() => {
+    renderer.setForm(props.form);
+    renderer.render();
+  }, [renderer, props.form]);
+  
+  useEffect(() => {
     renderer.setColor(props.color);
-    updateCanvasSize();
-    console.log('FractalView', rendererRef.current?.ctx?.canvas.width)
-  }, [props.cached, props.form, props.color, props.hidden]);
+    renderer.render();
+  }, [renderer, props.color]);
 
   return (
     <div className="size-full" style={{backgroundColor: backgroundColor(props.color)}}>

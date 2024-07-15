@@ -1,56 +1,56 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { IoColorPaletteOutline } from "react-icons/io5";
 import Formula from "~/math/formula";
 import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY } from "~/math/util";
 import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
+import { iconStyle } from "./browserUtils";
+import PaletteEditor from "./PaletteEditor";
 
-export default function FormulaEditor(props: { form: string, changeCallback: (fractal: string) => void, menu: React.ReactNode }) {
+export default function FormulaEditor(props: { form: string, color: string, formCallback: (form: string) => void, colorCallback: (color: string) => void, menu: React.ReactNode }) {
+  const [showPalette, setShowPalette] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const guiRef = useRef<FormulaEditorGUI | null>(null);
-  if (guiRef.current === null) {
-    guiRef.current = new FormulaEditorGUI(props.changeCallback);
-  }
+  const gui = useMemo(() => new FormulaEditorGUI(props.formCallback), [props.formCallback]);
+
+  useEffect(() => gui.loadFormulas(props.form), [gui, props.form]);
 
   useEffect(() => {
-    window.addEventListener('resize', updateCanvasSize);
-    return () => window.removeEventListener('resize', updateCanvasSize);
-  }, []);
-
-  const updateCanvasSize = () => {
-    if (!canvasRef.current) return;
     const canvas = canvasRef.current;
-    const { width, height } = canvas.parentElement!.getBoundingClientRect();
-    canvas.width = width;
-    canvas.height = height;
-    guiRef.current?.setSize([width, height]);
-    guiRef.current?.draw();
-  };
-  
-  useEffect(() => {
-    void guiRef.current?.loadFormulas(props.form);
-  }, [props.form]);
-  
+    if (!canvas) return;
 
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    if (!guiRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d')!;
-    guiRef.current.setCtx(ctx);
-    updateCanvasSize();
-  }, []);
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.target === canvas) {
+          const { width, height } = entry.contentRect;
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvasRef.current!.getContext('2d')!;
+          gui.setCtx(ctx);
+        }
+      });
+    });
 
-  return (
+    resizeObserver.observe(canvas);
+    return () => resizeObserver.disconnect();
+  }, [gui]);
+
+  return (<>
     <div className="relative size-full">
       <div className="absolute top-0 left-0 right-0 flex flex-row justify-between">
         <div></div>
-        {props.menu}
+        <div className="flex flex-row">
+          <IoColorPaletteOutline 
+            className={iconStyle}
+            onClick={() => setShowPalette(!showPalette)}
+            title="Colors"
+            />
+          {props.menu}
+        </div>
       </div>
-      <canvas className="size-full"
-        ref={canvasRef} 
-      />
+      <canvas className="size-full" ref={canvasRef} />
     </div>
-  );
+    {showPalette && <PaletteEditor color={props.color} changeCallback={props.colorCallback}/>}
+  </>);
 }
 
 class FormulaEditorGUI extends Viewport {
@@ -61,13 +61,13 @@ class FormulaEditorGUI extends Viewport {
   isDragging = false;
   dragStart: vec2 = [0, 0];
   draggedFormula: Formula | null = null;
-  changeCallback: (fractal: string) => void;
   
-  constructor(changeCallback: (fractal: string) => void) {
+  constructor(public changeCallback: (form: string) => void) {
     super(.6);
-    this.changeCallback = changeCallback;
-    window.addEventListener('pointermove', this.onWindowPointerMove);
-    window.addEventListener('pointerup',   this.onWindowPointerUp);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pointermove', this.onWindowPointerMove);
+      window.addEventListener('pointerup',   this.onWindowPointerUp);
+    }
   }
 
   setCtx(ctx: CanvasRenderingContext2D) {
@@ -75,6 +75,8 @@ class FormulaEditorGUI extends Viewport {
     ctx.canvas.addEventListener('wheel', this.onWheel, { passive: true });
     ctx.canvas.addEventListener('pointerdown', this.onPointerDown);
     ctx.canvas.addEventListener('pointermove', this.onPointerMove);
+    this.setSize([ctx.canvas.width, ctx.canvas.height]);
+    this.resizeFormulas();
   }
 
   onWheel = (e: WheelEvent) => {
@@ -167,17 +169,19 @@ class FormulaEditorGUI extends Viewport {
   }
 
   callChangeCallback() {
-    const fractal = Formula.toString(this.formulas);
-    this.changeCallback(fractal);
+    const form = Formula.toString(this.formulas);
+    this.changeCallback(form);
   }
 
   loadFormulas(formulaString: string) {
     this.formulas = Formula.fromString(formulaString);
     this.callChangeCallback();
-    this.selectedFormula = 0;
-    this.selectedPoint = null;
-    this.resetToAuto();
-    this.resizeFormulas();
+    if (!this.isDragging) {
+      this.selectedFormula = 0;
+      this.selectedPoint = null;
+      this.resetToAuto();
+      this.resizeFormulas();
+    }
   }
 
   selectNearestFormula(point: vec2) {
@@ -233,10 +237,9 @@ class FormulaEditorGUI extends Viewport {
   
   draw() {
     if (!this.ctx) return;
-    const ctx = this.ctx;
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.lineWidth = 1;
+    this.ctx.fillStyle = "white";
+    this.ctx.fillRect(0, 0, this.width, this.height);
+    this.ctx.lineWidth = 1;
     this.drawBaseFormula();
     for (let i = 0; i < this.formulas.length; i++) {
       if (i != this.selectedFormula)

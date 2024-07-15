@@ -6,3 +6,22 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   @apply text-2xl;
 }
+
+body .react-colorful__pointer {
+  width: 12px;
+  height: 12px;
+}
+
+body .react-colorful {
+  width: 160px;
+  height: 90px;
+}
+
+body .react-colorful__saturation {
+  border-radius: 0;
+}
+
+body .react-colorful__hue {
+  height: 10px;
+  border-radius: 0;
+}

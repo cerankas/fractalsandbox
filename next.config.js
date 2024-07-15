@@ -20,3 +20,5 @@ const config = {
 };
 
 export default config;
+
+// export const output = 'export'; // static generation

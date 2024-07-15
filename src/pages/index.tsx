@@ -3,7 +3,7 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FractalView from "~/components/FractalView";
 import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
@@ -12,15 +12,39 @@ import { IoCloudUploadOutline } from "react-icons/io5";
 import { MdOutlineDeleteForever } from "react-icons/md";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import useHorizontal from "~/components/useHorizontal";
+import { type Fractal } from "@prisma/client";
+import { useHorizontal, useLocalStorage, iconStyle } from "~/components/browserUtils"
+import dynamic from "next/dynamic";
 
-export default function Home() {
+/*
+  Todo:
+  - fix menu icons placement (panel) and color (b/w)
+  - tile selection on the basis of current form & color
+  - collapse/expand controls
+  - color editor as collapsible panel
+  - remove selected emphasis
+  
+  - undo/redo
+  - image download
+  - improve image cache
+  - progressive loading and db caching
+  
+  - import / export / edit textual definition
+  - video: animate triangles and parameters along curves
+  - explorer
+  - randomization
+  - only draw selected parts of the fractal (e.g. last formula == (and the formula before last ==))
+  - layers
+*/
+
+const withNoSSR = <P extends object>(Component: ComponentType<P>) => dynamic<P>(() => Promise.resolve(Component), { ssr: false });
+
+export default withNoSSR(function Home() {
   const { isSignedIn, user } = useUser();
-  const isInitialLoad = useRef(true);
 
   const queryClient = useQueryClient();
   const fractals = api.fractal.findMany.useQuery();
-  const getManyQueryKey = [["fractal","findMany"],{"type":"query"}];
+  const getManyQueryKey = useMemo(() => [["fractal","findMany"],{"type":"query"}], []);
   
   const { mutate: uploadFractal } = api.fractalMutate.create.useMutation({
     onSuccess: (newFractal) => {
@@ -30,18 +54,14 @@ export default function Home() {
           return oldData ? [newFractal, ...oldData] : [newFractal];
         }
       );
-      setSelectedFractalId(newFractal.id);
+      setSelectedFractal(newFractal);
       console.log("Uploaded " + newFractal.id);
     },
   });
   
   const { mutate: deleteFractal } = api.fractalMutate.delete.useMutation({
     onSuccess: (deletedFractal) => {
-      if (fractals.data!.length > 1) {
-        const deletedIndex = fractals.data!.findIndex((f) => f.id == deletedFractal.id);
-        const delta = deletedIndex < fractals.data!.length - 1 ? 1 : -1;
-        setSelectedFractalId(fractals.data![deletedIndex + delta]!.id);
-      }
+      setSelectedFractal(null);
       queryClient.setQueryData(
         getManyQueryKey,
         (oldData: typeof fractals.data) => {
@@ -52,14 +72,13 @@ export default function Home() {
     },
   });
   
-  const [selectedFractalId, setSelectedFractalId] = useState(0);
-  const selectedFractal = useMemo(() => fractals.data?.find(fractal => fractal.id === selectedFractalId), [fractals.data, selectedFractalId]);
+  const [selectedFractal, setSelectedFractal] = useState<Fractal | null>(null);
   
   const [fullscreen, setFullscreen] = useState(false);
   const [fullBefore, setFullBefore] = useState(false);
 
-  const [form, setForm] = useState("");
-  const [color, setColor] = useState("");
+  const [form, setForm] = useLocalStorage("form", ".83364,.25302,-.29969,.84318,.23402,.22814,1;.61536,-.144,-.10965,-.41233,-.19863,-.47176,1");
+  const [color, setColor] = useLocalStorage("color", "0,FFFFFF;1,000000");
 
   const isHorizontal = useHorizontal();
   const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
@@ -78,19 +97,6 @@ export default function Home() {
   }, [fullBefore]);
 
   useEffect(() => {
-    if (isInitialLoad.current && fractals.data?.[0]?.id) {
-      setSelectedFractalId(fractals.data[0].id);
-      isInitialLoad.current = false;
-    }
-  }, [fractals]);
-
-  useEffect(() => {
-    if (!selectedFractal) return;
-    setForm (selectedFractal.form);
-    setColor(selectedFractal.color);
-  }, [selectedFractal]);
-
-  useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
       if (e.key === "f")  { if (fullscreen) exitFullscreen(); else enterFullscreen(); }
     };
@@ -100,14 +106,9 @@ export default function Home() {
 
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
-  const iconStyle = "size-6 hover:cursor-pointer m-1";
 
-  const [panelConfig1, setPanelConfig1] = useState<number[]>([]);
-  const [panelConfig2, setPanelConfig2] = useState<number[]>([]);
-
-  useLayoutEffect(() => {
-    window.dispatchEvent(new Event('resize'));
-  }, [isHorizontal, panelConfig1, panelConfig2])
+  // const [panelConfig1, setPanelConfig1] = useState<number[]>([]);
+  // const [panelConfig2, setPanelConfig2] = useState<number[]>([]);
 
 
   const fPRef = useRef<ImperativePanelHandle>(null);
@@ -123,7 +124,7 @@ export default function Home() {
   const bPMenu = !fPMenu && bP;
   const ePMenu = !fPMenu && !bPMenu;
 
-  const commonMenu = (
+  const commonMenu = useMemo(() =>
     <div className="flex flex-row">
       <div className="m-1 hover:cursor-pointer hover:brightness-110">
         {isSignedIn && <div className="size-6"><UserButton 
@@ -136,15 +137,15 @@ export default function Home() {
         </SignInButton>}
       </div>
     </div>
-  );
+  , [isSignedIn]);
 
 
-  const fractalPanel = (<>{fractals.data && selectedFractal &&
-    <Panel ref={fPRef} id="f" order={2} minSize={10} className="relative size-full">
+  const fractalPanel = (<>{
+    <Panel ref={fPRef} minSize={10} className="relative size-full">
       <div className="absolute top-0 right-0 flex flex-row">
         {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
           className={iconStyle}
-          onClick={() => deleteFractal({id: selectedFractalId})} 
+          onClick={() => deleteFractal({id: selectedFractal.id})} 
           title="Delete"
         />}
         {modified && <IoCloudUploadOutline
@@ -154,7 +155,11 @@ export default function Home() {
         />}
         <AiOutlineQuestionCircle 
           className={iconStyle} 
-          onClick={() => {alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '))}} 
+          onClick={() => {
+            alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '));
+            console.log(form)
+            console.log(color)
+          }} 
           title="Fractal coefficients"
         />
         <AiOutlineFullscreen 
@@ -167,32 +172,36 @@ export default function Home() {
       <FractalView
         form={form}
         color={color}
-        cached={form === selectedFractal?.form && color === selectedFractal?.color}
+        cached={modified}
       />
     </Panel>
   }</>);
 
-  const browserPanel = (<>{fractals.data && selectedFractal &&
-    <Panel ref={bPRef} id="b" order={1} collapsible={true} minSize={3.5} className="size-full">
+  const browserPanel = useMemo(() => <>{
+    <Panel ref={bPRef} collapsible={true} minSize={3.5} className="size-full">
       <FractalSelector 
-        fractals={fractals.data} 
-        onclick={fractalId => setSelectedFractalId(fractalId)} 
-        selected={selectedFractalId}
+        fractals={fractals.data ?? []} 
+        onmousedown={(button, fractal) => {
+          if (button == 0) setSelectedFractal(fractal);
+          if (button == 0 || button == 1) setForm(fractal.form);
+          if (button == 0 || button == 2) setColor(fractal.color);
+        }} 
+        selected={selectedFractal?.id ?? 0}
         menu={bPMenu && commonMenu}
         refreshCallback={() => { 
-          isInitialLoad.current = true; 
-          queryClient.setQueryData(getManyQueryKey, () => []); 
           void queryClient.invalidateQueries({queryKey: getManyQueryKey});
         }}
       />
     </Panel>
-  }</>);
+  }</>, [bPMenu, commonMenu, fractals.data, getManyQueryKey, queryClient, selectedFractal, setForm, setColor]);
 
-  const editorPanel = (<>{fractals.data && selectedFractal &&
-    <Panel ref={ePRef} id="e" order={3} collapsible={true} minSize={3.5}>
+  const editorPanel = (<>{
+    <Panel ref={ePRef} collapsible={true} minSize={3.5}>
       <FormulaEditor
-        form={selectedFractal.form}
-        changeCallback={setForm}
+        form={form}
+        color={color}
+        formCallback={setForm}
+        colorCallback={setColor}
         menu={ePMenu && commonMenu}
       />
     </Panel>
@@ -208,7 +217,7 @@ export default function Home() {
       
       <main className="bg-gray-500 h-screen v-screen" onContextMenu={e => e.preventDefault()} onDragStart={e => e.preventDefault()}>
 
-        {fractals.data && fullscreen && selectedFractal && 
+        {fullscreen &&  
           <div className="size-full relative">
             <div className="absolute top-0 right-0 flex flex-row">
               <AiOutlineFullscreenExit 
@@ -226,11 +235,11 @@ export default function Home() {
           </div>
         }
 
-        <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} id="L1" onLayout={setPanelConfig1} autoSaveId='L1'>
+        <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} autoSaveId="L1">
           {fractalPanel}
           <PanelResizeHandle className={beP ? (isHorizontal ? 'w-2' : 'h-2') : ''} />
-          <Panel ref={bePRef} id="be" order={3} collapsible={true} minSize={3.5}>
-            <PanelGroup direction={secondaryDirection} id="L2" onLayout={setPanelConfig2} autoSaveId='L2'>
+          <Panel ref={bePRef} order={3} collapsible={true} minSize={3.5}>
+            <PanelGroup direction={secondaryDirection} autoSaveId="L2">
               {browserPanel}
               <PanelResizeHandle className={bP && eP ? (!isHorizontal ? 'w-2' : 'h-2') : ''} />
               {editorPanel}
@@ -241,4 +250,4 @@ export default function Home() {
       </main>
     </>
   );
-}
+});

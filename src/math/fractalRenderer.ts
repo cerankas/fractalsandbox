@@ -1,5 +1,5 @@
 import Formula from "./formula";
-import PaletteKey, { createPaletteFromKeys, paletteKeysFromString } from "./palette";
+import { createPaletteFromKeys, paletteKeysFromString, PALETTE_LENGTH } from "./palette";
 import FractalSummator from "./fractalSummator";
 import { getMs } from "./util";
 import BackgroundScheduler from "~/logic/scheduler";
@@ -47,10 +47,10 @@ export default class FractalRenderer extends FractalSummator {
     this.cached = cached;
   }
 
-  setFractal(fractal: string) {
-    if (this.fractal === fractal) return;
-    this.fractal = fractal;
-    this.formulas = Formula.fromString(fractal);
+  setForm(form: string) {
+    if (this.fractal === form) return;
+    this.fractal = form;
+    this.formulas = Formula.fromString(form);
     this.mustRecalc = true;
   }
 
@@ -59,10 +59,6 @@ export default class FractalRenderer extends FractalSummator {
     this.color = color;
     this.palette = createPaletteFromKeys(paletteKeysFromString(color));
     this.mustRedraw = true;
-  }
-
-  touch() {
-    if (this.isFinished()) this.mustRedraw = true;
   }
 
   render() {
@@ -148,7 +144,7 @@ export default class FractalRenderer extends FractalSummator {
       }
     }
     const palData = new Int32Array(this.imageData.data.buffer);
-    const palmul = (PaletteKey.PALETTE_LENGTH - 1) / this.maxSum;
+    const palmul = (PALETTE_LENGTH - 1) / this.maxSum;
     for (let i = this.sums.length - 1; i >= 0; i--) {
       palData[i] = this.palette[(this.sums[i]! * palmul) | 0]!;
     }

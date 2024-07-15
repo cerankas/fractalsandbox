@@ -1,63 +1,51 @@
-export default class PaletteKey {
-  static PALETTE_LENGTH = 1000;
-  static MAX_KEY_INDEX = 1000;
+import { floatToShortString } from "./util";
+
+export const PALETTE_LENGTH = 10000;
+
+export class PaletteKey {
   
   constructor(
-    public index: number, 
-    public r: number, 
-    public g: number, 
-    public b: number
+    public level: number,
+    public rgb: [number, number, number]
   ) {}
 }
 
-export function createPaletteFromKeys(keys: PaletteKey[]): number[] {
+export function createPaletteFromKeys(keys: PaletteKey[]) {
   function linearCombination(v1: number, v2: number, coeff: number) { return v1 * (1 - coeff) + v2 * coeff; }
-  function mergeRGBA(r: number, g: number, b: number, a: number) { return (r << 0) + (g << 8) + (b << 16) + (a << 24); }
-  keys.sort((a: PaletteKey, b: PaletteKey) => a.index == b.index ? 0 : (a.index < b.index ? - 1: 1));
+  function mergeRGBA(c: [number, number, number]) { return (c[0] << 0) + (c[1] << 8) + (c[2] << 16) + (0xff << 24); }
+  const sortedKeys = [...keys].sort((a: PaletteKey, b: PaletteKey) => a.level == b.level ? 0 : (a.level < b.level ? - 1: 1));
   const palette = [];
-  const firstKey = keys[0]!;
-  const lastKey = keys[keys.length - 1]!;
-  for (let i = 0; i <= firstKey.index; i++)
-    palette.push(mergeRGBA(firstKey.r, firstKey.g, firstKey.b, 0xff));
-  for (let i = 1; i < keys.length; i++) {
-    const prevKey = keys[i - 1]!;
-    const nextKey = keys[i]!;
-    const indexDifference = nextKey.index - prevKey.index;
+  const firstKey = sortedKeys[0]!;
+  const lastKey = sortedKeys[sortedKeys.length - 1]!;
+  for (let i = 0; i <= firstKey.level; i++)
+    palette.push(mergeRGBA(firstKey.rgb));
+  for (let i = 1; i < sortedKeys.length; i++) {
+    const prevKey = sortedKeys[i - 1]!;
+    const nextKey = sortedKeys[i]!;
+    const indexDifference = nextKey.level - prevKey.level;
     if (indexDifference == 0)
       continue;
-    for (let j = prevKey.index + 1; j <= nextKey.index; j++) {
-      const coefficient = (j - prevKey.index) / indexDifference;
-      const r = linearCombination(prevKey.r, nextKey.r, coefficient);
-      const g = linearCombination(prevKey.g, nextKey.g, coefficient);
-      const b = linearCombination(prevKey.b, nextKey.b, coefficient);
-      palette.push(mergeRGBA(r, g, b, 0xff));
+    for (let j = prevKey.level + 1; j <= nextKey.level; j++) {
+      const coefficient = (j - prevKey.level) / indexDifference;
+      palette.push(mergeRGBA([
+        linearCombination(prevKey.rgb[0], nextKey.rgb[0], coefficient),
+        linearCombination(prevKey.rgb[1], nextKey.rgb[1], coefficient),
+        linearCombination(prevKey.rgb[2], nextKey.rgb[2], coefficient)
+      ]));
     }
   }
-  for (let i = lastKey.index + 1; i < PaletteKey.MAX_KEY_INDEX; i++)
-    palette.push(mergeRGBA(lastKey.r, lastKey.g, lastKey.b, 0xff));
+  for (let i = lastKey.level + 1; i < PALETTE_LENGTH; i++)
+    palette.push(mergeRGBA(lastKey.rgb));
   return palette;
 }
 
-function componentToHex(c: number): string {
-  const hex = c.toString(16);
-  return hex.length == 1 ? "0" + hex : hex;
-}
-
-export function rgbToHex(r: number, g: number, b: number): string {
-  return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-}
-
-export function paletteKeysFromString(paletteString: string): PaletteKey[] {
-  return paletteString.split(';').map(s => {
-    const [indstr, rgbstr] = s.split(',') as [string, string];
-    const ind = (parseFloat(indstr) * PaletteKey.MAX_KEY_INDEX) | 0;
-    const rgb = hexToRGB(rgbstr);
-    return new PaletteKey(ind, ...rgb);
-  });
-}
-
-export function paletteKeysToString(paletteKeys: PaletteKey[]): string {
-  return paletteKeys.map(k => `${k.index},${rgbToHex(k.r, k.g, k.b)}`).join(';');
+export function rgbToHex(color: [number, number, number]) {
+  const componentToHex = (component: number) => {
+    const hex = component.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+  }
+  
+  return color.map(c => componentToHex(c)).join('');
 }
 
 export function hexToRGB(hex: string): [number, number, number] {
@@ -67,9 +55,34 @@ export function hexToRGB(hex: string): [number, number, number] {
   return [r, g, b];
 }
 
-export function backgroundColor(paletteString: string): string {
-  if (paletteString === '') return '#FFF'; 
-  const k = paletteKeysFromString(paletteString)[0]!;
-  const rgb = rgbToHex(k.r, k.g, k.b);
-  return rgb;
+export function paletteKeysFromString(paletteString: string) {
+  return paletteString.split(';').map(s => {
+    const [indstr, rgbstr] = s.split(',') as [string, string];
+    const ind = (parseFloat(indstr) * PALETTE_LENGTH) | 0;
+    const rgb = hexToRGB(rgbstr);
+    return new PaletteKey(ind, rgb);
+  });
+}
+
+export function paletteKeysToString(paletteKeys: PaletteKey[]) {
+  return [...paletteKeys]
+    .sort((a: PaletteKey, b: PaletteKey) => a.level == b.level ? 0 : (a.level < b.level ? - 1: 1))
+    .map(key => {
+      const index = floatToShortString(key.level / PALETTE_LENGTH);
+      const color = rgbToHex(key.rgb);
+      return `${index},${color}`;
+    })
+    .join(';');
+}
+
+export function backgroundColor(paletteString: string) {
+  return '#' + rgbToHex(paletteKeysFromString(paletteString)[0]!.rgb);
+}
+
+export function oppositeColor(rgb: [number, number, number]) {
+  return rgb[0] + rgb[1] + rgb[2] > 1.5 * 0xff ? 'black' : 'white';
+}
+
+export function oppositeBackgroundColor(paletteString:string) {
+  return oppositeColor(paletteKeysFromString(paletteString)[0]!.rgb);
 }
