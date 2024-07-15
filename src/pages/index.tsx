@@ -15,10 +15,10 @@ import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from
 import { type Fractal } from "@prisma/client";
 import { useHorizontal, useLocalStorage, iconStyle } from "~/components/browserUtils"
 import dynamic from "next/dynamic";
+import { oppositeBackgroundColor } from "~/math/palette";
 
 /*
   Todo:
-  - fix menu icons placement (panel) and color (b/w)
   - tile selection on the basis of current form & color
   - collapse/expand controls
   - color editor as collapsible panel
@@ -142,7 +142,7 @@ export default withNoSSR(function Home() {
 
   const fractalPanel = (<>{
     <Panel ref={fPRef} minSize={10} className="relative size-full">
-      <div className="absolute top-0 right-0 flex flex-row">
+      <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color)}}>
         {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
           className={iconStyle}
           onClick={() => deleteFractal({id: selectedFractal.id})} 
@@ -219,7 +219,7 @@ export default withNoSSR(function Home() {
 
         {fullscreen &&  
           <div className="size-full relative">
-            <div className="absolute top-0 right-0 flex flex-row">
+            <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color)}}>
               <AiOutlineFullscreenExit 
                 className={iconStyle} 
                 onClick={() => exitFullscreen()} 
