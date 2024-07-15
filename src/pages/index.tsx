@@ -116,9 +116,9 @@ export default withNoSSR(function Home() {
   const ePRef = useRef<ImperativePanelHandle>(null);
   const bePRef = useRef<ImperativePanelHandle>(null);
 
-  const bP = !bPRef.current?.isCollapsed();
-  const eP = !ePRef.current?.isCollapsed();
-  const beP = !bePRef.current?.isCollapsed();
+  const [bP, setBP] = useState(!bPRef.current?.isCollapsed());
+  const [eP, setEP] = useState(!ePRef.current?.isCollapsed());
+  const [beP, setBEP] = useState(!bePRef.current?.isCollapsed());
   
   const fPMenu = !isHorizontal || !beP;
   const bPMenu = !fPMenu && bP;
@@ -178,7 +178,7 @@ export default withNoSSR(function Home() {
   }</>);
 
   const browserPanel = useMemo(() => <>{
-    <Panel ref={bPRef} collapsible={true} minSize={3.5} className="size-full">
+    <Panel ref={bPRef} collapsible={true} onCollapse={() => setBP(false)} onExpand={() => setBP(true)} minSize={3.5} className="size-full">
       <FractalSelector 
         fractals={fractals.data ?? []} 
         onmousedown={(button, fractal) => {
@@ -196,7 +196,7 @@ export default withNoSSR(function Home() {
   }</>, [bPMenu, commonMenu, fractals.data, getManyQueryKey, queryClient, selectedFractal, setForm, setColor]);
 
   const editorPanel = (<>{
-    <Panel ref={ePRef} collapsible={true} minSize={3.5}>
+    <Panel ref={ePRef} collapsible={true} onCollapse={() => setEP(false)} onExpand={() => setEP(true)} minSize={3.5}>
       <FormulaEditor
         form={form}
         color={color}
@@ -238,7 +238,7 @@ export default withNoSSR(function Home() {
         <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} autoSaveId="L1">
           {fractalPanel}
           <PanelResizeHandle className={beP ? (isHorizontal ? 'w-2' : 'h-2') : ''} />
-          <Panel ref={bePRef} order={3} collapsible={true} minSize={3.5}>
+          <Panel ref={bePRef} collapsible={true} onCollapse={() => setBEP(false)} onExpand={() => setBEP(true)} minSize={3.5}>
             <PanelGroup direction={secondaryDirection} autoSaveId="L2">
               {browserPanel}
               <PanelResizeHandle className={bP && eP ? (!isHorizontal ? 'w-2' : 'h-2') : ''} />
