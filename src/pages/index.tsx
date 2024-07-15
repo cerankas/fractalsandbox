@@ -237,11 +237,15 @@ export default withNoSSR(function Home() {
 
         <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} autoSaveId="L1">
           {fractalPanel}
-          <PanelResizeHandle className={beP ? (isHorizontal ? 'w-2' : 'h-2') : ''} />
+          <PanelResizeHandle className={beP ? (isHorizontal ? 'w-2' : 'h-2') : ''} hitAreaMargins={{coarse:0, fine:0}}>
+            <div className='size-full' onContextMenu={() => bePRef.current!.resize(50)}></div>
+          </PanelResizeHandle>
           <Panel ref={bePRef} collapsible={true} onCollapse={() => setBEP(false)} onExpand={() => setBEP(true)} minSize={3.5}>
             <PanelGroup direction={secondaryDirection} autoSaveId="L2">
               {browserPanel}
-              <PanelResizeHandle className={bP && eP ? (!isHorizontal ? 'w-2' : 'h-2') : ''} />
+              <PanelResizeHandle className={bP && eP ? (!isHorizontal ? 'w-2' : 'h-2') : ''} hitAreaMargins={{coarse:0, fine:0}}>
+                <div className='size-full' onContextMenu={() => bPRef.current!.resize(50)}></div>
+              </PanelResizeHandle>
               {editorPanel}
             </PanelGroup>
           </Panel>
