@@ -2,30 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PaletteKey, createPaletteFromKeys, paletteKeysFromString, paletteKeysToString, rgbToHex,hexToRGB,  PALETTE_LENGTH } from "~/math/palette";
 import { findNearestPoint } from "~/math/util";
 import { HexColorPicker } from "react-colorful"
+import { useResizeObserver } from "./browserUtils";
 
 export default function PaletteEditor(props: { color: string, changeCallback: (color: string) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedKeyIndex, setSelectedKeyIndex] = useState<number | null>(null);
   const gui = useMemo(() => new PaletteEditorGUI(props.changeCallback, setSelectedKeyIndex), [props.changeCallback]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.target === canvas) {
-          const { width, height } = entry.contentRect;
-          canvas.width = width;
-          canvas.height = height;
-          gui.setCtx(canvas.getContext('2d')!);
-        }
-      });
-    });
-
-    resizeObserver.observe(canvas);
-    return () => resizeObserver.disconnect();
-  }, [gui]);
+  useResizeObserver(canvasRef, gui.setCtx);
 
   useEffect(() => gui.loadPalette(props.color), [gui, props.color]);
 
@@ -102,7 +86,7 @@ class PaletteEditorGUI {
     if (redraw) this.draw();
   }  
   
-  setCtx(ctx: CanvasRenderingContext2D) {
+  setCtx = (ctx: CanvasRenderingContext2D) => {
     this.ctx = ctx;
     ctx.canvas.addEventListener('pointerdown', this.onPointerDown);
     ctx.canvas.addEventListener('pointermove', this.onPointerMove);

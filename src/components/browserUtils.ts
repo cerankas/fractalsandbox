@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { type RefObject, useCallback, useEffect, useLayoutEffect, useState } from "react";
 
 export const isBrowser = typeof window != 'undefined';
 
@@ -28,6 +28,26 @@ export function useHorizontal() {
   }, []);
   
   return isHorizontal;
+}
+
+export function useResizeObserver(canvasRef: RefObject<HTMLCanvasElement>, callback: (ctx: CanvasRenderingContext2D) => void) {
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.target === canvas) {
+          const { width, height } = entry.contentRect;
+          canvas.width = Math.round(width);
+          canvas.height = Math.round(height);
+          callback(canvas.getContext('2d')!);
+        }
+      });
+    });
+    resizeObserver.observe(canvas);
+    return () => resizeObserver.disconnect();
+  }, [canvasRef, callback]);
 }
 
 export const iconStyle = "size-6 hover:cursor-pointer m-1";

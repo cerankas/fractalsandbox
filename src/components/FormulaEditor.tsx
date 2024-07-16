@@ -4,7 +4,7 @@ import Formula from "~/math/formula";
 import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY } from "~/math/util";
 import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
-import { iconStyle } from "./browserUtils";
+import { iconStyle, useResizeObserver } from "./browserUtils";
 import PaletteEditor from "./PaletteEditor";
 
 export default function FormulaEditor(props: { form: string, color: string, formCallback: (form: string) => void, colorCallback: (color: string) => void, menu: React.ReactNode }) {
@@ -14,25 +14,7 @@ export default function FormulaEditor(props: { form: string, color: string, form
 
   useEffect(() => gui.loadFormulas(props.form), [gui, props.form]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.target === canvas) {
-          const { width, height } = entry.contentRect;
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvasRef.current!.getContext('2d')!;
-          gui.setCtx(ctx);
-        }
-      });
-    });
-
-    resizeObserver.observe(canvas);
-    return () => resizeObserver.disconnect();
-  }, [gui]);
+  useResizeObserver(canvasRef, gui.setCtx);
 
   return (<>
     <div className="relative size-full">
@@ -70,7 +52,7 @@ class FormulaEditorGUI extends Viewport {
     }
   }
 
-  setCtx(ctx: CanvasRenderingContext2D) {
+  setCtx = (ctx: CanvasRenderingContext2D) => {
     this.ctx = ctx;
     ctx.canvas.addEventListener('wheel', this.onWheel, { passive: true });
     ctx.canvas.addEventListener('pointerdown', this.onPointerDown);

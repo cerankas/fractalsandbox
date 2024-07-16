@@ -2,32 +2,14 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
 import ProgressIndicator from "./ProgressIndicator";
 import { backgroundColor } from "~/math/palette";
+import { useResizeObserver } from "./browserUtils";
 
 export default function FractalView(props: { form: string, color: string, cached: boolean }) {
   const [progress, setProgress] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderer = useMemo(() => new FractalRenderer(setProgress), []);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.target === canvas) {
-          const { width, height } = entry.contentRect;
-          canvas.width = width;
-          canvas.height = height;
-          renderer.setCtx(canvas.getContext('2d')!);
-          renderer.render();
-            }
-      });
-    });
-
-    resizeObserver.observe(canvas);
-    return () => resizeObserver.disconnect();
-  }, [renderer]);
-
+  useResizeObserver(canvasRef, renderer.setCtx);
 
   useEffect(() => {
     renderer.setCached(props.cached);

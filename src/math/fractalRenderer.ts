@@ -35,12 +35,13 @@ export default class FractalRenderer extends FractalSummator {
     super(.9);
   }
 
-  setCtx(ctx: CanvasRenderingContext2D) {
+  setCtx = (ctx: CanvasRenderingContext2D) => {
     if (this.width != ctx.canvas.width || this.height != ctx.canvas.height) {
       super.setSize([ctx.canvas.width, ctx.canvas.height]);
       this.mustRecalc = true;
     }
     this.ctx = ctx;
+    this.render();
   }
 
   setCached(cached: boolean) {
