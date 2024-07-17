@@ -1,10 +1,8 @@
 import FractalTile from "./FractalTile";
 import { type Fractal } from "@prisma/client";
-import { MdRefresh } from "react-icons/md";
-import { iconStyle } from "./browserUtils";
 import { useLocalStorage } from "./browserUtils";
 
-export default function FractalSelector(props: { fractals: Fractal[], onmousedown: (button: number, fractal: Fractal) => void, selected: number, menu: React.ReactNode, refreshCallback?: () => void }) {
+export default function FractalSelector(props: { fractals: Fractal[], onmousedown: (button: number, fractal: Fractal) => void, selected: number, menu: React.ReactNode }) {
   const [tileSize, setTileSize] = useLocalStorage('tileSize', '300');
   return (
     <div className="flex flex-col size-full gap-2">
@@ -19,7 +17,6 @@ export default function FractalSelector(props: { fractals: Fractal[], onmousedow
             onChange={(e) => { setTileSize(e.target.value); localStorage.tileSize = e.target.value; }}
             title="Tile size"
           />
-          <MdRefresh className={iconStyle} onClick={props.refreshCallback} title="Refresh"/>
         </div>
         {props.menu}
       </div>

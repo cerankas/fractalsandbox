@@ -104,12 +104,7 @@ export default withNoSSR(function Home() {
     return () => { document.removeEventListener('keydown', keyDownHandler); }
   }, [fullscreen, enterFullscreen, exitFullscreen]);
 
-
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
-
-  // const [panelConfig1, setPanelConfig1] = useState<number[]>([]);
-  // const [panelConfig2, setPanelConfig2] = useState<number[]>([]);
-
 
   const fPRef = useRef<ImperativePanelHandle>(null);
   const bPRef = useRef<ImperativePanelHandle>(null);
@@ -138,7 +133,6 @@ export default withNoSSR(function Home() {
       </div>
     </div>
   , [isSignedIn]);
-
 
   const fractalPanel = (<>{
     <Panel ref={fPRef} minSize={10} className="relative size-full">
@@ -188,12 +182,9 @@ export default withNoSSR(function Home() {
         }} 
         selected={selectedFractal?.id ?? 0}
         menu={bPMenu && commonMenu}
-        refreshCallback={() => { 
-          void queryClient.invalidateQueries({queryKey: getManyQueryKey});
-        }}
       />
     </Panel>
-  }</>, [bPMenu, commonMenu, fractals.data, getManyQueryKey, queryClient, selectedFractal, setForm, setColor]);
+  }</>, [bPMenu, commonMenu, fractals.data, selectedFractal, setForm, setColor]);
 
   const editorPanel = (<>{
     <Panel ref={ePRef} collapsible={true} onCollapse={() => setEP(false)} onExpand={() => setEP(true)} minSize={3.5}>
