@@ -1,9 +1,32 @@
 import FractalTile from "./FractalTile";
 import { type Fractal } from "@prisma/client";
 import { useLocalStorage } from "./browserUtils";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function FractalSelector(props: { fractals: Fractal[], onmousedown: (button: number, fractal: Fractal) => void, selected: number, menu: React.ReactNode }) {
   const [tileSize, setTileSize] = useLocalStorage('tileSize', '300');
+  const loaderRef = useRef<HTMLDivElement>(null);
+  const [limit, setLimit] = useState(10);
+  const [loaderVisible, setLoaderVisible] = useState(false);
+
+  const increaseLimit = useCallback(() => setLimit(Math.min(limit + 10, props.fractals.length)), [limit, props.fractals.length]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => { 
+      const visible = entry?.isIntersecting ?? false;
+      setLoaderVisible(visible);
+      if (visible) {
+        increaseLimit();
+      }
+    });
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loaderRef, increaseLimit, loaderVisible]);
+
   return (
     <div className="flex flex-col size-full gap-2">
       <div className="flex flex-row bg-white justify-between">
@@ -21,13 +44,14 @@ export default function FractalSelector(props: { fractals: Fractal[], onmousedow
         {props.menu}
       </div>
       <div className="flex flex-wrap overflow-x-clip overflow-y-auto justify-around">
-        { props.fractals.map(((f) => <FractalTile 
+        { props.fractals.filter((f, i) => i < limit).map(((f) => <FractalTile 
           key={f.id}
           fractal={f}
           size={parseInt(tileSize) ?? 300} 
           onmousedown={props.onmousedown}
           selected={f.id == props.selected}
         />)) }
+        <div className="w-full h-[1px]" ref={loaderRef}></div>
       </div>
     </div>
   );
