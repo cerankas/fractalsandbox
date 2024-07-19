@@ -16,6 +16,7 @@ import { type Fractal } from "@prisma/client";
 import { useHorizontal, useLocalStorage, iconStyle } from "~/components/browserUtils"
 import dynamic from "next/dynamic";
 import { oppositeBackgroundColor } from "~/math/palette";
+import FractalHistory from "~/logic/history";
 
 /*
   Todo:
@@ -80,6 +81,13 @@ export default withNoSSR(function Home() {
   const [form, setForm] = useLocalStorage("form", ".83364,.25302,-.29969,.84318,.23402,.22814,1;.61536,-.144,-.10965,-.41233,-.19863,-.47176,1");
   const [color, setColor] = useLocalStorage("color", "0,FFFFFF;1,000000");
 
+  const fractalHistory = useMemo(() => new FractalHistory((item) => { setForm(item.form); setColor(item.color); }), [setForm, setColor]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => fractalHistory.store({form: form, color: color}), 2000);
+    return () => clearTimeout(timeout);
+  }, [fractalHistory, form, color]);
+
   const isHorizontal = useHorizontal();
   const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
   const secondaryDirection = isHorizontal ? 'vertical' : 'horizontal';
@@ -99,10 +107,12 @@ export default withNoSSR(function Home() {
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
       if (e.key === "f")  { if (fullscreen) exitFullscreen(); else enterFullscreen(); }
+      if (e.key === "z" && e.ctrlKey) fractalHistory.back();
+      if (e.key === "y" && e.ctrlKey) fractalHistory.forward(); 
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  }, [fullscreen, enterFullscreen, exitFullscreen]);
+  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory]);
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
 
