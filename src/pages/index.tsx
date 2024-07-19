@@ -111,6 +111,12 @@ export default withNoSSR(function Home() {
   }, [fullBefore]);
 
   useEffect(() => {
+    const fullscreenObserver = () => setFullscreen(document.fullscreenElement !== null);
+    window.addEventListener('fullscreenchange', fullscreenObserver);
+    return () => window.removeEventListener('fullscreenchange', fullscreenObserver);
+  }, []);
+
+  useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
       if (e.key === "f")  { if (fullscreen) exitFullscreen(); else enterFullscreen(); }
       if (e.key === "z" && e.ctrlKey) fractalHistory.back();
