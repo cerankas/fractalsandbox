@@ -18,6 +18,16 @@ export default function FormulaEditor(props: { form: string, color: string, form
 
   useResizeObserver(canvasRef, gui.setCtx);
 
+  useEffect(() => {
+    const keyDownHandler = (e: KeyboardEvent) => {
+      if (e.key === "c") setShowPalette(!showPalette);
+      if (e.key === "Insert") gui.addFormula();
+      if (e.key === "Delete") gui.removeFormula(); 
+    };
+    document.addEventListener('keydown', keyDownHandler);
+    return () => { document.removeEventListener('keydown', keyDownHandler); }
+  }, [gui, showPalette]);
+
   return (<>
     <div className="relative size-full">
       <div className="absolute top-0 left-0 right-0 flex flex-row justify-between">
@@ -26,12 +36,12 @@ export default function FormulaEditor(props: { form: string, color: string, form
           <TbTrianglePlus
             className={iconStyle}
             onClick={gui.addFormula}
-            title="Add triangle"
+            title="Add triangle [Insert]"
           />
           <TbTriangleMinus
             className={iconStyle}
             onClick={gui.removeFormula}
-            title="Remove selected triangle"
+            title="Remove selected triangle [Delete]"
           />
           <AiOutlineQuestionCircle
             className={iconStyle}
@@ -41,7 +51,7 @@ export default function FormulaEditor(props: { form: string, color: string, form
           <IoColorPaletteOutline 
             className={iconStyle}
             onClick={() => setShowPalette(!showPalette)}
-            title="Colors"
+            title="Colors [c]"
           />
           {props.menu}
         </div>
