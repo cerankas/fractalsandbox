@@ -7,7 +7,7 @@ import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState }
 import FractalView from "~/components/FractalView";
 import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
-import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlineQuestionCircle } from "react-icons/ai";
+import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlinePicture, AiOutlineQuestionCircle } from "react-icons/ai";
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { MdOutlineDeleteForever } from "react-icons/md";
 import { BiUndo, BiRedo } from "react-icons/bi";
@@ -26,7 +26,7 @@ import FractalHistory from "~/logic/history";
   - color editor as collapsible panel
   - remove selected emphasis
   
-  - image download
+  - add/remove formula in editor
   - improve image cache
   - progressive loading and db caching
   
@@ -128,6 +128,13 @@ export default withNoSSR(function Home() {
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
 
+  const [fractalCanvas, setFractalCanvas] = useState<HTMLCanvasElement | null>(null);
+  const downloadRef = useRef<HTMLAnchorElement>(null);
+  const downloadImage = useCallback(() => {
+    downloadRef.current!.href = fractalCanvas!.toDataURL('image/png');
+    downloadRef.current!.click();
+  }, [fractalCanvas])
+
   const fPRef = useRef<ImperativePanelHandle>(null);
   const bPRef = useRef<ImperativePanelHandle>(null);
   const ePRef = useRef<ImperativePanelHandle>(null);
@@ -167,8 +174,13 @@ export default withNoSSR(function Home() {
         {modified && <IoCloudUploadOutline
           className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
           onClick={() => isSignedIn && uploadFractal({form: form, color: color})} 
-          title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
+          title={isSignedIn ? "Upload fractal" : "Upload fractal (must sign in first)"}
         />}
+        <AiOutlinePicture
+          className={iconStyle} 
+          onClick={downloadImage}
+          title="Save image"
+        />
         <BiUndo
           className={iconStyle} 
           onClick={() => fractalHistory.back()}
@@ -199,6 +211,7 @@ export default withNoSSR(function Home() {
         form={form}
         color={color}
         cached={modified}
+        updateCanvasRef={(canvas) => setFractalCanvas(canvas)}
       />
     </Panel>
   }</>);
@@ -239,6 +252,8 @@ export default withNoSSR(function Home() {
       </Head>
       
       <main className="bg-gray-500 h-screen v-screen" onContextMenu={e => e.preventDefault()} onDragStart={e => e.preventDefault()}>
+
+        <a ref={downloadRef} download="fractalsandbox.png" href="" style={{display: 'none'}}></a>
 
         {fullscreen &&  
           <div className="size-full relative">
