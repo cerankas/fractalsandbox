@@ -184,12 +184,12 @@ export default withNoSSR(function Home() {
         <BiUndo
           className={iconStyle} 
           onClick={() => fractalHistory.back()}
-          title="Undo [ctrl-y]"
+          title="Undo [ctrl-z]"
         />
         <BiRedo
           className={iconStyle} 
           onClick={() => fractalHistory.forward()}
-          title="Redo [ctrl-z]"
+          title="Redo [ctrl-y]"
         />
         <AiOutlineQuestionCircle 
           className={iconStyle} 
