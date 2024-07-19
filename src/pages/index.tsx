@@ -10,6 +10,7 @@ import FormulaEditor from "~/components/FormulaEditor";
 import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlineQuestionCircle } from "react-icons/ai";
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { MdOutlineDeleteForever } from "react-icons/md";
+import { BiUndo, BiRedo } from "react-icons/bi";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { type Fractal } from "@prisma/client";
@@ -25,7 +26,6 @@ import FractalHistory from "~/logic/history";
   - color editor as collapsible panel
   - remove selected emphasis
   
-  - undo/redo
   - image download
   - improve image cache
   - progressive loading and db caching
@@ -82,11 +82,17 @@ export default withNoSSR(function Home() {
   const [color, setColor] = useLocalStorage("color", "0,FFFFFF;1,000000");
 
   const fractalHistory = useMemo(() => new FractalHistory((item) => { setForm(item.form); setColor(item.color); }), [setForm, setColor]);
+  const storeToHistory = useCallback(() => fractalHistory.store({form: form, color: color}), [fractalHistory, form, color]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => fractalHistory.store({form: form, color: color}), 2000);
+    window.addEventListener('mouseup', storeToHistory)
+    return () => window.removeEventListener('mouseup', storeToHistory)
+  }, [storeToHistory]);
+
+  useEffect(() => {
+    const timeout = setTimeout(storeToHistory, 1000);
     return () => clearTimeout(timeout);
-  }, [fractalHistory, form, color]);
+  }, [storeToHistory]);
 
   const isHorizontal = useHorizontal();
   const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
@@ -157,6 +163,16 @@ export default withNoSSR(function Home() {
           onClick={() => isSignedIn && uploadFractal({form: form, color: color})} 
           title={isSignedIn ? "Upload" : "Upload (must sign in first)"}
         />}
+        <BiUndo
+          className={iconStyle} 
+          onClick={() => fractalHistory.back()}
+          title="Undo [ctrl-y]"
+        />
+        <BiRedo
+          className={iconStyle} 
+          onClick={() => fractalHistory.forward()}
+          title="Redo [ctrl-z]"
+        />
         <AiOutlineQuestionCircle 
           className={iconStyle} 
           onClick={() => {
