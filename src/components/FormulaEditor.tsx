@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { IoColorPaletteOutline } from "react-icons/io5";
+import { TbTriangleMinus, TbTrianglePlus } from "react-icons/tb";
 import Formula from "~/math/formula";
 import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY } from "~/math/util";
 import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
 import { iconStyle, useResizeObserver } from "./browserUtils";
 import PaletteEditor from "./PaletteEditor";
+import { AiOutlineQuestionCircle } from "react-icons/ai";
 
 export default function FormulaEditor(props: { form: string, color: string, formCallback: (form: string) => void, colorCallback: (color: string) => void, menu: React.ReactNode }) {
   const [showPalette, setShowPalette] = useState(false);
@@ -21,11 +23,26 @@ export default function FormulaEditor(props: { form: string, color: string, form
       <div className="absolute top-0 left-0 right-0 flex flex-row justify-between">
         <div></div>
         <div className="flex flex-row">
+          <TbTrianglePlus
+            className={iconStyle}
+            onClick={gui.addFormula}
+            title="Add triangle"
+          />
+          <TbTriangleMinus
+            className={iconStyle}
+            onClick={gui.removeFormula}
+            title="Remove selected triangle"
+          />
+          <AiOutlineQuestionCircle
+            className={iconStyle}
+            onClick={() => console.log(gui.formulas, props.form, gui.selectedFormula)}
+            title="Info"
+          />
           <IoColorPaletteOutline 
             className={iconStyle}
             onClick={() => setShowPalette(!showPalette)}
             title="Colors"
-            />
+          />
           {props.menu}
         </div>
       </div>
@@ -157,9 +174,8 @@ class FormulaEditorGUI extends Viewport {
 
   loadFormulas(formulaString: string) {
     this.formulas = Formula.fromString(formulaString);
-    this.callChangeCallback();
     if (!this.isDragging) {
-      this.selectedFormula = 0;
+      this.selectedFormula = this.formulas.length - 1;
       this.selectedPoint = null;
       this.resetToAuto();
       this.resizeFormulas();
@@ -288,18 +304,15 @@ class FormulaEditorGUI extends Viewport {
     this.ctx!.stroke();
   }
 
-  addFormula() {
+  addFormula = () => {
     this.formulas.push(new Formula());
-    this.selectedFormula = this.formulas.length - 1;
-    this.selectedPoint = null;
+    this.callChangeCallback();
   }
   
-  removeFormula() {
-    if (this.selectedFormula != null && this.formulas.length > 2) {
-      this.formulas.splice(this.selectedFormula, 1);
-    }
-    this.selectedFormula = 0;
-    this.selectedPoint = null;
+  removeFormula = () => {
+    if (this.formulas.length < 3) return;
+    this.formulas.splice(this.selectedFormula, 1);
+    this.callChangeCallback();
   }
 
 }
