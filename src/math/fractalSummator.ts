@@ -57,7 +57,7 @@ export default class FractalSummator extends Viewport {
       const y = (-this.points[i + 1]! * this.scale + shiftY) | 0;
       if (x > 0 && x <= width && y > 0 && y <= height) {
         const j = x - 1 + width * (y - 1);
-        sums[j] ++;
+        sums[j]! ++;
       }
     }
   }
