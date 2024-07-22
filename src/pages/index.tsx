@@ -274,7 +274,7 @@ export default withNoSSR(function Home() {
         }
 
         <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} autoSaveId="L1">
-          {fractalPanel}
+          {!fullscreen && fractalPanel}
           <PanelResizeHandle className={beP ? (isHorizontal ? 'w-2' : 'h-2') : ''} onContextMenu={() => bePRef.current!.resize(50)}/>
           <Panel ref={bePRef} collapsible={true} onCollapse={() => setBEP(false)} onExpand={() => setBEP(true)} minSize={3.5}>
             <PanelGroup direction={secondaryDirection} autoSaveId="L2">

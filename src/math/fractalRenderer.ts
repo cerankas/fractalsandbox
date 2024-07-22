@@ -31,7 +31,7 @@ export default class FractalRenderer extends FractalSummator {
   mustRecalc = false;
   mustRedraw = false;
 
-  constructor(private onprogress?: (progress: number) => void) {
+  constructor(private basePriority = 0, private onprogress?: (progress: number) => void) {
     super(.9);
   }
 
@@ -74,6 +74,8 @@ export default class FractalRenderer extends FractalSummator {
       return;
     }
 
+    this.releaseTask();
+
     this.mustRecalc = false;
     super.prepare();
     
@@ -109,6 +111,10 @@ export default class FractalRenderer extends FractalSummator {
     
     FractalRenderer.scheduler.addTask(this);
   }
+
+  releaseTask() {
+    FractalRenderer.scheduler.removeTask(this);
+  }
   
   process() {
     if (this.isFinished()) return;
@@ -133,7 +139,7 @@ export default class FractalRenderer extends FractalSummator {
     this.onprogress?.(this.pointsCount / this.pointsPerImage);
   }
   
-  isPrepared() { return this.pointsCount != 0 || this.pointsPerImage == 0; }
+  priority() { return this.basePriority + this.pointsCount / this.pointsPerImage; }
   
   isFinished() { return this.pointsCount >= this.pointsPerImage && !this.renderInfinitely; }
   

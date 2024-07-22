@@ -2,7 +2,7 @@ import { getMs } from "~/math/util";
 
 export interface SchedulerTask {
   process: () => void;
-  isPrepared: () => boolean;
+  priority: () => number; // lower values processed first
   isFinished: () => boolean;
 }
 
@@ -49,9 +49,7 @@ class SchedulerQueue {
   queue = new Array<SchedulerTask>();
 
   getTaskToProcess() {
-    for (const task of this.queue) if (!task.isPrepared()) return task;
-    for (const task of this.queue) if (!task.isFinished()) return task;
-    return null;
+    return this.queue.sort((a,b) => a.priority() - b.priority())?.[0] ?? null;
   }
 
   addTask(task: SchedulerTask) {
@@ -60,7 +58,7 @@ class SchedulerQueue {
   }
 
   removeTask(task: SchedulerTask) {
-    if (!this.queue.includes(task)) return;
-    this.queue.splice(this.queue.indexOf(task), 1);
+    const taskIndex = this.queue.indexOf(task);
+    if (taskIndex !== -1) this.queue.splice(taskIndex, 1);
   }
 }
