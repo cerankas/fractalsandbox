@@ -7,7 +7,7 @@ import IndexedDBManager from "~/logic/cache";
 
 export default class FractalRenderer extends FractalSummator {
   static scheduler = new BackgroundScheduler();
-  static sumsCache = new IndexedDBManager("SumsCache", 1);
+  static sumsCache = new IndexedDBManager<Int32Array>("SumsCache", 1);
 
   ctx: CanvasRenderingContext2D | null = null;
   imageData: ImageData | null = null;
