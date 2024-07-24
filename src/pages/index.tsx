@@ -147,12 +147,10 @@ export default withNoSSR(function Home() {
 
   const commonMenu = useMemo(() =>
     <div className="flex flex-row">
-      <div className="m-1 hover:cursor-pointer hover:brightness-110">
-        {isSignedIn && <div className="size-6"><UserButton 
-            userProfileMode="modal" 
-            afterSignOutUrl={window.location.href} 
-            appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} 
-        /></div>}
+      <div className="m-1 hover:cursor-pointer">
+        {isSignedIn && <div className="size-6">
+          <UserButton userProfileMode="modal" appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} />
+        </div>}
         {!isSignedIn && <SignInButton mode="modal">
           <span className="flex text-base rounded-full bg-gray-500 size-6 justify-center items-center"> <FaUser title="Sign in"/> </span>
         </SignInButton>}
