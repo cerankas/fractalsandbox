@@ -38,6 +38,8 @@ export default function FractalSelector(props: { fractals: Fractal[], onmousedow
             max={300}
             value={tileSize}
             onChange={(e) => { setTileSize(e.target.value); localStorage.tileSize = e.target.value; }}
+            onFocus={(e) => e.target.blur()}
+            tabIndex={-1}
             title="Tile size"
           />
         </div>

@@ -7,7 +7,6 @@ import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, v
 import Viewport from "~/math/viewport";
 import { iconStyle, useResizeObserver } from "./browserUtils";
 import PaletteEditor from "./PaletteEditor";
-import { AiOutlineQuestionCircle } from "react-icons/ai";
 
 export default function FormulaEditor(props: { form: string, color: string, formCallback: (form: string) => void, colorCallback: (color: string) => void, menu: React.ReactNode }) {
   const [showPalette, setShowPalette] = useState(false);
@@ -42,11 +41,6 @@ export default function FormulaEditor(props: { form: string, color: string, form
             className={iconStyle}
             onClick={gui.removeFormula}
             title="Remove selected triangle [Delete]"
-          />
-          <AiOutlineQuestionCircle
-            className={iconStyle}
-            onClick={() => console.log(gui.formulas, props.form, gui.selectedFormula)}
-            title="Info"
           />
           <IoColorPaletteOutline 
             className={iconStyle}

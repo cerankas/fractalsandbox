@@ -7,7 +7,7 @@ import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState }
 import FractalView from "~/components/FractalView";
 import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
-import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlinePicture, AiOutlineQuestionCircle } from "react-icons/ai";
+import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlinePicture } from "react-icons/ai";
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { MdOutlineDeleteForever } from "react-icons/md";
 import { BiUndo, BiRedo } from "react-icons/bi";
@@ -21,12 +21,9 @@ import FractalHistory from "~/logic/history";
 
 /*
   Todo:
-  - tile selection on the basis of current form & color
   - collapse/expand controls
   - color editor as collapsible panel
-  - remove selected emphasis
   
-  - add/remove formula in editor
   - improve image cache
   - progressive loading and db caching
   
@@ -191,15 +188,6 @@ export default withNoSSR(function Home() {
           onClick={() => fractalHistory.forward()}
           title="Redo [ctrl-y]"
         />
-        <AiOutlineQuestionCircle 
-          className={iconStyle} 
-          onClick={() => {
-            alert((form + "\n\n" + color).replaceAll(';','\n').replaceAll(',',' '));
-            console.log(form)
-            console.log(color)
-          }} 
-          title="Fractal coefficients"
-        />
         <AiOutlineFullscreen 
           className={iconStyle} 
           onClick={() => enterFullscreen()} 
@@ -221,7 +209,7 @@ export default withNoSSR(function Home() {
       <FractalSelector 
         fractals={fractals.data ?? []} 
         onmousedown={(button, fractal) => {
-          if (button == 0) setSelectedFractal(fractal);
+          setSelectedFractal(fractal);
           if (button == 0 || button == 1) setForm(fractal.form);
           if (button == 0 || button == 2) setColor(fractal.color);
         }} 

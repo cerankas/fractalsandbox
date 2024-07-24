@@ -8,7 +8,6 @@ const thumbnailCache = new IndexedDBManager<Blob>("thumbnails", 1);
 
 export default function FractalTile(props: { fractal: Fractal, size: number, onmousedown: (button: number, fractal: Fractal) => void, selected: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [mouseOver, setMouseOver] = useState(false);
   const [url, setUrl] = useState("");
   
   useEffect(() => {
@@ -31,40 +30,28 @@ export default function FractalTile(props: { fractal: Fractal, size: number, onm
       }
     );
   }, [props.fractal]);
+  
+  const opCol = oppositeBackgroundColor(props.fractal.color);
+  const borderStyle = props.selected ? (opCol === 'white' ? 'border-white' : 'border-black') : 'border-transparent';
+  const hoverStyle = props.selected ? 'hover:border-slate-500' : (opCol === 'white' ? 'hover:border-slate-400' : 'hover:border-slate-600');
+
+  const onmousedown = (e: React.MouseEvent) => {
+    props.onmousedown(e.button, props.fractal);
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   return (
-    <div
-      className={`flex flex-grow relative justify-center box-border border-2 border-transparent hover:border-slate-200`}
+    <div className={`flex flex-grow justify-center border-2 ${borderStyle} ${hoverStyle}`}
       style={{
         backgroundColor: backgroundColor(props.fractal.color),
-        borderColor: props.selected ? oppositeBackgroundColor(props.fractal.color) : '',
         width: `${props.size + 4}px`,
         height: `${props.size + 4}px`,
       }}
-      onMouseOver={() => setMouseOver(true)}
-      onMouseOut={() => setMouseOver(false)}
     >
-      {mouseOver && <div className="absolute left-1 bottom-0" style={{userSelect:'none', fontSize:'9px', color: oppositeBackgroundColor(props.fractal.color)}}>
-        {`${props.fractal.createdAt.toISOString().slice(0, 10)}`}
-      </div>}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {url && <img src={url} alt="" style={{userSelect:'none'}}
-        onMouseDown={(e: React.MouseEvent) => {
-          props.onmousedown(e.button, props.fractal);
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      />}
-      {!url && <canvas
-        ref={canvasRef}
-        width={300}
-        height={300}
-        onMouseDown={(e: React.MouseEvent) => {
-          props.onmousedown(e.button, props.fractal);
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      />}
+      {url && <img src={url} alt="" style={{userSelect:'none'}} onMouseDown={onmousedown} />}
+      {!url && <canvas ref={canvasRef} width={300} height={300} onMouseDown={onmousedown} />}
     </div>
   );
 }
