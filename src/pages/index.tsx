@@ -11,7 +11,9 @@ import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlinePicture } from "
 import { IoCloudUploadOutline, IoColorPaletteOutline } from "react-icons/io5";
 import { MdOutlineDeleteForever } from "react-icons/md";
 import { BiUndo, BiRedo } from "react-icons/bi";
+import { RiGalleryView2 } from "react-icons/ri";
 import { useQueryClient } from "@tanstack/react-query";
+import { TbTriangles } from "react-icons/tb";
 import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { type Fractal } from "@prisma/client";
 import { useHorizontal, useLocalStorage, iconStyle } from "~/components/browserUtils"
@@ -22,9 +24,6 @@ import PaletteEditor from "~/components/PaletteEditor";
 
 /*
   Todo:
-  - collapse/expand controls
-  - color editor as collapsible panel
-  
   - improve image cache
   - progressive loading and db caching
   
@@ -150,12 +149,27 @@ export default withNoSSR(function Home() {
   const bPMenu = !fPMenu && bP;
   const ePMenu = !fPMenu && !bPMenu;
 
+  const bPcollapse = useCallback(() => { ePRef.current!.expand(); bPRef.current!.collapse(); }, [])
+  const ePcollapse = useCallback(() => { bPRef.current!.expand(); ePRef.current!.collapse(); }, [])
+
   const commonMenu = useMemo(() =>
     <div className="flex flex-row">
+      {beP && <>
+        <RiGalleryView2
+          className={iconStyle}
+          onClick={() => bP ? bPcollapse() : bPRef.current!.expand()}
+          title={`${bP ? 'Hide' : 'Show'} browser`}
+        />
+        <TbTriangles
+          className={iconStyle}
+          onClick={() => eP ? ePcollapse() : ePRef.current!.expand()}
+          title={`${eP ? 'Hide' : 'Show'} editor`}
+        />
+      </>}
       <IoColorPaletteOutline 
         className={iconStyle}
         onClick={toggleShowPalette}
-        title="Colors [c]"
+        title={`${showPalette ? 'Hide' : 'Show'} color palette [c]`}
       />
       <div className="m-1 hover:cursor-pointer">
         {isSignedIn && <div className="size-6">
@@ -166,7 +180,7 @@ export default withNoSSR(function Home() {
         </SignInButton>}
       </div>
     </div>
-  , [isSignedIn, toggleShowPalette]);
+  , [beP, bP, eP, toggleShowPalette, showPalette, isSignedIn, bPcollapse, ePcollapse]);
 
   const fractalPanel = (<>{
     <Panel ref={fPRef} minSize={10} className="relative size-full">

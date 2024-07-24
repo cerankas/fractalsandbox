@@ -26,7 +26,6 @@ export default function FormulaEditor(props: { form: string, changeCallback: (fo
   return (<>
     <div className="relative size-full">
       <div className="absolute top-0 left-0 right-0 flex flex-row justify-between">
-        <div></div>
         <div className="flex flex-row">
           <TbTrianglePlus
             className={iconStyle}
@@ -38,8 +37,8 @@ export default function FormulaEditor(props: { form: string, changeCallback: (fo
             onClick={gui.removeFormula}
             title="Remove selected triangle [Delete]"
           />
-          {props.menu}
         </div>
+        {props.menu}
       </div>
       <canvas className="size-full" ref={canvasRef} />
     </div>
