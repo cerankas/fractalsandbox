@@ -136,36 +136,35 @@ export default withNoSSR(function Home() {
     downloadRef.current!.click();
   }, [fractalCanvas])
 
-  const fPRef = useRef<ImperativePanelHandle>(null);
-  const bPRef = useRef<ImperativePanelHandle>(null);
-  const ePRef = useRef<ImperativePanelHandle>(null);
-  const bePRef = useRef<ImperativePanelHandle>(null);
+  const browserPanelRef = useRef<ImperativePanelHandle>(null);
+  const editorPanelRef = useRef<ImperativePanelHandle>(null);
+  const browserEditorPanelRef = useRef<ImperativePanelHandle>(null);
 
-  const [bP, setBP] = useState(!bPRef.current?.isCollapsed());
-  const [eP, setEP] = useState(!ePRef.current?.isCollapsed());
-  const [beP, setBEP] = useState(!bePRef.current?.isCollapsed());
+  const [browserPanelVisible, setBrowserPanelVisible] = useState(!browserPanelRef.current?.isCollapsed());
+  const [editorPanelVisible, setEditorPanelVisible] = useState(!editorPanelRef.current?.isCollapsed());
+  const [browserEditorPanelVisible, setBrowserEditorPanelVisible] = useState(!browserEditorPanelRef.current?.isCollapsed());
   
-  const fPMenu = !isHorizontal || !beP;
-  const bPMenu = !fPMenu && bP;
-  const ePMenu = !fPMenu && !bPMenu;
+  const commonMenuInFractalPanel = !isHorizontal || !browserEditorPanelVisible;
+  const commonMenuInBrowserPanel = !commonMenuInFractalPanel && browserPanelVisible;
+  const commonMenuInEditorPanel = !commonMenuInFractalPanel && !commonMenuInBrowserPanel;
 
-  const bPcollapse = useCallback(() => { ePRef.current!.expand(); bPRef.current!.collapse(); }, [])
-  const ePcollapse = useCallback(() => { bPRef.current!.expand(); ePRef.current!.collapse(); }, [])
+  const bPcollapse = useCallback(() => { editorPanelRef.current!.expand(); browserPanelRef.current!.collapse(); }, [])
+  const ePcollapse = useCallback(() => { browserPanelRef.current!.expand(); editorPanelRef.current!.collapse(); }, [])
 
   const commonMenu = useMemo(() =>
     <div className="flex flex-row">
-      {beP && <>
+      {browserEditorPanelVisible && <>
         <RiGalleryView2
           className={iconStyle}
-          style={{backgroundColor: bP ? 'lightgray' : 'transparent', borderRadius: 2}}
-          onClick={() => bP ? bPcollapse() : bPRef.current!.expand()}
-          title={`${bP ? 'Hide' : 'Show'} browser`}
+          style={{backgroundColor: browserPanelVisible ? 'lightgray' : 'transparent', borderRadius: 2}}
+          onClick={() => browserPanelVisible ? bPcollapse() : browserPanelRef.current!.expand()}
+          title={`${browserPanelVisible ? 'Hide' : 'Show'} browser`}
         />
         <TbTriangles
           className={iconStyle}
-          style={{backgroundColor: eP ? 'lightgray' : 'transparent', borderRadius: 2}}
-          onClick={() => eP ? ePcollapse() : ePRef.current!.expand()}
-          title={`${eP ? 'Hide' : 'Show'} editor`}
+          style={{backgroundColor: editorPanelVisible ? 'lightgray' : 'transparent', borderRadius: 2}}
+          onClick={() => editorPanelVisible ? ePcollapse() : editorPanelRef.current!.expand()}
+          title={`${editorPanelVisible ? 'Hide' : 'Show'} editor`}
         />
       </>}
       <IoColorPaletteOutline 
@@ -183,76 +182,70 @@ export default withNoSSR(function Home() {
         </SignInButton>}
       </div>
     </div>
-  , [beP, bP, eP, toggleShowPalette, showPalette, isSignedIn, bPcollapse, ePcollapse]);
+  , [browserEditorPanelVisible, browserPanelVisible, editorPanelVisible, toggleShowPalette, showPalette, isSignedIn, bPcollapse, ePcollapse]);
 
-  const fractalPanel = (<>{
-    <Panel ref={fPRef} minSize={10} className="relative size-full">
-      <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color)}}>
-        {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
-          className={iconStyle}
-          onClick={() => deleteFractal({id: selectedFractal.id})} 
-          title="Delete"
-        />}
-        {modified && <IoCloudUploadOutline
-          className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
-          onClick={() => isSignedIn && uploadFractal({form: form, color: color})} 
-          title={isSignedIn ? "Upload fractal" : "Upload fractal (must sign in first)"}
-        />}
-        <AiOutlinePicture
-          className={iconStyle} 
-          onClick={downloadImage}
-          title="Save image"
-        />
-        <BiUndo
-          className={iconStyle} 
-          onClick={() => fractalHistory.back()}
-          title="Undo [ctrl-z]"
-        />
-        <BiRedo
-          className={iconStyle} 
-          onClick={() => fractalHistory.forward()}
-          title="Redo [ctrl-y]"
-        />
-        <AiOutlineFullscreen 
-          className={iconStyle} 
-          onClick={() => enterFullscreen()} 
-          title="Full screen [f]"
-        />
-        {fPMenu && commonMenu}
-      </div>
-      <FractalView
-        form={form}
-        color={color}
-        cached={modified}
-        updateCanvasRef={(canvas) => setFractalCanvas(canvas)}
+  const fractalPanelContent = <>
+    <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color)}}>
+      {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
+        className={iconStyle}
+        onClick={() => deleteFractal({id: selectedFractal.id})} 
+        title="Delete"
+      />}
+      {modified && <IoCloudUploadOutline
+        className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
+        onClick={() => isSignedIn && uploadFractal({form: form, color: color})} 
+        title={isSignedIn ? "Upload fractal" : "Upload fractal (must sign in first)"}
+      />}
+      <AiOutlinePicture
+        className={iconStyle} 
+        onClick={downloadImage}
+        title="Save image"
       />
-    </Panel>
-  }</>);
+      <BiUndo
+        className={iconStyle} 
+        onClick={() => fractalHistory.back()}
+        title="Undo [ctrl-z]"
+      />
+      <BiRedo
+        className={iconStyle} 
+        onClick={() => fractalHistory.forward()}
+        title="Redo [ctrl-y]"
+      />
+      <AiOutlineFullscreen 
+        className={iconStyle} 
+        onClick={() => enterFullscreen()} 
+        title="Full screen [f]"
+      />
+      {commonMenuInFractalPanel && commonMenu}
+    </div>
+    <FractalView
+      form={form}
+      color={color}
+      cached={modified}
+      updateCanvasRef={(canvas) => setFractalCanvas(canvas)}
+    />
+  </>;
 
-  const browserPanel = useMemo(() => <>{
-    <Panel ref={bPRef} collapsible={true} onCollapse={() => setBP(false)} onExpand={() => setBP(true)} minSize={3.5} className="size-full">
-      <FractalSelector 
-        fractals={fractals.data ?? []} 
-        onmousedown={(button, fractal) => {
-          setSelectedFractal(fractal);
-          if (button == 0 || button == 1) setForm(fractal.form);
-          if (button == 0 || button == 2) setColor(fractal.color);
-        }} 
-        selected={selectedFractal?.id ?? 0}
-        menu={bPMenu && commonMenu}
-      />
-    </Panel>
-  }</>, [bPMenu, commonMenu, fractals.data, selectedFractal, setForm, setColor]);
+  const browserPanelContent = useMemo(() => <>
+    <FractalSelector 
+      fractals={fractals.data ?? []} 
+      onmousedown={(button, fractal) => {
+        setSelectedFractal(fractal);
+        if (button == 0 || button == 1) setForm(fractal.form);
+        if (button == 0 || button == 2) setColor(fractal.color);
+      }} 
+      selected={selectedFractal?.id ?? 0}
+      menu={commonMenuInBrowserPanel && commonMenu}
+    />
+  </>, [commonMenuInBrowserPanel, commonMenu, fractals.data, selectedFractal, setForm, setColor]);
 
-  const editorPanel = (<>{
-    <Panel ref={ePRef} collapsible={true} onCollapse={() => setEP(false)} onExpand={() => setEP(true)} minSize={3.5}>
-      <FormulaEditor
-        form={form}
-        changeCallback={setForm}
-        menu={ePMenu && commonMenu}
-      />
-    </Panel>
-  }</>);
+  const editorPanelContent = <>
+    <FormulaEditor
+      form={form}
+      changeCallback={setForm}
+      menu={commonMenuInEditorPanel && commonMenu}
+    />
+  </>;
 
   return (
     <>
@@ -285,14 +278,53 @@ export default withNoSSR(function Home() {
         }
 
         <PanelGroup className={(fullscreen ? "hidden" : "") + " p-2"} direction={primaryDirection} autoSaveId="L1">
-          {!fullscreen && fractalPanel}
-          <PanelResizeHandle className={beP ? (isHorizontal ? 'w-2' : 'h-2') : ''} onContextMenu={() => bePRef.current!.resize(50)}/>
-          <Panel ref={bePRef} collapsible={true} onCollapse={() => setBEP(false)} onExpand={() => setBEP(true)} minSize={3.5}>
+          
+          <Panel minSize={10} className="relative size-full">
+            {!fullscreen && fractalPanelContent}
+          </Panel>
+
+          <PanelResizeHandle 
+            className={browserEditorPanelVisible ? (isHorizontal ? 'w-2' : 'h-2') : ''} 
+            onContextMenu={() => browserEditorPanelRef.current!.resize(50)}
+          />
+          
+          <Panel 
+            ref={browserEditorPanelRef} 
+            collapsible={true} 
+            onCollapse={() => setBrowserEditorPanelVisible(false)} 
+            onExpand={() => setBrowserEditorPanelVisible(true)} 
+            minSize={3.5}
+          >
             <PanelGroup direction={secondaryDirection} autoSaveId="L2">
-              {browserPanel}
-              <PanelResizeHandle className={bP && eP ? (!isHorizontal ? 'w-2' : 'h-2') : ''} onContextMenu={() => bPRef.current!.resize(50)}/>
-              {editorPanel}
+              
+              <Panel 
+                ref={browserPanelRef} 
+                collapsible={true} 
+                onCollapse={() => setBrowserPanelVisible(false)} 
+                onExpand={() => setBrowserPanelVisible(true)} 
+                minSize={3.5} 
+                className="size-full"
+              >
+                {browserPanelContent}
+              </Panel>
+              
+              <PanelResizeHandle 
+                className={browserPanelVisible && editorPanelVisible ? (!isHorizontal ? 'w-2' : 'h-2') : ''} 
+                onContextMenu={() => browserPanelRef.current!.resize(50)}
+              />
+              
+              <Panel 
+                ref={editorPanelRef} 
+                collapsible={true} 
+                onCollapse={() => setEditorPanelVisible(false)} 
+                onExpand={() => setEditorPanelVisible(true)} 
+                minSize={3.5}
+              >
+                {editorPanelContent}
+              </Panel>
+              
               {showPalette && <PaletteEditor color={color} changeCallback={setColor}/>}
+            
             </PanelGroup>
           </Panel>
         </PanelGroup>
