@@ -157,17 +157,20 @@ export default withNoSSR(function Home() {
       {beP && <>
         <RiGalleryView2
           className={iconStyle}
+          style={{backgroundColor: bP ? 'lightgray' : 'transparent', borderRadius: 2}}
           onClick={() => bP ? bPcollapse() : bPRef.current!.expand()}
           title={`${bP ? 'Hide' : 'Show'} browser`}
         />
         <TbTriangles
           className={iconStyle}
+          style={{backgroundColor: eP ? 'lightgray' : 'transparent', borderRadius: 2}}
           onClick={() => eP ? ePcollapse() : ePRef.current!.expand()}
           title={`${eP ? 'Hide' : 'Show'} editor`}
         />
       </>}
       <IoColorPaletteOutline 
         className={iconStyle}
+        style={{backgroundColor: showPalette ? 'lightgray' : 'transparent', borderRadius: 2}}
         onClick={toggleShowPalette}
         title={`${showPalette ? 'Hide' : 'Show'} color palette [c]`}
       />
