@@ -1,17 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { IoColorPaletteOutline } from "react-icons/io5";
+import { useEffect, useMemo, useRef } from "react";
 import { TbTriangleMinus, TbTrianglePlus } from "react-icons/tb";
 import Formula from "~/math/formula";
 import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY } from "~/math/util";
 import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
 import { iconStyle, useResizeObserver } from "./browserUtils";
-import PaletteEditor from "./PaletteEditor";
 
-export default function FormulaEditor(props: { form: string, color: string, formCallback: (form: string) => void, colorCallback: (color: string) => void, menu: React.ReactNode }) {
-  const [showPalette, setShowPalette] = useState(false);
+export default function FormulaEditor(props: { form: string, changeCallback: (form: string) => void, menu: React.ReactNode }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gui = useMemo(() => new FormulaEditorGUI(props.formCallback), [props.formCallback]);
+  const gui = useMemo(() => new FormulaEditorGUI(props.changeCallback), [props.changeCallback]);
 
   useEffect(() => gui.loadFormulas(props.form), [gui, props.form]);
 
@@ -19,13 +16,12 @@ export default function FormulaEditor(props: { form: string, color: string, form
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      if (e.key === "c") setShowPalette(!showPalette);
       if (e.key === "Insert") gui.addFormula();
       if (e.key === "Delete") gui.removeFormula(); 
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  }, [gui, showPalette]);
+  }, [gui]);
 
   return (<>
     <div className="relative size-full">
@@ -42,17 +38,11 @@ export default function FormulaEditor(props: { form: string, color: string, form
             onClick={gui.removeFormula}
             title="Remove selected triangle [Delete]"
           />
-          <IoColorPaletteOutline 
-            className={iconStyle}
-            onClick={() => setShowPalette(!showPalette)}
-            title="Colors [c]"
-          />
           {props.menu}
         </div>
       </div>
       <canvas className="size-full" ref={canvasRef} />
     </div>
-    {showPalette && <PaletteEditor color={props.color} changeCallback={props.colorCallback}/>}
   </>);
 }
 

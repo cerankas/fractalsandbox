@@ -8,7 +8,7 @@ import FractalView from "~/components/FractalView";
 import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
 import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlinePicture } from "react-icons/ai";
-import { IoCloudUploadOutline } from "react-icons/io5";
+import { IoCloudUploadOutline, IoColorPaletteOutline } from "react-icons/io5";
 import { MdOutlineDeleteForever } from "react-icons/md";
 import { BiUndo, BiRedo } from "react-icons/bi";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import { useHorizontal, useLocalStorage, iconStyle } from "~/components/browserU
 import dynamic from "next/dynamic";
 import { oppositeBackgroundColor } from "~/math/palette";
 import FractalHistory from "~/logic/history";
+import PaletteEditor from "~/components/PaletteEditor";
 
 /*
   Todo:
@@ -91,6 +92,9 @@ export default withNoSSR(function Home() {
     return () => clearTimeout(timeout);
   }, [storeToHistory]);
 
+  const [showPalette, setShowPalette] = useState(false);
+  const toggleShowPalette = useCallback(() => setShowPalette(!showPalette), [showPalette])
+
   const isHorizontal = useHorizontal();
   const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
   const secondaryDirection = isHorizontal ? 'vertical' : 'horizontal';
@@ -115,13 +119,14 @@ export default withNoSSR(function Home() {
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      if (e.key === "f")  { if (fullscreen) exitFullscreen(); else enterFullscreen(); }
+      if (e.key === "f")  if (fullscreen) exitFullscreen(); else enterFullscreen();
+      if (e.key === "c") toggleShowPalette();
       if (e.key === "z" && e.ctrlKey) fractalHistory.back();
       if (e.key === "y" && e.ctrlKey) fractalHistory.forward(); 
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory]);
+  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory, toggleShowPalette]);
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
 
@@ -147,6 +152,11 @@ export default withNoSSR(function Home() {
 
   const commonMenu = useMemo(() =>
     <div className="flex flex-row">
+      <IoColorPaletteOutline 
+        className={iconStyle}
+        onClick={toggleShowPalette}
+        title="Colors [c]"
+      />
       <div className="m-1 hover:cursor-pointer">
         {isSignedIn && <div className="size-6">
           <UserButton userProfileMode="modal" appearance={{ elements: { userButtonAvatarBox: { width: 24, height: 24 }}}} />
@@ -156,7 +166,7 @@ export default withNoSSR(function Home() {
         </SignInButton>}
       </div>
     </div>
-  , [isSignedIn]);
+  , [isSignedIn, toggleShowPalette]);
 
   const fractalPanel = (<>{
     <Panel ref={fPRef} minSize={10} className="relative size-full">
@@ -221,9 +231,7 @@ export default withNoSSR(function Home() {
     <Panel ref={ePRef} collapsible={true} onCollapse={() => setEP(false)} onExpand={() => setEP(true)} minSize={3.5}>
       <FormulaEditor
         form={form}
-        color={color}
-        formCallback={setForm}
-        colorCallback={setColor}
+        changeCallback={setForm}
         menu={ePMenu && commonMenu}
       />
     </Panel>
@@ -267,6 +275,7 @@ export default withNoSSR(function Home() {
               {browserPanel}
               <PanelResizeHandle className={bP && eP ? (!isHorizontal ? 'w-2' : 'h-2') : ''} onContextMenu={() => bPRef.current!.resize(50)}/>
               {editorPanel}
+              {showPalette && <PaletteEditor color={color} changeCallback={setColor}/>}
             </PanelGroup>
           </Panel>
         </PanelGroup>
