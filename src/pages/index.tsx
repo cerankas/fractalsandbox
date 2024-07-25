@@ -221,7 +221,6 @@ export default withNoSSR(function Home() {
     <FractalView
       form={form}
       color={color}
-      cached={modified}
       updateCanvasRef={(canvas) => setFractalCanvas(canvas)}
     />
   </>;
@@ -272,7 +271,6 @@ export default withNoSSR(function Home() {
             <FractalView
               form={form}
               color={color}
-              cached={false}
             />
           </div>
         }

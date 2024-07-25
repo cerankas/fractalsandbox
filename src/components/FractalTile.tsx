@@ -15,7 +15,7 @@ export default function FractalTile(props: { fractal: Fractal, size: number, onm
     .then(
       blob => setUrl(URL.createObjectURL(blob)), 
       () => {
-        const frac = new FractalRenderer(0, (progress) => {
+        const frac = new FractalRenderer(false, 0, (progress) => {
           if (progress >= 1 && canvasRef.current)
             canvasRef.current.toBlob((blob) => {
               if (!blob) throw new Error('Eror creating blob from canvas');

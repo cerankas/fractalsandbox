@@ -23,7 +23,6 @@ export default class FractalRenderer extends FractalSummator {
 
   formString = "";
   cacheKey = "";
-  cached = false;
 
   fractal = "";
   color = "";
@@ -31,7 +30,7 @@ export default class FractalRenderer extends FractalSummator {
   mustRecalc = false;
   mustRedraw = false;
 
-  constructor(private basePriority = 0, private onprogress?: (progress: number) => void) {
+  constructor(private cached = false, private basePriority = 0, private onprogress?: (progress: number) => void) {
     super(.9);
   }
 
@@ -42,10 +41,6 @@ export default class FractalRenderer extends FractalSummator {
     }
     this.ctx = ctx;
     this.render();
-  }
-
-  setCached(cached: boolean) {
-    this.cached = cached;
   }
 
   setForm(form: string) {
