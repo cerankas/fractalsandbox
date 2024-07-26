@@ -21,11 +21,11 @@ import dynamic from "next/dynamic";
 import { oppositeBackgroundColor } from "~/math/palette";
 import FractalHistory from "~/logic/history";
 import PaletteEditor from "~/components/PaletteEditor";
+import useFractalProvider from "~/logic/fractalProvider";
 
 /*
   Todo:
   - improve image cache
-  - progressive loading and db caching
   
   - import / export / edit textual definition
   - video: animate triangles and parameters along curves
@@ -41,14 +41,14 @@ export default withNoSSR(function Home() {
   const { isSignedIn, user } = useUser();
 
   const queryClient = useQueryClient();
-  const fractals = api.fractal.findMany.useQuery();
+  const { fractals, loadMore } = useFractalProvider();
   const getManyQueryKey = useMemo(() => [["fractal","findMany"],{"type":"query"}], []);
   
   const { mutate: uploadFractal } = api.fractalMutate.create.useMutation({
     onSuccess: (newFractal) => {
       queryClient.setQueryData(
         getManyQueryKey,
-        (oldData: typeof fractals.data) => {
+        (oldData: typeof fractals) => {
           return oldData ? [newFractal, ...oldData] : [newFractal];
         }
       );
@@ -62,7 +62,7 @@ export default withNoSSR(function Home() {
       setSelectedFractal(null);
       queryClient.setQueryData(
         getManyQueryKey,
-        (oldData: typeof fractals.data) => {
+        (oldData: typeof fractals) => {
           return oldData ? oldData.filter(fractal => fractal.id !== deletedFractal.id) : [];
         }
       );
@@ -227,7 +227,8 @@ export default withNoSSR(function Home() {
 
   const browserPanelContent = useMemo(() => <>
     <FractalSelector 
-      fractals={fractals.data ?? []} 
+      fractals={fractals} 
+      loadMore={loadMore}
       onmousedown={(button, fractal) => {
         setSelectedFractal(fractal);
         if (button == 0 || button == 1) setForm(fractal.form);
@@ -236,7 +237,7 @@ export default withNoSSR(function Home() {
       selected={selectedFractal?.id ?? 0}
       menu={commonMenuInBrowserPanel && commonMenu}
     />
-  </>, [commonMenuInBrowserPanel, commonMenu, fractals.data, selectedFractal, setForm, setColor]);
+  </>, [fractals, loadMore, selectedFractal?.id, commonMenuInBrowserPanel, commonMenu, setForm, setColor]);
 
   const editorPanelContent = <>
     <FormulaEditor

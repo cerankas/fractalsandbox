@@ -1,22 +1,25 @@
 import FractalTile from "./FractalTile";
 import { type Fractal } from "@prisma/client";
 import { useLocalStorage } from "./browserUtils";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export default function FractalSelector(props: { fractals: Fractal[], onmousedown: (button: number, fractal: Fractal) => void, selected: number, menu: React.ReactNode }) {
+export default function FractalSelector(props: { 
+  fractals: Fractal[], 
+  loadMore: () => void, 
+  onmousedown: (button: number, fractal: Fractal) => void, 
+  selected: number, 
+  menu: React.ReactNode 
+}) {
   const [tileSize, setTileSize] = useLocalStorage('tileSize', '300');
   const loaderRef = useRef<HTMLDivElement>(null);
-  const [limit, setLimit] = useState(20);
   const [loaderVisible, setLoaderVisible] = useState(false);
-
-  const increaseLimit = useCallback(() => setLimit(Math.min(limit + 20, props.fractals.length)), [limit, props.fractals.length]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => { 
       const visible = entry?.isIntersecting ?? false;
       setLoaderVisible(visible);
-      if (visible) {
-        increaseLimit();
+      if (visible && loaderRef.current?.getAttribute('data-id') === props.fractals.at(-1)?.id.toString()) {
+        props.loadMore();
       }
     });
 
@@ -25,7 +28,7 @@ export default function FractalSelector(props: { fractals: Fractal[], onmousedow
     }
 
     return () => observer.disconnect();
-  }, [loaderRef, increaseLimit, loaderVisible]);
+  }, [loaderRef, loaderVisible, props]);
 
   return (
     <div className="flex flex-col size-full gap-2">
@@ -46,14 +49,21 @@ export default function FractalSelector(props: { fractals: Fractal[], onmousedow
         {props.menu}
       </div>
       <div className="flex flex-wrap overflow-x-clip overflow-y-scroll justify-around">
-        { props.fractals.filter((f, i) => i < limit).map(((f) => <FractalTile 
-          key={f.id}
-          fractal={f}
-          size={parseInt(tileSize) ?? 300} 
-          onmousedown={props.onmousedown}
-          selected={f.id == props.selected}
-        />)) }
-        <div className="w-full h-[1px]" ref={loaderRef}></div>
+        { props.fractals.map(f => 
+          <div 
+            key={f.id} 
+            data-id={f.id}
+            ref={f.id === props.fractals.at(-1)?.id ? loaderRef : null} 
+            className="flex flex-grow"
+          >
+            <FractalTile 
+              fractal={f}
+              size={parseInt(tileSize) ?? 300} 
+              onmousedown={props.onmousedown}
+              selected={f.id == props.selected}
+            />
+          </div>)
+        }
       </div>
     </div>
   );
