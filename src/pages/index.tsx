@@ -1,6 +1,5 @@
 'use client';
 import Head from "next/head";
-import { api } from "~/utils/api";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa6";
 import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -12,7 +11,6 @@ import { IoCloudUploadOutline, IoColorPaletteOutline } from "react-icons/io5";
 import { MdOutlineDeleteForever } from "react-icons/md";
 import { BiUndo, BiRedo } from "react-icons/bi";
 import { RiGalleryView2 } from "react-icons/ri";
-import { useQueryClient } from "@tanstack/react-query";
 import { TbTriangles } from "react-icons/tb";
 import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { type Fractal } from "@prisma/client";
@@ -40,37 +38,9 @@ const withNoSSR = <P extends object>(Component: ComponentType<P>) => dynamic<P>(
 export default withNoSSR(function Home() {
   const { isSignedIn, user } = useUser();
 
-  const queryClient = useQueryClient();
-  const { fractals, loadMore } = useFractalProvider();
-  const getManyQueryKey = useMemo(() => [["fractal","findMany"],{"type":"query"}], []);
-  
-  const { mutate: uploadFractal } = api.fractalMutate.create.useMutation({
-    onSuccess: (newFractal) => {
-      queryClient.setQueryData(
-        getManyQueryKey,
-        (oldData: typeof fractals) => {
-          return oldData ? [newFractal, ...oldData] : [newFractal];
-        }
-      );
-      setSelectedFractal(newFractal);
-      console.log("Uploaded " + newFractal.id);
-    },
-  });
-  
-  const { mutate: deleteFractal } = api.fractalMutate.delete.useMutation({
-    onSuccess: (deletedFractal) => {
-      setSelectedFractal(null);
-      queryClient.setQueryData(
-        getManyQueryKey,
-        (oldData: typeof fractals) => {
-          return oldData ? oldData.filter(fractal => fractal.id !== deletedFractal.id) : [];
-        }
-      );
-      console.log("Deleted " + deletedFractal.id);
-    },
-  });
-  
   const [selectedFractal, setSelectedFractal] = useState<Fractal | null>(null);
+  
+  const { fractals, loadMore, uploadFractal, deleteFractal } = useFractalProvider(setSelectedFractal);
   
   const [fullscreen, setFullscreen] = useState(false);
   const [fullBefore, setFullBefore] = useState(false);
