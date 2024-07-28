@@ -36,6 +36,8 @@ import useFractalProvider from "~/logic/fractalProvider";
 const withNoSSR = <P extends object>(Component: ComponentType<P>) => dynamic<P>(() => Promise.resolve(Component), { ssr: false });
 
 export default withNoSSR(function Home() {
+  useEffect(() => console.log('Build timestamp: ' + process.env.NEXT_PUBLIC_BUILD_TIMESTAMP), []);
+
   const { isSignedIn, user } = useUser();
 
   const [selectedFractal, setSelectedFractal] = useState<Fractal | null>(null);
