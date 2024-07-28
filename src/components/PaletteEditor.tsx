@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PaletteKey, createPaletteFromKeys, paletteKeysFromString, paletteKeysToString, rgbToHex,hexToRGB,  PALETTE_LENGTH } from "~/math/palette";
-import { findNearestPoint } from "~/math/util";
+import { findNearestPoint, getMs } from "~/math/util";
 import { HexColorPicker } from "react-colorful"
 import { useResizeObserver } from "./browserUtils";
 
@@ -22,8 +22,8 @@ export default function PaletteEditor(props: { color: string, changeCallback: (c
         color={'#' + rgbToHex(gui.paletteKeys[selectedKeyIndex]!.rgb)}
         onChange={(newColor) => {
           gui.paletteKeys[selectedKeyIndex]!.rgb = hexToRGB(newColor.slice(1));
-          gui.internalColor = paletteKeysToString(gui.paletteKeys);
-          props.changeCallback(gui.internalColor);
+          gui.palette = createPaletteFromKeys(gui.paletteKeys);
+          gui.callChangeCallback();
         }}
         />
     </div>}
@@ -39,7 +39,6 @@ export default function PaletteEditor(props: { color: string, changeCallback: (c
 class PaletteEditorGUI {
   m = 8;
   mx = 0;
-  internalColor = '';
   ctx: CanvasRenderingContext2D | null = null;
   paletteKeys: PaletteKey[] = [];
   palette: number[] = [];
@@ -47,6 +46,8 @@ class PaletteEditorGUI {
   selectedKeyIndex: number | null = null;
   isDragging = false;
   skipToggleSelected = false;
+  lastChangeCallbackTime = 0;
+  callbackTimeout: NodeJS.Timeout | undefined;
 
   constructor(
     public changeCallback: (color: string) => void, 
@@ -58,19 +59,16 @@ class PaletteEditorGUI {
 
   loadPalette(palette: string) {
     if (!palette) console.error('no palette in loadPalette');
-    if (this.isDragging) return;
+    if (getMs() - this.lastChangeCallbackTime < 100) return;
     this.paletteKeys = paletteKeysFromString(palette);
     this.palette = createPaletteFromKeys(this.paletteKeys);
-    if (this.internalColor !== palette) {
-      this.internalColor = palette;
-      this.setNearestKeyIndex(null, false);
-      this.setSelectedKeyIndex(null, false)
-    }
+    this.setNearestKeyIndex(null, false);
+    this.setSelectedKeyIndex(null, false);
     this.draw();
   }
   
-  selectNearestColor(x: number) {
-    this.setNearestKeyIndex(findNearestPoint(this.paletteKeys.map((key) => [this.getXFromLevel(key.level), 0]), [x, 0], 20));
+  selectNearestColor(x: number, redraw = true) {
+    this.setNearestKeyIndex(findNearestPoint(this.paletteKeys.map((key) => [this.getXFromLevel(key.level), 0]), [x, 0], 20), redraw);
   }
   
   setNearestKeyIndex(index: number | null, redraw = true) {
@@ -125,7 +123,7 @@ class PaletteEditorGUI {
       if (this.nearestKeyIndex === null || e.button == 1) {
         const level = this.getLevelFromX(e.offsetX);
         const newIndex = this.addColor(level);
-        this.setNearestKeyIndex(newIndex);
+        this.setNearestKeyIndex(newIndex, false);
         this.callChangeCallback();
         this.skipToggleSelected = true;
       }
@@ -139,9 +137,9 @@ class PaletteEditorGUI {
       if (this.nearestKeyIndex !== null && this.paletteKeys.length > 2) {
         this.removeColor(this.nearestKeyIndex);
         if (this.selectedKeyIndex !== null && this.selectedKeyIndex >= this.nearestKeyIndex && this.selectedKeyIndex > 0) {
-          this.setSelectedKeyIndex(this.selectedKeyIndex - 1);
+          this.setSelectedKeyIndex(this.selectedKeyIndex - 1, false);
         }
-        this.selectNearestColor(e.offsetX);
+        this.selectNearestColor(e.offsetX, false);
         this.callChangeCallback();
       }
     }
@@ -157,7 +155,6 @@ class PaletteEditorGUI {
     this.skipToggleSelected = true;
     this.paletteKeys[this.nearestKeyIndex!]!.level = this.getLevelFromX(e.pageX);
     this.palette = createPaletteFromKeys(this.paletteKeys);
-    this.draw();
     this.callChangeCallback();
   }
 
@@ -165,19 +162,22 @@ class PaletteEditorGUI {
     if (!this.isDragging) return;
     this.isDragging = false;
     if (!this.skipToggleSelected) {
-      this.setSelectedKeyIndex(this.selectedKeyIndex === null ? this.nearestKeyIndex : null);
+      this.setSelectedKeyIndex(this.selectedKeyIndex === null ? this.nearestKeyIndex : null, false);
     }
     const key = this.paletteKeys[this.nearestKeyIndex!]!;
-    this.paletteKeys.sort((a: PaletteKey, b: PaletteKey) => a.level == b.level ? 0 : (a.level < b.level ? - 1: 1));
-    this.setNearestKeyIndex(this.paletteKeys.findIndex((k) => k === key));
-    if (this.selectedKeyIndex !== null) this.setSelectedKeyIndex(this.nearestKeyIndex);
+    this.paletteKeys.sort((a: PaletteKey, b: PaletteKey) => a.level == b.level ? 0 : (a.level < b.level ? -1 : 1));
+    this.setNearestKeyIndex(this.paletteKeys.findIndex((k) => k === key), false);
+    if (this.selectedKeyIndex !== null) this.setSelectedKeyIndex(this.nearestKeyIndex, false);
     this.callChangeCallback();
   }
 
   callChangeCallback() {
-    const color = paletteKeysToString(this.paletteKeys);
-    this.internalColor = color;
-    this.changeCallback(color);
+    clearTimeout(this.callbackTimeout)
+    this.callbackTimeout = setTimeout(() => {
+      this.lastChangeCallbackTime = getMs();
+      this.changeCallback(paletteKeysToString(this.paletteKeys));
+    }, 10);
+    this.draw();
   }
 
   draw() {
