@@ -219,6 +219,13 @@ export default withNoSSR(function Home() {
     />
   </>;
 
+  const pointerDownHandler = useCallback((e: React.PointerEvent<HTMLElement>) => {
+    const t = e.target as HTMLElement;
+    if (t.tagName === 'INPUT' || t.tagName === 'IMG') return;
+    if (typeof t.className === 'string' && t.className.startsWith('react-colorful')) return;
+    e.preventDefault();
+  }, []);
+
   return (
     <>
       <Head>
@@ -227,7 +234,7 @@ export default withNoSSR(function Home() {
         <meta name="author" content="Szymon Ceranka" />
       </Head>
       
-      <main className="bg-gray-500 h-screen v-screen" onContextMenu={e => e.preventDefault()} onDragStart={e => e.preventDefault()}>
+      <main className="bg-gray-500 h-screen v-screen" onContextMenu={e => e.preventDefault()} onPointerDown={pointerDownHandler}>
 
         <a ref={downloadRef} download="fractalsandbox.png" href="" style={{display: 'none'}}></a>
 
