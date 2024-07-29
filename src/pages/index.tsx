@@ -24,6 +24,18 @@ import useFractalProvider from "~/logic/fractalProvider";
 /*
   Todo:
   - improve image cache
+  - configuration dialog with cache options and build date
+  - purge image cache on browser/tab close: only keep images of fractals present in db cache
+  - improve FormulaEditor selection and add vertex action icons
+  - FormulaEditor value editor (x/y offset/scale/rotation, intensity)
+  - FormulaEditor group actions / whole fractal rotation
+  - FormulaEditor triangle size/offset normalization
+  - improve fractalRenderer priority control
+  - slideshow
+  - go to prev/next in fullscreen
+  - autohide icons in fullscreen
+  - set render quality
+  - image download with options: image size, render quality
   
   - import / export / edit textual definition
   - video: animate triangles and parameters along curves

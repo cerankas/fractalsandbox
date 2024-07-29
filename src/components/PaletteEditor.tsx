@@ -172,7 +172,7 @@ class PaletteEditorGUI {
   }
 
   callChangeCallback() {
-    clearTimeout(this.callbackTimeout)
+    clearTimeout(this.callbackTimeout);
     this.callbackTimeout = setTimeout(() => {
       this.lastChangeCallbackTime = getMs();
       this.changeCallback(paletteKeysToString(this.paletteKeys));
@@ -213,8 +213,9 @@ class PaletteEditorGUI {
     };
 
     const sortedPaletteKeys = this.paletteKeys
-      .map((key, i): [PaletteKey, number] => [key, i])
-      .sort(([a, _ai], [b, _bi]) => a.level == b.level ? 0 : a.level < b.level ? -1 : 1);
+    .map((key, i): [PaletteKey, number] => [key, i])
+    .sort(([a, _ai], [b, _bi]) => a.level == b.level ? 0 : a.level < b.level ? -1 : 1);
+    
     for (const [key, i] of sortedPaletteKeys) {
       const x = this.getXFromLevel(key.level);
       const c = key.rgb;
