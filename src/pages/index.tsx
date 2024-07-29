@@ -141,14 +141,14 @@ export default withNoSSR(function Home() {
         <RiGalleryView2
           className={iconStyle}
           style={{backgroundColor: browserPanelVisible ? 'lightgray' : 'transparent', borderRadius: 2}}
-          onClick={() => browserPanelVisible ? bPcollapse() : browserPanelRef.current!.expand()}
-          title={`${browserPanelVisible ? 'Hide' : 'Show'} browser`}
+          onClick={() => editorPanelVisible ? ePcollapse() : editorPanelRef.current!.expand()}
+          title={`${editorPanelVisible ? 'Expand' : 'Reduce'} browser`}
         />
         <TbTriangles
           className={iconStyle}
           style={{backgroundColor: editorPanelVisible ? 'lightgray' : 'transparent', borderRadius: 2}}
-          onClick={() => editorPanelVisible ? ePcollapse() : editorPanelRef.current!.expand()}
-          title={`${editorPanelVisible ? 'Hide' : 'Show'} editor`}
+          onClick={() => browserPanelVisible ? bPcollapse() : browserPanelRef.current!.expand()}
+          title={`${browserPanelVisible ? 'Expand' : 'Reduce'} editor`}
         />
       </>}
       <IoColorPaletteOutline 
