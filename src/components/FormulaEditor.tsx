@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { TbTriangleMinus, TbTrianglePlus } from "react-icons/tb";
 import Formula from "~/math/formula";
-import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY } from "~/math/util";
+import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY, getMs } from "~/math/util";
 import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
 import { iconStyle, useResizeObserver } from "./browserUtils";
@@ -53,6 +53,7 @@ class FormulaEditorGUI extends Viewport {
   isDragging = false;
   dragStart: vec2 = [0, 0];
   draggedFormula: Formula | null = null;
+  lastChangeCallbackTime = 0;
   
   constructor(public changeCallback: (form: string) => void) {
     super(.6);
@@ -106,7 +107,7 @@ class FormulaEditorGUI extends Viewport {
   }
 
   onPointerMove = (e: MouseEvent) => {
-    if (this.isDragging) return;
+    if (this.isDragging || e.buttons) return;
     const dataMousePoint = this.fromScreen(getEventOffsetXY(e));
     this.selectNearestFormula(dataMousePoint);
     this.draw();
@@ -162,17 +163,17 @@ class FormulaEditorGUI extends Viewport {
 
   callChangeCallback() {
     const form = Formula.toString(this.formulas);
+    this.lastChangeCallbackTime = getMs();
     this.changeCallback(form);
   }
 
   loadFormulas(formulaString: string) {
+    if (this.isDragging || getMs() - this.lastChangeCallbackTime < 100) return;
     this.formulas = Formula.fromString(formulaString);
-    if (!this.isDragging) {
-      this.selectedFormula = this.formulas.length - 1;
-      this.selectedPoint = null;
-      this.resetToAuto();
-      this.resizeFormulas();
-    }
+    this.selectedFormula = this.formulas.length - 1;
+    this.selectedPoint = null;
+    this.resetToAuto();
+    this.resizeFormulas();
   }
 
   selectNearestFormula(point: vec2) {
@@ -222,7 +223,6 @@ class FormulaEditorGUI extends Viewport {
     else {
       this.updateTransform();
     }
-    this.callChangeCallback();
     this.draw();
   }
   
@@ -299,12 +299,18 @@ class FormulaEditorGUI extends Viewport {
 
   addFormula = () => {
     this.formulas.push(new Formula());
+    this.selectedFormula = this.formulas.length - 1;
+    this.selectedPoint = null;
+    this.resizeFormulas();
     this.callChangeCallback();
   }
   
   removeFormula = () => {
     if (this.formulas.length < 3) return;
     this.formulas.splice(this.selectedFormula, 1);
+    this.selectedFormula = this.formulas.length - 1;
+    this.selectedPoint = null;
+    this.resizeFormulas();
     this.callChangeCallback();
   }
 
