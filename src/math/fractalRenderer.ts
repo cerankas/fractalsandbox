@@ -81,7 +81,7 @@ export default class FractalRenderer extends FractalSummator {
     if (this.cached && FractalRenderer.imageCache.isStored(this.fractal, this.width, this.height)) 
       void this.prepareCached();
     else 
-      this.prepareCalculated();
+      setTimeout(this.prepareCalculated);
   }
 
   async prepareCached() {
@@ -106,7 +106,7 @@ export default class FractalRenderer extends FractalSummator {
         this.draw();
         this.onprogress?.(1);
       },
-      () => this.prepareCalculated()
+      () => setTimeout(this.prepareCalculated)
     );   
   }
 
@@ -133,7 +133,7 @@ export default class FractalRenderer extends FractalSummator {
     FractalRenderer.imageCache.store(this.fractal, width, height, data);
   }
 
-  prepareCalculated() {
+  prepareCalculated = () => {
     this.lastStageTime = getMs();
     this.stageInterval = 20;
     
