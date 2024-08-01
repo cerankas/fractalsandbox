@@ -3,11 +3,11 @@ import { createPaletteFromKeys, paletteKeysFromString, PALETTE_LENGTH } from "./
 import FractalSummator from "./fractalSummator";
 import { getMs } from "./util";
 import BackgroundScheduler from "~/logic/scheduler";
-import IndexedDBManager from "~/logic/cache";
+import ImageCache from "~/logic/imageCache";
 
 export default class FractalRenderer extends FractalSummator {
   static scheduler = new BackgroundScheduler();
-  static sumsCache = new IndexedDBManager<Int32Array>("SumsCache", 1);
+  static imageCache = new ImageCache;
 
   ctx: CanvasRenderingContext2D | null = null;
   imageData: ImageData | null = null;
@@ -20,9 +20,6 @@ export default class FractalRenderer extends FractalSummator {
   
   renderInfinitely = false;
   palette: number[] = [];
-
-  formString = "";
-  cacheKey = "";
 
   fractal = "";
   color = "";
@@ -81,23 +78,59 @@ export default class FractalRenderer extends FractalSummator {
     this.pointsPerImage = this.densityPerImage * this.area;
     this.pointsCount = 0;
 
-    if (this.cached) 
+    if (this.cached && FractalRenderer.imageCache.isStored(this.fractal, this.width, this.height)) 
       void this.prepareCached();
     else 
       this.prepareCalculated();
   }
 
   async prepareCached() {
-    this.cacheKey = `${this.width}x${this.height}:${this.fractal}`;
-    try {
-      this.sums = await FractalRenderer.sumsCache.fetch(this.cacheKey);
-      this.pointsCount = this.pointsPerImage;
-      this.draw();
-      this.onprogress?.(1);
+    const initWidth = this.width;
+    const initHeight = this.height;
+    const w9 = this.width * .9 | 0;
+    const h9 = this.height * .9 | 0;
+    await FractalRenderer.imageCache.fetch(this.fractal, w9, h9)
+    .then(
+      (result) => {
+        const offsetX = (this.width - result.width) / 2 | 0;
+        const offsetY = (this.height - result.height) / 2 | 0;
+        if (this.width !== initWidth || this.height !== initHeight) { /* console.warn('Dimensions changed before fetch', [this.width, this.height], [initWidth, initHeight]); */ return; }
+        // if (w9 !== result.width && h9 !== result.height) throw Error('Both x and y different from fetched image');
+        // if (w9 < result.width || h9 < result.height) throw Error('Fetched image is bigger than requested');
+        for (let y = 0; y < result.height; y++) {
+          const start = y * result.width;
+          const offset = offsetX + (offsetY + y) * this.width;
+          this.sums.set(result.data.subarray(start, start + result.width), offset);
+        }
+        this.pointsCount = this.pointsPerImage;
+        this.draw();
+        this.onprogress?.(1);
+      },
+      () => this.prepareCalculated()
+    );   
+  }
+
+  storeInCache() {
+    let width = this.width * .9 | 0;
+    let height = this.height * .9 | 0;
+    let offsetX = (this.width - width) / 2 | 0;
+    let offsetY = (this.height - height) / 2 | 0;
+    const rowIsEmpty = (y: number) => {
+      for (let x = 0; x < width; x++) if (this.sums[offsetX + x + y * this.width] !== 0) return false;
+      return true;
     }
-    catch (e) {
-      this.prepareCalculated();
-    }   
+    const colIsEmpty = (x: number) => {
+      for (let y = 0; y < height; y++) if (this.sums[x + (offsetY + y) * this.width] !== 0) return false;
+      return true;
+    }
+    while (rowIsEmpty(offsetY) && rowIsEmpty(offsetY + height - 1)) { offsetY += 1; height -= 2; }
+    while (colIsEmpty(offsetX) && colIsEmpty(offsetX + width  - 1)) { offsetX += 1; width  -= 2; }
+    const data = new Int32Array(width * height);
+    for (let y = 0; y < height; y++){
+      const start = offsetX + (offsetY + y) * this.width;
+      data.set(this.sums.subarray(start, start + width), y * width);
+    }
+    FractalRenderer.imageCache.store(this.fractal, width, height, data);
   }
 
   prepareCalculated() {
@@ -128,9 +161,7 @@ export default class FractalRenderer extends FractalSummator {
         this.draw();
       }
     }
-    if (this.isFinished() && this.cached) {
-      void FractalRenderer.sumsCache.store(this.cacheKey, this.sums);
-    }
+    if (this.isFinished() && this.cached) this.storeInCache();
     this.onprogress?.(this.pointsCount / this.pointsPerImage);
   }
   
