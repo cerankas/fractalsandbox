@@ -82,8 +82,12 @@ export default class FractalRenderer extends FractalSummator {
     this.pointsPerImage = this.densityPerImage * this.area;
     this.pointsCount = 0;
 
-    if (this.cached && FractalRenderer.imageCache.cachedSize(this.fractal, this.width, this.height) !== undefined) 
-      void this.prepareCached();
+    void this.prepare();
+  }
+
+  async prepare() {
+    if (this.cached && await FractalRenderer.imageCache.cachedSize(this.fractal, this.width, this.height) !== undefined) 
+      await this.prepareCached();
     else 
       setTimeout(this.prepareCalculated);
   }
@@ -91,7 +95,7 @@ export default class FractalRenderer extends FractalSummator {
   async prepareCached() {
     const initWidth = this.width;
     const initHeight = this.height;
-    await FractalRenderer.imageCache.fetch(this.fractal, this.width, this.height)
+    await FractalRenderer.imageCache.get(this.fractal, this.width, this.height)
     .then(
       (result) => {
         if (this.width !== initWidth || this.height !== initHeight) return; // Dimensions changed before fetch
@@ -130,7 +134,7 @@ export default class FractalRenderer extends FractalSummator {
       const start = offsetX + (offsetY + y) * this.width;
       data.set(this.sums.subarray(start, start + framedWidth), y * framedWidth);
     }
-    FractalRenderer.imageCache.store(this.fractal, framedWidth, framedHeight, data);
+    FractalRenderer.imageCache.put(this.fractal, framedWidth, framedHeight, data);
   }
 
   prepareCalculated = () => {

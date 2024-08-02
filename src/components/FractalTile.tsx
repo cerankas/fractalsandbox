@@ -11,16 +11,16 @@ export default function FractalTile(props: { fractal: Fractal, size: number, onm
   const [url, setUrl] = useState("");
   
   useEffect(() => {
-    thumbnailCache.fetch(props.fractal.id.toString())
+    thumbnailCache.get(props.fractal.id.toString())
     .then(
       blob => setUrl(URL.createObjectURL(blob)), 
       () => {
-        const frac = new FractalRenderer(false, 0, (progress) => {
+        const frac = new FractalRenderer(false, 0, progress => {
           if (progress >= 1 && canvasRef.current)
             canvasRef.current.toBlob((blob) => {
-              if (!blob) throw new Error('Eror creating blob from canvas');
+              if (!blob) throw Error('Eror creating blob from canvas');
               setUrl(URL.createObjectURL(blob));
-              void thumbnailCache.store(props.fractal.id.toString(), blob)
+              void thumbnailCache.put(props.fractal.id.toString(), blob);
             });
         });
         frac.setCtx(canvasRef.current!.getContext('2d')!);
