@@ -5,6 +5,10 @@ import { getMs } from "./util";
 import BackgroundScheduler from "~/logic/scheduler";
 import ImageCache from "~/logic/imageCache";
 
+const frameReductionFactor = .9;
+export const reduceByFrame = (dimension: number) => dimension * frameReductionFactor | 0;
+const frameOffset = (dimension: number, reduced? : number) => (dimension - (reduced ?? reduceByFrame(dimension))) / 2 | 0;
+
 export default class FractalRenderer extends FractalSummator {
   static scheduler = new BackgroundScheduler();
   static imageCache = new ImageCache;
@@ -28,7 +32,7 @@ export default class FractalRenderer extends FractalSummator {
   mustRedraw = false;
 
   constructor(private cached = false, private basePriority = 0, private onprogress?: (progress: number) => void) {
-    super(.9);
+    super(frameReductionFactor);
   }
 
   setCtx = (ctx: CanvasRenderingContext2D) => {
@@ -78,7 +82,7 @@ export default class FractalRenderer extends FractalSummator {
     this.pointsPerImage = this.densityPerImage * this.area;
     this.pointsCount = 0;
 
-    if (this.cached && FractalRenderer.imageCache.isStored(this.fractal, this.width, this.height)) 
+    if (this.cached && FractalRenderer.imageCache.cachedSize(this.fractal, this.width, this.height) !== undefined) 
       void this.prepareCached();
     else 
       setTimeout(this.prepareCalculated);
@@ -87,16 +91,12 @@ export default class FractalRenderer extends FractalSummator {
   async prepareCached() {
     const initWidth = this.width;
     const initHeight = this.height;
-    const w9 = this.width * .9 | 0;
-    const h9 = this.height * .9 | 0;
-    await FractalRenderer.imageCache.fetch(this.fractal, w9, h9)
+    await FractalRenderer.imageCache.fetch(this.fractal, this.width, this.height)
     .then(
       (result) => {
-        const offsetX = (this.width - result.width) / 2 | 0;
-        const offsetY = (this.height - result.height) / 2 | 0;
-        if (this.width !== initWidth || this.height !== initHeight) { /* console.warn('Dimensions changed before fetch', [this.width, this.height], [initWidth, initHeight]); */ return; }
-        // if (w9 !== result.width && h9 !== result.height) throw Error('Both x and y different from fetched image');
-        // if (w9 < result.width || h9 < result.height) throw Error('Fetched image is bigger than requested');
+        if (this.width !== initWidth || this.height !== initHeight) return; // Dimensions changed before fetch
+        const offsetX = frameOffset(this.width, result.width);
+        const offsetY = frameOffset(this.height, result.height);
         for (let y = 0; y < result.height; y++) {
           const start = y * result.width;
           const offset = offsetX + (offsetY + y) * this.width;
@@ -111,26 +111,26 @@ export default class FractalRenderer extends FractalSummator {
   }
 
   storeInCache() {
-    let width = this.width * .9 | 0;
-    let height = this.height * .9 | 0;
-    let offsetX = (this.width - width) / 2 | 0;
-    let offsetY = (this.height - height) / 2 | 0;
+    let framedWidth = reduceByFrame(this.width);
+    let framedHeight = reduceByFrame(this.height);
+    let offsetX = frameOffset(this.width);
+    let offsetY = frameOffset(this.height);
     const rowIsEmpty = (y: number) => {
-      for (let x = 0; x < width; x++) if (this.sums[offsetX + x + y * this.width] !== 0) return false;
+      for (let x = 0; x < framedWidth; x++) if (this.sums[offsetX + x + y * this.width] !== 0) return false;
       return true;
     }
     const colIsEmpty = (x: number) => {
-      for (let y = 0; y < height; y++) if (this.sums[x + (offsetY + y) * this.width] !== 0) return false;
+      for (let y = 0; y < framedHeight; y++) if (this.sums[x + (offsetY + y) * this.width] !== 0) return false;
       return true;
     }
-    while (rowIsEmpty(offsetY) && rowIsEmpty(offsetY + height - 1)) { offsetY += 1; height -= 2; }
-    while (colIsEmpty(offsetX) && colIsEmpty(offsetX + width  - 1)) { offsetX += 1; width  -= 2; }
-    const data = new Int32Array(width * height);
-    for (let y = 0; y < height; y++){
+    while (rowIsEmpty(offsetY) && rowIsEmpty(offsetY + framedHeight - 1)) { offsetY += 1; framedHeight -= 2; }
+    while (colIsEmpty(offsetX) && colIsEmpty(offsetX + framedWidth  - 1)) { offsetX += 1; framedWidth  -= 2; }
+    const data = new Int32Array(framedWidth * framedHeight);
+    for (let y = 0; y < framedHeight; y++){
       const start = offsetX + (offsetY + y) * this.width;
-      data.set(this.sums.subarray(start, start + width), y * width);
+      data.set(this.sums.subarray(start, start + framedWidth), y * framedWidth);
     }
-    FractalRenderer.imageCache.store(this.fractal, width, height, data);
+    FractalRenderer.imageCache.store(this.fractal, framedWidth, framedHeight, data);
   }
 
   prepareCalculated = () => {
