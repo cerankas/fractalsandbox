@@ -7,7 +7,7 @@ export default class IndexedDBManager<T> {
     
     void new Promise<void>((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion);
-      request.onerror = () => reject(Error("Failed to open IndexedDB"));
+      request.onerror = () => reject();
       request.onsuccess = () => { this.db = request.result; resolve(); };
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
         const db = (event.target as IDBRequest<IDBDatabase>).result;
@@ -36,7 +36,7 @@ export default class IndexedDBManager<T> {
     const objectStore = await this.getObjectStore("readwrite");
     return new Promise<void>((resolve, reject) => {
       const request = objectStore.put({ key, data });
-      request.onerror = () => reject(Error("Failed to put data into IndexedDB"));
+      request.onerror = () => reject();
       request.onsuccess = () => resolve();
     });
   }
@@ -45,11 +45,11 @@ export default class IndexedDBManager<T> {
     const objectStore = await this.getObjectStore("readonly");
     return new Promise<T>((resolve, reject) => {
       const request = objectStore.get(key);
-      request.onerror = () => reject(Error("Failed to get data from IndexedDB"));
+      request.onerror = () => reject();
       request.onsuccess = () => {
         const result = request.result as {data: T};
         if (result) resolve(result.data);
-        else reject(Error("No data found for given key"));
+        else reject();
       }
     });
   }
@@ -58,12 +58,8 @@ export default class IndexedDBManager<T> {
     const objectStore = await this.getObjectStore("readonly");
     return new Promise<string[]>((resolve, reject) => {
       const request = objectStore.getAllKeys();
-      request.onerror = () => reject(Error("Failed to get all keys from IndexedDB"));
-      request.onsuccess = () => {
-        const result = request.result as string[];
-        if (result) resolve(result);
-        else reject(Error("No keys found in IndexedDB"));
-      }
+      request.onerror = () => reject();
+      request.onsuccess = () => resolve(request.result as string[]);
     });
   }
   
@@ -71,7 +67,7 @@ export default class IndexedDBManager<T> {
     const objectStore = await this.getObjectStore("readwrite");
     return new Promise<void>((resolve, reject) => {
       const request = objectStore.delete(key)
-      request.onerror = () => reject(Error("Failed to delete record in IndexedDB"));
+      request.onerror = () => reject();
       request.onsuccess = () => resolve();
     });
   }

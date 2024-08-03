@@ -16,13 +16,15 @@ export default class ImageCache {
       const [width, height, form] = key.split(':');
       if (!width || !height || !form) throw Error("Invalid key in image cache db");
       this.addCachedImageSize(form, { width: parseFloat(width), height: parseFloat(height) });
-      this.initialized = true;
     }))
-    .then(() => this.initialQueue.forEach(callback => callback()))
-    .then(() => {
+    .finally(() => {
+      this.initialized = true;
+      this.initialQueue.forEach(callback => callback());
+
       const cachedRanges = loadFractalRangesFromLocalStorage()
-      const cachedFractals = cachedRanges.reduce((prevRange, newRange) => prevRange.concat(newRange));
+      const cachedFractals = cachedRanges.reduce((prevRange, newRange) => prevRange.concat(newRange), []);
       const cachedForms = new Set(cachedFractals.map(fractal => fractal.form)).add(localStorage.getItem('form') ?? '');
+
       this.cachedImageSizes.forEach((sizes, form) => {
         if (cachedForms.has(form)) return;
         sizes.forEach(size => void this.imageDbManager.delete(`${size.width}:${size.height}:${form}`));
