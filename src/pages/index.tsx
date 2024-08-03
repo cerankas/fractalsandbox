@@ -24,17 +24,13 @@ import useFractalProvider from "~/logic/fractalProvider";
 
 /*
   Todo:
-  - improve image cache
+  - compressed image cache
   - configuration dialog with cache options and build date
-  - purge image cache on browser/tab close: only keep images of fractals present in db cache
   - improve FormulaEditor selection and add vertex action icons
   - FormulaEditor value editor (x/y offset/scale/rotation, intensity)
   - FormulaEditor group actions / whole fractal rotation
   - FormulaEditor triangle size/offset normalization
   - improve fractalRenderer priority control
-  - slideshow
-  - go to prev/next in fullscreen
-  - autohide icons in fullscreen
   - set render quality
   - image download with options: image size, render quality
   
@@ -68,6 +64,24 @@ export default withNoSSR(function Home() {
 
   const [slideShow, setSlideShow] = useState(false);
   const [slideShowInterval, setSlideShowInterval] = useState(0);
+
+  const [showFullscreenIcons, setShowFullscreenIcons] = useState(true);
+
+  useEffect(() => {
+    const hideIcons = () => setShowFullscreenIcons(false);
+    let timeout = 0;
+    const showIcons = () => { 
+      setShowFullscreenIcons(true); 
+      window.clearTimeout(timeout); 
+      timeout = window.setTimeout(hideIcons, 3000);
+    }
+    window.addEventListener('mousemove', showIcons);
+    window.setTimeout(() => setShowFullscreenIcons(false))
+    return () => {
+      window.removeEventListener('mousemove', showIcons);
+      window.clearTimeout(timeout);
+    }
+  }, []);
 
   const selectFractal = useCallback((fractal: Fractal) => {
     setSelectedFractal(fractal);
@@ -313,7 +327,7 @@ export default withNoSSR(function Home() {
 
         {fullscreen &&  
           <div className="size-full relative">
-            <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color)}}>
+            <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color), display: showFullscreenIcons ? '' : 'none'}}>
               <TiArrowLeft
                 className={iconStyle} 
                 onClick={selectPreviousFractal}
