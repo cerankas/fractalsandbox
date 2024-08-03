@@ -51,7 +51,7 @@ export default function FractalTile(props: { fractal: Fractal, size: number, onm
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {url && <img src={url} alt="" style={{userSelect:'none'}} onMouseDown={onmousedown} />}
-      {!url && <canvas ref={canvasRef} width={300} height={300} onMouseDown={onmousedown} />}
+      {!url && <canvas ref={canvasRef} width={300} height={300} onMouseDown={onmousedown} className="tile-canvas" />}
     </div>
   );
 }
