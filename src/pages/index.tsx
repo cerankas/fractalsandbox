@@ -30,7 +30,6 @@ import useFractalProvider from "~/logic/fractalProvider";
   - FormulaEditor value editor (x/y offset/scale/rotation, intensity)
   - FormulaEditor group actions / whole fractal rotation
   - FormulaEditor triangle size/offset normalization
-  - improve fractalRenderer priority control
   - set render quality
   - image download with options: image size, render quality
   

@@ -9,6 +9,13 @@ const frameReductionFactor = .9;
 export const reduceByFrame = (dimension: number) => dimension * frameReductionFactor | 0;
 const frameOffset = (dimension: number, reduced? : number) => (dimension - (reduced ?? reduceByFrame(dimension))) / 2 | 0;
 
+type FractalRendererProps = {
+  initPriority: number;
+  drawPriority: number;
+  cached?: boolean;
+  onprogress?: ((progress: number) => void) | undefined;
+};
+
 export default class FractalRenderer extends FractalSummator {
   static scheduler = new BackgroundScheduler();
   static imageCache = new ImageCache;
@@ -31,8 +38,17 @@ export default class FractalRenderer extends FractalSummator {
   mustRecalc = false;
   mustRedraw = false;
 
-  constructor(private cached = false, private basePriority = 0, private onprogress?: (progress: number) => void) {
+  initPriority;
+  drawPriority;
+  cached;
+  onprogress;
+
+  constructor({initPriority, drawPriority, cached = false, onprogress = undefined} : FractalRendererProps) {
     super(frameReductionFactor);
+    this.initPriority = initPriority;
+    this.drawPriority = drawPriority;
+    this.cached = cached;
+    this.onprogress = onprogress;
   }
 
   setCtx = (ctx: CanvasRenderingContext2D) => {
@@ -169,7 +185,7 @@ export default class FractalRenderer extends FractalSummator {
     this.onprogress?.(this.pointsCount / this.pointsPerImage);
   }
   
-  priority() { return this.basePriority + this.pointsCount / this.pointsPerImage; }
+  priority() { return !this.pointsCount ? this.initPriority : this.drawPriority + this.pointsCount / this.pointsPerImage; }
   
   isFinished() { return this.pointsCount >= this.pointsPerImage && !this.renderInfinitely; }
   

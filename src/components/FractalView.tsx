@@ -7,7 +7,7 @@ import { useResizeObserver } from "./browserUtils";
 export default function FractalView(props: { form: string, color: string, updateCanvasRef?: (canvas: HTMLCanvasElement) => void }) {
   const [progress, setProgress] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const renderer = useMemo(() => new FractalRenderer(true, 0, setProgress), []);
+  const renderer = useMemo(() => new FractalRenderer({initPriority: 0, drawPriority: 2, cached: true, onprogress: setProgress}), []);
 
   useEffect(() => props.updateCanvasRef?.(canvasRef.current!), [props, props.updateCanvasRef])
 

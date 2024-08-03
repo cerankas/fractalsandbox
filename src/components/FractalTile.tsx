@@ -15,14 +15,14 @@ export default function FractalTile(props: { fractal: Fractal, size: number, onm
     .then(
       blob => setUrl(URL.createObjectURL(blob)), 
       () => {
-        const frac = new FractalRenderer(false, 0, progress => {
+        const frac = new FractalRenderer({initPriority: 1, drawPriority: 4, onprogress: progress => {
           if (progress >= 1 && canvasRef.current)
             canvasRef.current.toBlob((blob) => {
               if (!blob) throw Error('Eror creating blob from canvas');
               setUrl(URL.createObjectURL(blob));
               void thumbnailCache.put(props.fractal.id.toString(), blob);
             });
-        });
+        }});
         frac.setCtx(canvasRef.current!.getContext('2d')!);
         frac.setForm(props.fractal.form);
         frac.setColor(props.fractal.color);
