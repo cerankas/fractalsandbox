@@ -10,7 +10,7 @@ export default function FractalSelector(props: {
   selected: number, 
   menu: React.ReactNode 
 }) {
-  const [tileSize, setTileSize] = useLocalStorage('tileSize', '300');
+  const [tileSize, setTileSize] = useLocalStorage('tileSize', '180');
   const loaderRef = useRef<HTMLDivElement>(null);
   const [loaderVisible, setLoaderVisible] = useState(false);
 
