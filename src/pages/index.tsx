@@ -24,7 +24,6 @@ import useFractalProvider from "~/logic/fractalProvider";
 
 /*
   Todo:
-  - compressed image cache
   - configuration dialog with cache options and build date
   - improve FormulaEditor selection and add vertex action icons
   - FormulaEditor value editor (x/y offset/scale/rotation, intensity)

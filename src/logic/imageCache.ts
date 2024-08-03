@@ -1,9 +1,10 @@
 import { reduceByFrame } from "~/math/fractalRenderer";
 import IndexedDBManager from "./cache";
 import { loadFractalRangesFromLocalStorage } from "./fractalProvider";
+import {gzipSync, gunzipSync} from 'fflate';
 
 export default class ImageCache {
-  private imageDbManager = new IndexedDBManager<Int32Array>('images', 1);
+  private imageDbManager = new IndexedDBManager<Uint8Array>('images', 1);
   private cachedImageSizes = new Map<string, { width: number, height: number }[]>;
   private initialQueue: (() => void)[] = [];
   private initialized = false;
@@ -46,7 +47,7 @@ export default class ImageCache {
 
   put(form: string, width: number, height: number, data: Int32Array) {
     void this.imageDbManager
-    .put(`${width}:${height}:${form}`, data)
+    .put(`${width}:${height}:${form}`, gzipSync(new Uint8Array(data.buffer), { level: 1 }))
     .then(() => this.addCachedImageSize(form, { width: width, height: height}));
   }
 
@@ -69,7 +70,7 @@ export default class ImageCache {
       if (cachedSize !== undefined)
         void this.imageDbManager.get(`${cachedSize.width}:${cachedSize.height}:${form}`)
         .then(
-          data => resolve({width: cachedSize.width, height: cachedSize.height, data: data}),
+          data => resolve({width: cachedSize.width, height: cachedSize.height, data: new Int32Array(gunzipSync(data).buffer)}),
           () => reject()
         );
       else
