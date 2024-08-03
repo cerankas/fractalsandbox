@@ -8,10 +8,11 @@ import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
 import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlinePicture } from "react-icons/ai";
 import { IoCloudUploadOutline, IoColorPaletteOutline } from "react-icons/io5";
-import { MdOutlineDeleteForever } from "react-icons/md";
+import { MdOutlineDeleteForever, MdSlideshow } from "react-icons/md";
 import { BiUndo, BiRedo } from "react-icons/bi";
 import { RiGalleryView2 } from "react-icons/ri";
 import { TbTriangles } from "react-icons/tb";
+import { TiArrowLeft, TiArrowRight } from "react-icons/ti";
 import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { type Fractal } from "@prisma/client";
 import { useHorizontal, useLocalStorage, iconStyle } from "~/components/browserUtils"
@@ -65,6 +66,59 @@ export default withNoSSR(function Home() {
   const fractalHistory = useMemo(() => new FractalHistory((item) => { setForm(item.form); setColor(item.color); }), [setForm, setColor]);
   const storeToHistory = useCallback(() => fractalHistory.store({form: form, color: color}), [fractalHistory, form, color]);
 
+  const [slideShow, setSlideShow] = useState(false);
+  const [slideShowInterval, setSlideShowInterval] = useState(0);
+
+  const selectFractal = useCallback((fractal: Fractal) => {
+    setSelectedFractal(fractal);
+    setForm(fractal.form);
+    setColor(fractal.color);
+    storeToHistory();
+  }, [setColor, setForm, storeToHistory])
+
+  const stopSlideShow = useCallback(() => {
+    setSlideShow(false);
+    window.clearInterval(slideShowInterval);
+  }, [slideShowInterval]);
+
+  const selectPreviousFractal = useCallback(() => {
+    stopSlideShow();
+    if (fractals.length === 0 || selectedFractal?.id === fractals[0]!.id) 
+      return;
+    if (!selectedFractal)
+      selectFractal(fractals[0]!);
+    else
+      selectFractal(fractals[fractals.indexOf(selectedFractal) - 1]!);
+  }, [fractals, selectFractal, selectedFractal, stopSlideShow]);
+
+  const selectNextFractal = useCallback(() => {
+    stopSlideShow();
+    if (fractals.length === 0 || selectedFractal?.id === fractals.at(-1)!.id) 
+      return;
+    if (!selectedFractal)
+      selectFractal(fractals[0]!);
+    else
+      selectFractal(fractals[fractals.indexOf(selectedFractal) + 1]!);
+  }, [fractals, selectFractal, selectedFractal, stopSlideShow]);
+
+  const selectNextSlideRef = useRef(() => {;});
+
+  useEffect(() => {
+    selectNextSlideRef.current = () => {
+      if (fractals.length === 0) return;
+      if (!selectedFractal || selectedFractal.id === fractals.at(-1)!.id) { selectFractal(fractals[0]!); return; }
+      selectFractal(fractals[fractals.indexOf(selectedFractal) + 1]!);
+      storeToHistory();
+    };
+  }, [fractals, selectFractal, selectedFractal, storeToHistory]);
+
+  const startSlideShow = useCallback(() => {
+    setSlideShow(true);
+    setSlideShowInterval(window.setInterval(() => { 
+      selectNextSlideRef.current();
+    }, 8000));
+  }, []);
+
   useEffect(() => {
     window.addEventListener('mouseup', storeToHistory)
     return () => window.removeEventListener('mouseup', storeToHistory)
@@ -91,25 +145,32 @@ export default withNoSSR(function Home() {
   
   const exitFullscreen = useCallback(() => {
     setFullscreen(false);
+    stopSlideShow();
     if (!fullBefore && document.fullscreenElement != null) void document.exitFullscreen();
-  }, [fullBefore]);
+  }, [fullBefore, stopSlideShow]);
 
   useEffect(() => {
-    const fullscreenObserver = () => setFullscreen(document.fullscreenElement !== null);
+    const fullscreenObserver = () => {
+      const full = document.fullscreenElement !== null;
+      setFullscreen(full);
+      if (!full) stopSlideShow();
+    };
     window.addEventListener('fullscreenchange', fullscreenObserver);
     return () => window.removeEventListener('fullscreenchange', fullscreenObserver);
-  }, []);
+  }, [stopSlideShow]);
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
       if (e.key === "f")  if (fullscreen) exitFullscreen(); else enterFullscreen();
       if (e.key === "c") toggleShowPalette();
-      if (e.key === "z" && e.ctrlKey) fractalHistory.back();
-      if (e.key === "y" && e.ctrlKey) fractalHistory.forward(); 
+      if (e.key === "z") fractalHistory.back();
+      if (e.key === "y") fractalHistory.forward(); 
+      if (e.key === 'ArrowLeft') selectPreviousFractal();
+      if (e.key === 'ArrowRight') selectNextFractal();
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory, toggleShowPalette]);
+  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory, toggleShowPalette, selectPreviousFractal, selectNextFractal, stopSlideShow]);
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
 
@@ -188,12 +249,12 @@ export default withNoSSR(function Home() {
       <BiUndo
         className={iconStyle} 
         onClick={() => fractalHistory.back()}
-        title="Undo [ctrl-z]"
+        title="Undo [z]"
       />
       <BiRedo
         className={iconStyle} 
         onClick={() => fractalHistory.forward()}
-        title="Redo [ctrl-y]"
+        title="Redo [y]"
       />
       <AiOutlineFullscreen 
         className={iconStyle} 
@@ -253,6 +314,22 @@ export default withNoSSR(function Home() {
         {fullscreen &&  
           <div className="size-full relative">
             <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color)}}>
+              <TiArrowLeft
+                className={iconStyle} 
+                onClick={selectPreviousFractal}
+                title="Go to previous fractal [Left]"
+              />
+              <MdSlideshow
+                className={iconStyle} 
+                style={{backgroundColor: slideShow ? 'lightgray' : 'transparent', borderRadius: 2}}
+                onClick={slideShow ? stopSlideShow : startSlideShow} 
+                title={`${slideShow? 'Stop' : 'Start'} slideshow`}
+              />
+              <TiArrowRight 
+                className={iconStyle} 
+                onClick={selectNextFractal} 
+                title="Go to next fractal [Right]"
+              />
               <AiOutlineFullscreenExit 
                 className={iconStyle} 
                 onClick={() => exitFullscreen()} 
