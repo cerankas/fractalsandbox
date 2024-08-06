@@ -71,10 +71,10 @@ export default class ImageCache {
         void this.imageDbManager.get(`${cachedSize.width}:${cachedSize.height}:${form}`)
         .then(
           data => resolve({width: cachedSize.width, height: cachedSize.height, data: new Int32Array(gunzipSync(data).buffer)}),
-          () => reject()
+          (reason: Error) => reject(reason)
         );
       else
-        reject();
+        reject(Error('Image not cached'));
     });
   }
   

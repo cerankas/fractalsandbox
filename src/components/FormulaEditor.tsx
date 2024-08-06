@@ -147,16 +147,16 @@ class FormulaEditorGUI extends Viewport {
       tmpFormula.shift(vec2mul(deltaStartMouse, [e.ctrlKey?0:1, e.shiftKey?0:1]));
       }
     if (this.selectedPoint == 2) {
-      e.shiftKey || tmpFormula.rotate([angle, angle]);
-      e.ctrlKey || tmpFormula.rescale([scale, scale]);
+      if (!e.shiftKey) tmpFormula.rotate([angle, angle]);
+      if (!e.ctrlKey) tmpFormula.rescale([scale, scale]);
     }
     if (this.selectedPoint == 1) {
-      e.shiftKey || tmpFormula.rotate([0, angle]);
-      e.ctrlKey || tmpFormula.rescale([1, scale]);
+      if (!e.shiftKey) tmpFormula.rotate([0, angle]);
+      if (!e.ctrlKey) tmpFormula.rescale([1, scale]);
     }
     if (this.selectedPoint == 3) {
-      e.shiftKey || tmpFormula.rotate([angle, 0]);
-      e.ctrlKey || tmpFormula.rescale([scale, 1]);
+      if (!e.shiftKey) tmpFormula.rotate([angle, 0]);
+      if (!e.ctrlKey) tmpFormula.rescale([scale, 1]);
     }
     this.formulas[this.selectedFormula] = tmpFormula;
   }
