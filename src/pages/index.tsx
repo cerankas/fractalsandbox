@@ -63,24 +63,6 @@ export default withNoSSR(function Home() {
   const [slideShow, setSlideShow] = useState(false);
   const [slideShowInterval, setSlideShowInterval] = useState(0);
 
-  const [showFullscreenIcons, setShowFullscreenIcons] = useState(true);
-
-  useEffect(() => {
-    const hideIcons = () => setShowFullscreenIcons(false);
-    let timeout = 0;
-    const showIcons = () => { 
-      setShowFullscreenIcons(true); 
-      window.clearTimeout(timeout); 
-      timeout = window.setTimeout(hideIcons, 3000);
-    }
-    window.addEventListener('mousemove', showIcons);
-    window.setTimeout(() => setShowFullscreenIcons(false))
-    return () => {
-      window.removeEventListener('mousemove', showIcons);
-      window.clearTimeout(timeout);
-    }
-  }, []);
-
   const selectFractal = useCallback((fractal: Fractal) => {
     setSelectedFractal(fractal);
     setForm(fractal.form);
@@ -166,6 +148,7 @@ export default withNoSSR(function Home() {
       const full = document.fullscreenElement !== null;
       setFullscreen(full);
       if (!full) stopSlideShow();
+      if (full) setShowPalette(false);
     };
     window.addEventListener('fullscreenchange', fullscreenObserver);
     return () => window.removeEventListener('fullscreenchange', fullscreenObserver);
@@ -179,6 +162,7 @@ export default withNoSSR(function Home() {
       if (e.key === "y") fractalHistory.forward(); 
       if (e.key === 'ArrowLeft') selectPreviousFractal();
       if (e.key === 'ArrowRight') selectNextFractal();
+      stopSlideShow();
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
@@ -325,7 +309,7 @@ export default withNoSSR(function Home() {
 
         {fullscreen &&  
           <div className="size-full relative">
-            <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color), display: showFullscreenIcons ? '' : 'none'}}>
+            <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color)}}>
               <TiArrowLeft
                 className={iconStyle} 
                 onClick={selectPreviousFractal}
