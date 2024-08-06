@@ -21,6 +21,7 @@ import { oppositeBackgroundColor } from "~/math/palette";
 import FractalHistory from "~/logic/history";
 import PaletteEditor from "~/components/PaletteEditor";
 import useFractalProvider from "~/logic/fractalProvider";
+import { inject } from '@vercel/analytics';
 
 /*
   Todo:
@@ -43,6 +44,8 @@ import useFractalProvider from "~/logic/fractalProvider";
 const withNoSSR = <P extends object>(Component: ComponentType<P>) => dynamic<P>(() => Promise.resolve(Component), { ssr: false });
 
 export default withNoSSR(function Home() {
+  inject();
+
   useEffect(() => console.log('Build timestamp: ' + process.env.NEXT_PUBLIC_BUILD_TIMESTAMP), []);
 
   const { isSignedIn, user } = useUser();
