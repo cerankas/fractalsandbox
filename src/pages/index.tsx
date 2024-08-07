@@ -237,7 +237,7 @@ export default withNoSSR(function Home() {
       {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
         className={iconStyle}
         onClick={() => deleteFractal({id: selectedFractal.id})} 
-        title="Delete"
+        title="Delete fractal"
       />}
       {modified && <IoCloudUploadOutline
         className={iconStyle + (isSignedIn ? "" : " text-gray-500")} 
@@ -276,6 +276,7 @@ export default withNoSSR(function Home() {
   const browserPanelContent = useMemo(() => <>
     <FractalSelector 
       fractals={fractals} 
+      users={users}
       loadMore={loadMore}
       onmousedown={(button, fractal) => {
         setSelectedFractal(fractal);
@@ -285,7 +286,7 @@ export default withNoSSR(function Home() {
       selected={selectedFractal?.id ?? 0}
       menu={commonMenuInBrowserPanel && commonMenu}
     />
-  </>, [fractals, loadMore, selectedFractal?.id, commonMenuInBrowserPanel, commonMenu, setForm, setColor]);
+  </>, [fractals, users, loadMore, selectedFractal?.id, commonMenuInBrowserPanel, commonMenu, setForm, setColor]);
 
   const editorPanelContent = <>
     <FormulaEditor

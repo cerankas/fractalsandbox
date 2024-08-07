@@ -1,12 +1,15 @@
 import { type Fractal } from "@prisma/client";
 import React, { useEffect, useRef, useState } from "react";
+import { IoColorPaletteOutline } from "react-icons/io5";
+import { TbTriangles } from "react-icons/tb";
 import IndexedDBManager from "~/logic/cache";
+import { type User } from "~/logic/userProvider";
 import FractalRenderer from "~/math/fractalRenderer";
 import { backgroundColor, oppositeBackgroundColor } from "~/math/palette";
 
 const thumbnailCache = new IndexedDBManager<Blob>("thumbnails", 1);
 
-export default function FractalTile(props: { fractal: Fractal, size: number, onmousedown: (button: number, fractal: Fractal) => void, selected: boolean }) {
+export default function FractalTile(props: { fractal: Fractal, user: User | undefined, size: number, onmousedown: (button: number, fractal: Fractal) => void, selected: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [url, setUrl] = useState("");
   
@@ -41,8 +44,10 @@ export default function FractalTile(props: { fractal: Fractal, size: number, onm
     e.stopPropagation();
   };
 
+  const iconSize = props.size > 180 ? 24 : 24 * props.size / 180;
+
   return (
-    <div className={`flex flex-grow justify-center border-2 ${borderStyle} ${hoverStyle}`}
+    <div className={`group relative flex flex-grow justify-center border-2 ${borderStyle} ${hoverStyle}`}
       style={{
         backgroundColor: backgroundColor(props.fractal.color),
         width: `${props.size + 4}px`,
@@ -50,8 +55,32 @@ export default function FractalTile(props: { fractal: Fractal, size: number, onm
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {url && <img src={url} alt="" style={{userSelect:'none'}} onMouseDown={onmousedown} />}
+      {url && <img src={url} alt="" style={{userSelect:'none'}} onMouseDown={onmousedown}/>}
       {!url && <canvas ref={canvasRef} width={300} height={300} onMouseDown={onmousedown} className="tile-canvas" />}
+      {props.user && <div className="opacity-0 group-hover:opacity-100">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img 
+          src={props.user.image} 
+          className="absolute left-0 bottom-0 rounded-full cursor-pointer" 
+          style={{width: iconSize, height: iconSize, margin: iconSize/6}}
+          title={props.user.name + ', ' + new Date(props.fractal.createdAt).toISOString().slice(2,10)} 
+          alt="" 
+        />
+        <div className="absolute flex right-0 top-0" style={{color: opCol}}>
+          <TbTriangles 
+            className="cursor-pointer" 
+            style={{width: iconSize, height: iconSize}}
+            onClick={() => props.onmousedown(1, props.fractal)}
+            title="Load only shape [or middle-click tile]"
+            />
+          <IoColorPaletteOutline 
+            className="cursor-pointer" 
+            style={{width: iconSize, height: iconSize}}
+            onClick={() => props.onmousedown(2, props.fractal)}
+            title="Load only color [or right-click tile]"
+          />
+        </div>
+      </div>}
     </div>
   );
 }

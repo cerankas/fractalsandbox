@@ -2,9 +2,11 @@ import FractalTile from "./FractalTile";
 import { type Fractal } from "@prisma/client";
 import { useLocalStorage } from "./browserUtils";
 import { useEffect, useRef, useState } from "react";
+import { type User } from "~/logic/userProvider";
 
 export default function FractalSelector(props: { 
   fractals: Fractal[], 
+  users: User[], 
   loadMore: () => void, 
   onmousedown: (button: number, fractal: Fractal) => void, 
   selected: number, 
@@ -58,6 +60,7 @@ export default function FractalSelector(props: {
           >
             <FractalTile 
               fractal={f}
+              user={props.users.find(user => user.id === f.authorId)}
               size={parseInt(tileSize) ?? 300} 
               onmousedown={props.onmousedown}
               selected={f.id == props.selected}

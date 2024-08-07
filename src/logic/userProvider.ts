@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { isBrowser } from "~/components/browserUtils";
 import { api } from "~/utils/api";
 
-type User = { id: string, name: string; image: string };
+export type User = { id: string, name: string; image: string };
 
 export const loadUsersFromLocalStorage = () => JSON.parse(localStorage.getItem('userCache') ?? '[]') as User[];
 
