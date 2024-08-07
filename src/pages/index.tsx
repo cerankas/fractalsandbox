@@ -53,7 +53,13 @@ export default withNoSSR(function Home() {
 
   const [selectedFractal, setSelectedFractal] = useState<Fractal | null>(null);
   
-  const { fractals, loadMore, uploadFractal, deleteFractal } = useFractalProvider(setSelectedFractal);
+  const [userFilter, setUserFilter] = useState("");
+
+  const { fractals: unfilteredFractals, loadMore, uploadFractal, deleteFractal } = useFractalProvider(setSelectedFractal);
+  const fractals = useMemo(() => {
+    return userFilter === "" ? unfilteredFractals :
+    unfilteredFractals.filter(fractal => fractal.authorId === userFilter);
+  }, [unfilteredFractals, userFilter])
   
   const requestedUserIds = useMemo(() => [...new Set(fractals.map(fractal => fractal.authorId))], [fractals])
   const { users } = useUserProvider(requestedUserIds);
@@ -283,10 +289,11 @@ export default withNoSSR(function Home() {
         if (button == 0 || button == 1) setForm(fractal.form);
         if (button == 0 || button == 2) setColor(fractal.color);
       }} 
+      onAuthorClick={userId => setUserFilter(userFilter === userId ? "" : userId)}
       selected={selectedFractal?.id ?? 0}
       menu={commonMenuInBrowserPanel && commonMenu}
     />
-  </>, [fractals, users, loadMore, selectedFractal?.id, commonMenuInBrowserPanel, commonMenu, setForm, setColor]);
+  </>, [fractals, users, loadMore, selectedFractal?.id, commonMenuInBrowserPanel, commonMenu, setForm, setColor, userFilter]);
 
   const editorPanelContent = <>
     <FormulaEditor

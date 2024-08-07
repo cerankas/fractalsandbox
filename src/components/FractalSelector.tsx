@@ -9,6 +9,7 @@ export default function FractalSelector(props: {
   users: User[], 
   loadMore: () => void, 
   onmousedown: (button: number, fractal: Fractal) => void, 
+  onAuthorClick: (userId: string) => void,
   selected: number, 
   menu: React.ReactNode 
 }) {
@@ -63,6 +64,7 @@ export default function FractalSelector(props: {
               user={props.users.find(user => user.id === f.authorId)}
               size={parseInt(tileSize) ?? 300} 
               onmousedown={props.onmousedown}
+              onAuthorClick={props.onAuthorClick}
               selected={f.id == props.selected}
             />
           </div>)

@@ -9,7 +9,14 @@ import { backgroundColor, oppositeBackgroundColor } from "~/math/palette";
 
 const thumbnailCache = new IndexedDBManager<Blob>("thumbnails", 1);
 
-export default function FractalTile(props: { fractal: Fractal, user: User | undefined, size: number, onmousedown: (button: number, fractal: Fractal) => void, selected: boolean }) {
+export default function FractalTile(props: { 
+  fractal: Fractal, 
+  user: User | undefined, 
+  size: number, 
+  onmousedown: (button: number, fractal: Fractal) => void, 
+  onAuthorClick: (userId: string) => void,
+  selected: boolean 
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [url, setUrl] = useState("");
   
@@ -63,6 +70,7 @@ export default function FractalTile(props: { fractal: Fractal, user: User | unde
           src={props.user.image} 
           className="absolute left-0 bottom-0 rounded-full cursor-pointer" 
           style={{width: iconSize, height: iconSize, margin: iconSize/6}}
+          onClick={() => props.onAuthorClick(props.fractal.authorId)}
           title={props.user.name + ', ' + new Date(props.fractal.createdAt).toISOString().slice(2,10)} 
           alt="" 
         />
