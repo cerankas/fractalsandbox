@@ -1,5 +1,6 @@
-import { fractalRouter } from "./routers/fractal";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { userRouter } from "./routers/user";
+import { fractalRouter } from "./routers/fractal";
 import { fractalMutateRouter } from "./routers/fractal_mutate";
 
 /**
@@ -8,6 +9,7 @@ import { fractalMutateRouter } from "./routers/fractal_mutate";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
+  user: userRouter,
   fractal: fractalRouter,
   fractalMutate: fractalMutateRouter,
 });

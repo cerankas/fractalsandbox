@@ -22,6 +22,7 @@ import FractalHistory from "~/logic/history";
 import PaletteEditor from "~/components/PaletteEditor";
 import useFractalProvider from "~/logic/fractalProvider";
 import { inject } from '@vercel/analytics';
+import useUserProvider from "~/logic/userProvider";
 
 /*
   Todo:
@@ -53,6 +54,9 @@ export default withNoSSR(function Home() {
   const [selectedFractal, setSelectedFractal] = useState<Fractal | null>(null);
   
   const { fractals, loadMore, uploadFractal, deleteFractal } = useFractalProvider(setSelectedFractal);
+  
+  const requestedUserIds = useMemo(() => [...new Set(fractals.map(fractal => fractal.authorId))], [fractals])
+  const { users } = useUserProvider(requestedUserIds);
   
   const [fullscreen, setFullscreen] = useState(false);
   const [fullBefore, setFullBefore] = useState(false);
