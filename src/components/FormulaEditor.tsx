@@ -110,8 +110,11 @@ class FormulaEditorGUI extends Viewport {
 
   onPointerMove = (e: MouseEvent) => {
     if (this.isDragging || e.buttons) return;
+    const lastSelectedFormula = this.selectedFormula;
+    const lastSelectedPoint = this.selectedPoint;
     const dataMousePoint = this.fromScreen(getEventOffsetXY(e));
     this.selectNearestFormula(dataMousePoint);
+    if (lastSelectedFormula === this.selectedFormula && lastSelectedPoint === this.selectedPoint) return;
     this.draw();
   }
 
