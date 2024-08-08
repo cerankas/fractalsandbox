@@ -11,7 +11,8 @@ export default function FractalSelector(props: {
   onmousedown: (button: number, fractal: Fractal) => void, 
   onAuthorClick: (userId: string) => void,
   selected: number, 
-  menu: React.ReactNode 
+  menu: React.ReactNode, 
+  filter: React.ReactNode
 }) {
   const [tileSize, setTileSize] = useLocalStorage('tileSize', '180');
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -48,6 +49,7 @@ export default function FractalSelector(props: {
             tabIndex={-1}
             title="Tile size"
           />
+          {props.filter}
         </div>
         {props.menu}
       </div>

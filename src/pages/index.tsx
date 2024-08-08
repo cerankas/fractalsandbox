@@ -23,6 +23,7 @@ import PaletteEditor from "~/components/PaletteEditor";
 import useFractalProvider from "~/logic/fractalProvider";
 import { inject } from '@vercel/analytics';
 import useUserProvider from "~/logic/userProvider";
+import UserFilter from "~/components/UserFilter";
 
 /*
   Todo:
@@ -49,21 +50,21 @@ export default withNoSSR(function Home() {
 
   useEffect(() => console.log('Build timestamp: ' + process.env.NEXT_PUBLIC_BUILD_TIMESTAMP), []);
 
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn, user: signedInUser } = useUser();
 
   const [selectedFractal, setSelectedFractal] = useState<Fractal | null>(null);
   
-  const [userFilter, setUserFilter] = useState("");
+  const [filteredUserId, setFilteredUserId] = useState("");
 
   const { fractals: unfilteredFractals, loadMore, uploadFractal, deleteFractal } = useFractalProvider(setSelectedFractal);
-  const fractals = useMemo(() => {
-    return userFilter === "" ? unfilteredFractals :
-    unfilteredFractals.filter(fractal => fractal.authorId === userFilter);
-  }, [unfilteredFractals, userFilter])
+  const fractals = useMemo(() => filteredUserId === "" ? 
+    unfilteredFractals : unfilteredFractals.filter(fractal => fractal.authorId === filteredUserId)
+  , [unfilteredFractals, filteredUserId]);
+
   
   const requestedUserIds = useMemo(() => [...new Set(fractals.map(fractal => fractal.authorId))], [fractals])
   const { users } = useUserProvider(requestedUserIds);
-  
+
   const [fullscreen, setFullscreen] = useState(false);
   const [fullBefore, setFullBefore] = useState(false);
 
@@ -240,7 +241,7 @@ export default withNoSSR(function Home() {
 
   const fractalPanelContent = <>
     <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color)}}>
-      {isSignedIn && !modified && selectedFractal.authorId === user.id && <MdOutlineDeleteForever
+      {isSignedIn && !modified && selectedFractal.authorId === signedInUser.id && <MdOutlineDeleteForever
         className={iconStyle}
         onClick={() => deleteFractal({id: selectedFractal.id})} 
         title="Delete fractal"
@@ -289,11 +290,12 @@ export default withNoSSR(function Home() {
         if (button == 0 || button == 1) setForm(fractal.form);
         if (button == 0 || button == 2) setColor(fractal.color);
       }} 
-      onAuthorClick={userId => setUserFilter(userFilter === userId ? "" : userId)}
+      onAuthorClick={userId => setFilteredUserId(filteredUserId === userId ? "" : userId)}
       selected={selectedFractal?.id ?? 0}
       menu={commonMenuInBrowserPanel && commonMenu}
+      filter={<UserFilter users={users} filteredUserId={filteredUserId} setFilteredUserId={setFilteredUserId}/>}
     />
-  </>, [fractals, users, loadMore, selectedFractal?.id, commonMenuInBrowserPanel, commonMenu, setForm, setColor, userFilter]);
+  </>, [fractals, users, loadMore, selectedFractal?.id, commonMenuInBrowserPanel, commonMenu, setForm, setColor, filteredUserId]);
 
   const editorPanelContent = <>
     <FormulaEditor
