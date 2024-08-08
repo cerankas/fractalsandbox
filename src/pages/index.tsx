@@ -306,7 +306,7 @@ export default withNoSSR(function Home() {
   const pointerDownHandler = useCallback((e: React.PointerEvent<HTMLElement>) => {
     const t = e.target as HTMLElement;
     if (t.tagName === 'INPUT' || t.tagName === 'IMG') return;
-    if (typeof t.className === 'string' && (t.className.startsWith('react-colorful') || t.className.startsWith('tile-canvas'))) return;
+    if (typeof t.className === 'string' && (t.className.startsWith('react-colorful') || t.className.startsWith('fractal-tile'))) return;
     e.preventDefault();
   }, []);
 

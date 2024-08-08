@@ -19,6 +19,7 @@ export default function FractalTile(props: {
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [url, setUrl] = useState("");
+  const [hovered, setHovered] = useState(false);
   
   useEffect(() => {
     thumbnailCache.get(props.fractal.id.toString())
@@ -54,26 +55,28 @@ export default function FractalTile(props: {
   const iconSize = props.size > 180 ? 24 : 24 * props.size / 180;
 
   return (
-    <div className={`group relative flex flex-grow justify-center border-2 ${borderStyle} ${hoverStyle}`}
+    <div className={`fractal-tile relative flex flex-grow justify-center border-2 ${borderStyle} ${hoverStyle}`}
       style={{
         backgroundColor: backgroundColor(props.fractal.color),
         width: `${props.size + 4}px`,
         height: `${props.size + 4}px`,
       }}
+      onMouseDown={onmousedown}
+      onMouseOver={() => setHovered(true)}
+      onMouseOut={() => setHovered(false)}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {url && <img src={url} alt="" style={{userSelect:'none'}} onMouseDown={onmousedown}/>}
-      {!url && <canvas ref={canvasRef} width={300} height={300} onMouseDown={onmousedown} className="tile-canvas" />}
-      {props.user && <div className="opacity-0 group-hover:opacity-100">
+      {url && <img src={url} alt="" style={{userSelect:'none'}} />}
+      {!url && <canvas ref={canvasRef} width='300' height='300' />}
+      {hovered && <div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img 
-          src={props.user.image} 
+        {props.user && <img 
+          src={props.user.image} alt = ""
           className="absolute left-0 bottom-0 rounded-full cursor-pointer" 
           style={{width: iconSize, height: iconSize, margin: iconSize/6}}
           onClick={() => props.onAuthorClick(props.fractal.authorId)}
           title={props.user.name + ', ' + new Date(props.fractal.createdAt).toISOString().slice(2,10)} 
-          alt="" 
-        />
+        />}
         <div className="absolute flex right-0 top-0" style={{color: opCol}}>
           <TbTriangles 
             className="cursor-pointer" 
