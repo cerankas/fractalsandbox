@@ -143,8 +143,9 @@ export default class FractalRenderer extends FractalSummator {
       for (let y = 0; y < framedHeight; y++) if (this.sums[x + (offsetY + y) * this.width] !== 0) return false;
       return true;
     }
-    while (rowIsEmpty(offsetY) && rowIsEmpty(offsetY + framedHeight - 1)) { offsetY += 1; framedHeight -= 2; }
-    while (colIsEmpty(offsetX) && colIsEmpty(offsetX + framedWidth  - 1)) { offsetX += 1; framedWidth  -= 2; }
+    while (rowIsEmpty(offsetY) && rowIsEmpty(offsetY + framedHeight - 1) && framedHeight > 0) { offsetY += 1; framedHeight -= 2; }
+    while (colIsEmpty(offsetX) && colIsEmpty(offsetX + framedWidth  - 1) && framedWidth  > 0) { offsetX += 1; framedWidth  -= 2; }
+    if (framedHeight <= 0 || framedWidth <= 0) return;
     const data = new Int32Array(framedWidth * framedHeight);
     for (let y = 0; y < framedHeight; y++){
       const start = offsetX + (offsetY + y) * this.width;
