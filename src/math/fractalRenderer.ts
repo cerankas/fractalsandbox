@@ -191,16 +191,16 @@ export default class FractalRenderer extends FractalSummator {
   
   draw = () => {
     if (!this.ctx || !this.imageData) return;
-    for (const sum of this.sums) {
-      if (this.maxSum < sum) {
-        this.maxSum = sum;
+    for (let i = this.sums.length - 1; i >= 0; i--) {
+      if (this.maxSum < this.sums[i]!) {
+        this.maxSum = this.sums[i]!;
       }
     }
     const palData = new Int32Array(this.imageData.data.buffer);
     const palmul = (PALETTE_LENGTH - 1) / this.maxSum;
-    for (let i = this.sums.length - 1; i >= 0; i--) {
+      for (let i = this.sums.length - 1; i >= 0; i--) {
       palData[i] = this.palette[(this.sums[i]! * palmul) | 0]!;
-    }
+      }
     this.ctx.putImageData(this.imageData, 0, 0);
     this.mustRedraw = false;
   }
