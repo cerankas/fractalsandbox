@@ -11,6 +11,7 @@ export default class IndexedDBManager<T> {
       request.onsuccess = () => { this.db = request.result; resolve(); };
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
         const db = (event.target as IDBRequest<IDBDatabase>).result;
+        if (event.oldVersion != 0) db.deleteObjectStore("data");
         db.createObjectStore("data", { keyPath: "key" });
       };
     })
