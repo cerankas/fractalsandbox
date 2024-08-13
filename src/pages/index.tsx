@@ -8,7 +8,7 @@ import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
 import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlinePicture } from "react-icons/ai";
 import { IoCloudUploadOutline, IoColorPaletteOutline } from "react-icons/io5";
-import { MdOutlineDeleteForever, MdSlideshow } from "react-icons/md";
+import { MdOutlineDeleteForever, MdPlayArrow } from "react-icons/md";
 import { BiUndo, BiRedo } from "react-icons/bi";
 import { RiGalleryView2 } from "react-icons/ri";
 import { TbTriangles } from "react-icons/tb";
@@ -24,6 +24,7 @@ import useFractalProvider from "~/logic/fractalProvider";
 import { inject } from '@vercel/analytics';
 import useUserProvider from "~/logic/userProvider";
 import UserFilter from "~/components/UserFilter";
+import ProgressIndicator from "~/components/ProgressIndicator";
 
 /*
   Todo:
@@ -76,6 +77,8 @@ export default withNoSSR(function Home() {
 
   const [slideShow, setSlideShow] = useState(false);
   const [slideShowInterval, setSlideShowInterval] = useState(0);
+  const [slideShowCounter, setSlideShowCounter] = useState(0);
+  const slideShowCount = 160;
 
   const selectFractal = useCallback((fractal: Fractal) => {
     setSelectedFractal(fractal);
@@ -121,10 +124,16 @@ export default withNoSSR(function Home() {
   }, [fractals, selectFractal, selectedFractal, storeToHistory]);
 
   const startSlideShow = useCallback(() => {
+    setSlideShowCounter(1);
     setSlideShow(true);
     setSlideShowInterval(window.setInterval(() => { 
-      selectNextSlideRef.current();
-    }, 8000));
+      setSlideShowCounter(cnt => { 
+        cnt += 1;
+        if (cnt == slideShowCount - 1) selectNextSlideRef.current();
+        if (cnt > slideShowCount) cnt = 1;
+        return cnt;
+      })
+    }, 50));
   }, []);
 
   useEffect(() => {
@@ -138,7 +147,6 @@ export default withNoSSR(function Home() {
   }, [storeToHistory]);
 
   const [showPalette, setShowPalette] = useState(false);
-  const toggleShowPalette = useCallback(() => setShowPalette(!showPalette), [showPalette])
 
   const isHorizontal = useHorizontal();
   const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
@@ -171,7 +179,7 @@ export default withNoSSR(function Home() {
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
       if (e.key === "f")  if (fullscreen) exitFullscreen(); else enterFullscreen();
-      if (e.key === "c") toggleShowPalette();
+      if (e.key === "c") setShowPalette(show => !show);
       if (e.key === "z") fractalHistory.back();
       if (e.key === "y") fractalHistory.forward(); 
       if (e.key === 'ArrowLeft') selectPreviousFractal();
@@ -180,7 +188,7 @@ export default withNoSSR(function Home() {
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory, toggleShowPalette, selectPreviousFractal, selectNextFractal, stopSlideShow]);
+  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory, selectPreviousFractal, selectNextFractal, stopSlideShow]);
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
 
@@ -225,7 +233,7 @@ export default withNoSSR(function Home() {
       <IoColorPaletteOutline 
         className={iconStyle}
         style={{backgroundColor: showPalette ? 'lightgray' : 'transparent', borderRadius: 2}}
-        onClick={toggleShowPalette}
+        onClick={() => setShowPalette(show => !show)}
         title={`${showPalette ? 'Hide' : 'Show'} color palette [c]`}
       />
       <div className="m-1 hover:cursor-pointer">
@@ -237,7 +245,7 @@ export default withNoSSR(function Home() {
         </SignInButton>}
       </div>
     </div>
-  , [browserEditorPanelVisible, browserPanelVisible, editorPanelVisible, toggleShowPalette, showPalette, isSignedIn, bPcollapse, ePcollapse]);
+  , [browserEditorPanelVisible, browserPanelVisible, editorPanelVisible, showPalette, isSignedIn, bPcollapse, ePcollapse]);
 
   const fractalPanelContent = <>
     <div className="absolute top-0 right-0 flex flex-row" style={{color: oppositeBackgroundColor(color)}}>
@@ -332,12 +340,18 @@ export default withNoSSR(function Home() {
                 onClick={selectPreviousFractal}
                 title="Go to previous fractal [Left]"
               />
-              <MdSlideshow
+              {slideShow && <ProgressIndicator 
+                progress={slideShowCounter / slideShowCount} 
+                color={oppositeBackgroundColor(color)} 
+                onclick={stopSlideShow}
+                title="Stop slideshow"
+              />}
+              {!slideShow && <MdPlayArrow
                 className={iconStyle} 
                 style={{backgroundColor: slideShow ? 'lightgray' : 'transparent', borderRadius: 2}}
-                onClick={slideShow ? stopSlideShow : startSlideShow} 
-                title={`${slideShow? 'Stop' : 'Start'} slideshow`}
-              />
+                onClick={startSlideShow} 
+                title="Start slideshow"
+              />}
               <TiArrowRight 
                 className={iconStyle} 
                 onClick={selectNextFractal} 
