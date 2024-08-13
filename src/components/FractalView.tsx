@@ -17,14 +17,10 @@ export default function FractalView(props: { form: string, color: string, update
 
   useEffect(() => {
     renderer.setForm(props.form);
-    renderer.render();
-  }, [renderer, props.form]);
-  
-  useEffect(() => {
     renderer.setColor(props.color);
     renderer.render();
-  }, [renderer, props.color]);
-
+  }, [renderer, props.form, props.color]);
+  
   return (
     <div className="size-full" style={{backgroundColor: backgroundColor(props.color)}}>
       
