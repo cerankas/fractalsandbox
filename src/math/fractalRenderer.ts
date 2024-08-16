@@ -4,10 +4,10 @@ import FractalSummator from "./fractalSummator";
 import { getMs } from "./util";
 import BackgroundScheduler from "~/logic/scheduler";
 import ImageCache from "~/logic/imageCache";
+import { providedFractalRanges } from "~/logic/fractalProvider";
 
-const frameReductionFactor = .9;
-export const reduceByFrame = (dimension: number) => dimension * frameReductionFactor | 0;
-const frameOffset = (dimension: number, reduced? : number) => (dimension - (reduced ?? reduceByFrame(dimension))) / 2 | 0;
+const defaultZoom = .9;
+const frameOffset = (dimension: number, framedDimension : number) => (dimension - framedDimension) / 2 | 0;
 
 type FractalRendererProps = {
   initPriority: number;
@@ -18,7 +18,7 @@ type FractalRendererProps = {
 
 export default class FractalRenderer extends FractalSummator {
   static scheduler = new BackgroundScheduler();
-  static imageCache = new ImageCache;
+  static imageCache = new ImageCache();
 
   ctx: CanvasRenderingContext2D | null = null;
   imageData: ImageData | null = null;
@@ -32,11 +32,18 @@ export default class FractalRenderer extends FractalSummator {
   renderInfinitely = false;
   palette: number[] = [];
 
-  fractal = "";
+  form = "";
   color = "";
 
   mustRecalc = false;
   mustRedraw = false;
+  
+  zoomedWidth = 0;
+  zoomedHeight = 0;
+
+  formInRendering = '';
+  frameFromCache: ReturnType<FractalRenderer['getFrameToStore']> | null = null;
+  renderTime = 0;
 
   initPriority;
   drawPriority;
@@ -44,16 +51,23 @@ export default class FractalRenderer extends FractalSummator {
   onprogress;
 
   constructor({initPriority, drawPriority, cached = false, onprogress = undefined} : FractalRendererProps) {
-    super(frameReductionFactor);
+    super(defaultZoom);
     this.initPriority = initPriority;
     this.drawPriority = drawPriority;
     this.cached = cached;
     this.onprogress = onprogress;
   }
 
+  setZoomedSize() {
+    const reduceByFrame = (dimension: number) => dimension * defaultZoom | 0;
+    this.zoomedWidth = reduceByFrame(this.width);
+    this.zoomedHeight = reduceByFrame(this.height);
+  }
+
   setCtx = (ctx: CanvasRenderingContext2D) => {
     if (this.width != ctx.canvas.width || this.height != ctx.canvas.height) {
       super.setSize([ctx.canvas.width, ctx.canvas.height]);
+      this.setZoomedSize();
       this.mustRecalc = true;
     }
     this.ctx = ctx;
@@ -61,8 +75,8 @@ export default class FractalRenderer extends FractalSummator {
   }
 
   setForm(form: string) {
-    if (this.fractal === form) return;
-    this.fractal = form;
+    if (this.form === form) return;
+    this.form = form;
     this.formulas = Formula.fromString(form);
     this.mustRecalc = true;
   }
@@ -74,19 +88,26 @@ export default class FractalRenderer extends FractalSummator {
     this.mustRedraw = true;
   }
 
+  shouldCacheProgress() {
+    if (!this.cached || !this.pointsCount || this.renderTime < 200 || this.isFinished()) return false;
+    if (providedFractalRanges[0]?.find(fractal => fractal.form === this.formInRendering) !== undefined) return true;
+    return false;
+  }
+
   render() {
     if (!this.ctx) return;
     if (!this.area) return;
     if (!this.formulas.length) return;
 
-    if (!this.mustRecalc) {
-      if (this.mustRedraw) {
-        this.draw();
-      }
-      return;
-    }
+    if (!this.mustRecalc && this.mustRedraw) this.draw();
+    if (!this.mustRecalc) return;
 
     this.releaseTask();
+
+    if (this.shouldCacheProgress()) this.storeInCache();
+    this.formInRendering = this.form;
+    this.frameFromCache = null;
+    this.renderTime = 0;
 
     this.mustRecalc = false;
     super.prepare();
@@ -98,11 +119,11 @@ export default class FractalRenderer extends FractalSummator {
     this.pointsPerImage = this.densityPerImage * this.area;
     this.pointsCount = 0;
 
-    void this.prepare();
+    void this.prepareRender();
   }
 
-  async prepare() {
-    if (this.cached && await FractalRenderer.imageCache.cachedSize(this.fractal, this.width, this.height) !== undefined) 
+  async prepareRender() {
+    if (this.cached && await FractalRenderer.imageCache.cachedSize(this.form, this.zoomedWidth, this.zoomedHeight) !== undefined) 
       await this.prepareCached();
     else 
       setTimeout(this.prepareCalculated);
@@ -111,47 +132,79 @@ export default class FractalRenderer extends FractalSummator {
   async prepareCached() {
     const initWidth = this.width;
     const initHeight = this.height;
-    await FractalRenderer.imageCache.get(this.fractal, this.width, this.height)
+
+    await FractalRenderer.imageCache.get(this.form, this.zoomedWidth, this.zoomedHeight)
     .then(
       (result) => {
         if (this.width !== initWidth || this.height !== initHeight) return; // Dimensions changed before fetch
+        
         const offsetX = frameOffset(this.width, result.width);
         const offsetY = frameOffset(this.height, result.height);
+        
         for (let y = 0; y < result.height; y++) {
           const start = y * result.width;
           const offset = offsetX + (offsetY + y) * this.width;
           this.sums.set(result.data.subarray(start, start + result.width), offset);
         }
-        this.pointsCount = this.pointsPerImage;
-        this.draw();
-        this.onprogress?.(1);
+        
+        const resumeData = JSON.parse(result.resumeData) as ReturnType<FractalRenderer['getResumeData']>;
+        
+        this.pointsCount = resumeData.pointsCount;
+        this.frameFromCache = { width: result.width, height: result.height, offsetX, offsetY };
+        
+        if (this.pointsCount >= this.pointsPerImage) {
+          this.draw();
+          this.onprogress?.(1);
+        } else {
+          this.dataMin = resumeData.dataMin;
+          this.dataMax = resumeData.dataMax;
+          this.updateTransform();
+          this.pointsComputer.x = resumeData.x;
+          this.pointsComputer.y = resumeData.y;
+          this.prepareCalculated();
+  
+        }
       },
       () => setTimeout(this.prepareCalculated)
     );   
   }
 
-  storeInCache() {
-    let framedWidth = reduceByFrame(this.width);
-    let framedHeight = reduceByFrame(this.height);
-    let offsetX = frameOffset(this.width);
-    let offsetY = frameOffset(this.height);
+  getFrameToStore() {
+    const frame = {
+      width: this.zoomedWidth,
+      height: this.zoomedHeight,
+      offsetX: frameOffset(this.width, this.zoomedWidth),
+      offsetY: frameOffset(this.height, this.zoomedHeight),
+    }
     const rowIsEmpty = (y: number) => {
-      for (let x = 0; x < framedWidth; x++) if (this.sums[offsetX + x + y * this.width] !== 0) return false;
+      for (let x = 0; x < frame.width; x++) if (this.sums[frame.offsetX + x + y * this.width] !== 0) return false;
       return true;
     }
     const colIsEmpty = (x: number) => {
-      for (let y = 0; y < framedHeight; y++) if (this.sums[x + (offsetY + y) * this.width] !== 0) return false;
+      for (let y = 0; y < frame.height; y++) if (this.sums[x + (frame.offsetY + y) * this.width] !== 0) return false;
       return true;
     }
-    while (rowIsEmpty(offsetY) && rowIsEmpty(offsetY + framedHeight - 1) && framedHeight > 0) { offsetY += 1; framedHeight -= 2; }
-    while (colIsEmpty(offsetX) && colIsEmpty(offsetX + framedWidth  - 1) && framedWidth  > 0) { offsetX += 1; framedWidth  -= 2; }
-    if (framedHeight <= 0 || framedWidth <= 0) return;
-    const data = new Int32Array(framedWidth * framedHeight);
-    for (let y = 0; y < framedHeight; y++){
-      const start = offsetX + (offsetY + y) * this.width;
-      data.set(this.sums.subarray(start, start + framedWidth), y * framedWidth);
+    while (rowIsEmpty(frame.offsetY) && rowIsEmpty(frame.offsetY + frame.height - 1) && frame.height > 0) { frame.offsetY += 1; frame.height -= 2; }
+    while (colIsEmpty(frame.offsetX) && colIsEmpty(frame.offsetX + frame.width  - 1) && frame.width  > 0) { frame.offsetX += 1; frame.width  -= 2; }
+    return frame;
+  }
+
+  getDataToStore(frame: ReturnType<FractalRenderer['getFrameToStore']>) {
+    const data = new Int32Array(frame.width * frame.height);
+    for (let y = 0; y < frame.height; y++) {
+      const start = frame.offsetX + (frame.offsetY + y) * this.width;
+      data.set(this.sums.subarray(start, start + frame.width), y * frame.width);
     }
-    FractalRenderer.imageCache.put(this.fractal, framedWidth, framedHeight, data);
+    return data;
+  }
+
+  storeInCache() {
+    const frame = this.frameFromCache ?? this.getFrameToStore()
+    if (frame.width <= 0 || frame.height <= 0) return;
+    const data = this.getDataToStore(frame);
+    const resumeData = JSON.stringify(this.getResumeData());
+    const formInRendering = this.formInRendering;
+    setTimeout(() => FractalRenderer.imageCache.put(formInRendering, frame.width, frame.height, data, resumeData), 100);
   }
 
   prepareCalculated = () => {
@@ -184,6 +237,7 @@ export default class FractalRenderer extends FractalSummator {
     }
     if (this.isFinished() && this.cached) this.storeInCache();
     this.onprogress?.(this.pointsCount / this.pointsPerImage);
+    this.renderTime += getMs() - startMs;
   }
   
   priority() { return !this.pointsCount ? this.initPriority : this.drawPriority + this.pointsCount / this.pointsPerImage; }
@@ -199,11 +253,21 @@ export default class FractalRenderer extends FractalSummator {
     }
     const palData = new Int32Array(this.imageData.data.buffer);
     const palmul = (PALETTE_LENGTH - 1) / this.maxSum;
-      for (let i = this.sums.length - 1; i >= 0; i--) {
+    for (let i = this.sums.length - 1; i >= 0; i--) {
       palData[i] = this.palette[(this.sums[i]! * palmul) | 0]!;
-      }
+    }
     this.ctx.putImageData(this.imageData, 0, 0);
     this.mustRedraw = false;
+  }
+
+  getResumeData() {
+    return {
+      pointsCount: this.pointsCount,
+      dataMin: this.dataMin,
+      dataMax: this.dataMax,
+      x: this.pointsComputer.x,
+      y: this.pointsComputer.y,
+    };
   }
 
 }

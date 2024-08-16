@@ -3,15 +3,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { isBrowser } from "~/components/browserUtils";
 import { api } from "~/utils/api";
 
-export const loadFractalRangesFromLocalStorage = () => JSON.parse(localStorage.getItem('fractalCache') ?? '[]') as Fractal[][];
+export let providedFractalRanges: Fractal[][] = isBrowser ? JSON.parse(localStorage.getItem('fractalCache') ?? '[]') as Fractal[][] : [];
 
 export default function useFractalProvider(setSelectedFractal: (fractal: Fractal | null) => void) {
   const [limit, setLimit] = useState(50);
   const [isInitial, setIsInitial] = useState(true);
-  const [ranges, setRanges] = useState<Fractal[][]>(isBrowser ? loadFractalRangesFromLocalStorage() : []);
+  const [ranges, setRanges] = useState<Fractal[][]>(() => providedFractalRanges);
   
   const setAndSaveRanges = useCallback((newRanges: Fractal[][]) => {
     setRanges(newRanges);
+    providedFractalRanges = newRanges;
     localStorage.setItem('fractalCache', JSON.stringify(newRanges));
   }, []);
   

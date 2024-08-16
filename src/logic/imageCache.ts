@@ -1,10 +1,9 @@
-import { reduceByFrame } from "~/math/fractalRenderer";
 import IndexedDBManager from "./cache";
-import { loadFractalRangesFromLocalStorage } from "./fractalProvider";
+import { providedFractalRanges } from "./fractalProvider";
 import {gzipSync, gunzipSync} from 'fflate';
 
 export default class ImageCache {
-  private imageDbManager = new IndexedDBManager<Uint8Array>('images', 1);
+  private imageDbManager = new IndexedDBManager<{ data: Uint8Array, resumeData: string }>('images', 2);
   private cachedImageSizes = new Map<string, { width: number, height: number }[]>;
   private initialQueue: (() => void)[] = [];
   private initialized = false;
@@ -22,8 +21,7 @@ export default class ImageCache {
       this.initialized = true;
       this.initialQueue.forEach(callback => callback());
 
-      const cachedRanges = loadFractalRangesFromLocalStorage()
-      const cachedFractals = cachedRanges.reduce((prevRange, newRange) => prevRange.concat(newRange), []);
+      const cachedFractals = providedFractalRanges.reduce((prevRange, newRange) => prevRange.concat(newRange), []);
       const cachedForms = new Set(cachedFractals.map(fractal => fractal.form)).add(localStorage.getItem('form') ?? '');
 
       this.cachedImageSizes.forEach((sizes, form) => {
@@ -42,35 +40,35 @@ export default class ImageCache {
     if (sizes === undefined)
       this.cachedImageSizes.set(form, [size]);
     else
-      sizes.push(size);
+      if (!sizes.some(item => item.width == size.width && item.height == size.height))
+        sizes.push(size);
   }
 
-  put(form: string, width: number, height: number, data: Int32Array) {
-    void this.imageDbManager
-    .put(`${width}:${height}:${form}`, gzipSync(new Uint8Array(data.buffer), { level: 1 }))
+  put(form: string, width: number, height: number, data: Int32Array, resumeData: string) {
+    void this.imageDbManager.put(
+      `${width}:${height}:${form}`, 
+      {data: gzipSync(new Uint8Array(data.buffer), { level: 1 }), resumeData: resumeData}
+    )
     .then(() => this.addCachedImageSize(form, { width: width, height: height}));
   }
 
   async cachedSize(form: string, width: number, height: number) {
     await this.awaitInitialized();
 
-    const framedWidth = reduceByFrame(width);
-    const framedHeight = reduceByFrame(height);
-    
     const cachedSizes = this.cachedImageSizes.get(form);
     return cachedSizes?.filter(size => 
-      (size.width === framedWidth && size.height <= framedHeight) || 
-      (size.height === framedHeight && size.width <= framedWidth)
+      (size.width === width && size.height <= height) || 
+      (size.height === height && size.width <= width)
     )?.[0] ?? undefined;
   }
 
   async get(form: string, width: number, height: number) {
     const cachedSize = await this.cachedSize(form, width, height);
-    return new Promise<{width: number, height: number, data: Int32Array}>((resolve, reject) => {
+    return new Promise<{width: number, height: number, data: Int32Array, resumeData: string}>((resolve, reject) => {
       if (cachedSize !== undefined)
         void this.imageDbManager.get(`${cachedSize.width}:${cachedSize.height}:${form}`)
         .then(
-          data => resolve({width: cachedSize.width, height: cachedSize.height, data: new Int32Array(gunzipSync(data).buffer)}),
+          data => resolve({width: cachedSize.width, height: cachedSize.height, data: new Int32Array(gunzipSync(data.data).buffer), resumeData: data.resumeData}),
           (reason: Error) => reject(reason)
         );
       else
