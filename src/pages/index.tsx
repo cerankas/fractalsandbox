@@ -176,28 +176,29 @@ export default withNoSSR(function Home() {
     return () => window.removeEventListener('fullscreenchange', fullscreenObserver);
   }, [stopSlideShow]);
 
+  const [fractalCanvas, setFractalCanvas] = useState<HTMLCanvasElement | null>(null);
+  const downloadRef = useRef<HTMLAnchorElement>(null);
+  const downloadImage = useCallback(() => {
+    downloadRef.current!.href = fractalCanvas!.toDataURL('image/png');
+    downloadRef.current!.click();
+  }, [fractalCanvas]);
+
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
       if (e.key === "f")  if (fullscreen) exitFullscreen(); else enterFullscreen();
       if (e.key === "c") setShowPalette(show => !show);
       if (e.key === "z") fractalHistory.back();
       if (e.key === "y") fractalHistory.forward(); 
+      if (e.key === "s") downloadImage(); 
       if (e.key === 'ArrowLeft') selectPreviousFractal();
       if (e.key === 'ArrowRight') selectNextFractal();
       stopSlideShow();
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory, selectPreviousFractal, selectNextFractal, stopSlideShow]);
+  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory, selectPreviousFractal, selectNextFractal, stopSlideShow, downloadImage]);
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
-
-  const [fractalCanvas, setFractalCanvas] = useState<HTMLCanvasElement | null>(null);
-  const downloadRef = useRef<HTMLAnchorElement>(null);
-  const downloadImage = useCallback(() => {
-    downloadRef.current!.href = fractalCanvas!.toDataURL('image/png');
-    downloadRef.current!.click();
-  }, [fractalCanvas])
 
   const browserPanelRef = useRef<ImperativePanelHandle>(null);
   const editorPanelRef = useRef<ImperativePanelHandle>(null);
@@ -262,7 +263,7 @@ export default withNoSSR(function Home() {
       <AiOutlinePicture
         className={iconStyle} 
         onClick={downloadImage}
-        title="Save image"
+        title="Save image [s]"
       />
       <BiUndo
         className={iconStyle} 
@@ -284,7 +285,7 @@ export default withNoSSR(function Home() {
     <FractalView
       form={form}
       color={color}
-      updateCanvasRef={(canvas) => setFractalCanvas(canvas)}
+      updateCanvasRef={(canvas) => { if (!fullscreen) setFractalCanvas(canvas) }}
     />
   </>;
 
@@ -367,6 +368,7 @@ export default withNoSSR(function Home() {
             <FractalView
               form={form}
               color={color}
+              updateCanvasRef={(canvas) => { if (fullscreen) setFractalCanvas(canvas) }}
             />
           </div>
         }
