@@ -40,7 +40,7 @@ export default function UserFilter(props: {users: User[], filteredUserId: string
         />
       </span>
     }
-    {expanded && <div className="fixed inset-0 z-40 bg-color" onClick={() => setExpanded(false)}/>}
+    {expanded && <div className="fixed inset-0 z-40 bg-black opacity-50" onClick={() => setExpanded(false)}/>}
     {expanded && <div className="absolute left-0 top-0 flex flex-col rounded z-50 border-2 bg-white border-black">
       <div style={props.filteredUserId === '' ? {backgroundColor:'lightgray', borderRadius: 2} : {}}>
         <span className="flex m-1 rounded-full bg-gray-300 size-6 justify-center items-center cursor-pointer">
