@@ -41,7 +41,6 @@ export default class FractalRenderer extends FractalSummator {
   zoomedWidth = 0;
   zoomedHeight = 0;
 
-  formInRendering = '';
   frameFromCache: ReturnType<FractalRenderer['getFrameToStore']> | null = null;
   renderTime = 0;
 
@@ -66,6 +65,7 @@ export default class FractalRenderer extends FractalSummator {
 
   setCtx = (ctx: CanvasRenderingContext2D) => {
     if (this.width != ctx.canvas.width || this.height != ctx.canvas.height) {
+      if (this.shouldCacheProgress()) this.storeInCache();
       super.setSize([ctx.canvas.width, ctx.canvas.height]);
       this.setZoomedSize();
       this.mustRecalc = true;
@@ -76,6 +76,7 @@ export default class FractalRenderer extends FractalSummator {
 
   setForm(form: string) {
     if (this.form === form) return;
+    if (this.shouldCacheProgress()) this.storeInCache();
     this.form = form;
     this.formulas = Formula.fromString(form);
     this.mustRecalc = true;
@@ -90,7 +91,7 @@ export default class FractalRenderer extends FractalSummator {
 
   shouldCacheProgress() {
     if (!this.cached || !this.pointsCount || this.renderTime < 200 || this.isFinished()) return false;
-    if (providedFractalRanges[0]?.find(fractal => fractal.form === this.formInRendering) !== undefined) return true;
+    if (providedFractalRanges[0]?.find(fractal => fractal.form === this.form) !== undefined) return true;
     return false;
   }
 
@@ -104,8 +105,6 @@ export default class FractalRenderer extends FractalSummator {
 
     this.releaseTask();
 
-    if (this.shouldCacheProgress()) this.storeInCache();
-    this.formInRendering = this.form;
     this.frameFromCache = null;
     this.renderTime = 0;
 
@@ -201,10 +200,10 @@ export default class FractalRenderer extends FractalSummator {
   storeInCache() {
     const frame = this.frameFromCache ?? this.getFrameToStore()
     if (frame.width <= 0 || frame.height <= 0) return;
+    const form = this.form;
     const data = this.getDataToStore(frame);
     const resumeData = JSON.stringify(this.getResumeData());
-    const formInRendering = this.formInRendering;
-    setTimeout(() => FractalRenderer.imageCache.put(formInRendering, frame.width, frame.height, data, resumeData), 100);
+    setTimeout(() => FractalRenderer.imageCache.put(form, frame.width, frame.height, data, resumeData), 100);
   }
 
   prepareCalculated = () => {
