@@ -7,7 +7,7 @@ import FractalView from "~/components/FractalView";
 import FractalSelector from "~/components/FractalSelector";
 import FormulaEditor from "~/components/FormulaEditor";
 import { AiOutlineFullscreen, AiOutlineFullscreenExit, AiOutlinePicture } from "react-icons/ai";
-import { IoCloudUploadOutline, IoColorPaletteOutline } from "react-icons/io5";
+import { IoCloudUploadOutline, IoColorPaletteOutline, IoSettingsOutline } from "react-icons/io5";
 import { MdOutlineDeleteForever, MdPlayArrow } from "react-icons/md";
 import { BiUndo, BiRedo } from "react-icons/bi";
 import { RiGalleryView2 } from "react-icons/ri";
@@ -26,6 +26,7 @@ import useUserProvider from "~/logic/userProvider";
 import UserFilter from "~/components/UserFilter";
 import ProgressIndicator from "~/components/ProgressIndicator";
 import { getMs } from "~/math/util";
+import SettingsDialog from "~/components/SettingsDialog";
 
 /*
   Todo:
@@ -49,8 +50,6 @@ const withNoSSR = <P extends object>(Component: ComponentType<P>) => dynamic<P>(
 
 export default withNoSSR(function Home() {
   inject();
-
-  useEffect(() => console.log('Build timestamp: ' + process.env.NEXT_PUBLIC_BUILD_TIMESTAMP), []);
 
   const { isSignedIn, user: signedInUser } = useUser();
 
@@ -156,6 +155,7 @@ export default withNoSSR(function Home() {
   }, [storeToHistory]);
 
   const [showPalette, setShowPalette] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
   const isHorizontal = useHorizontal();
   const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
@@ -245,6 +245,11 @@ export default withNoSSR(function Home() {
         style={{backgroundColor: showPalette ? 'lightgray' : 'transparent', borderRadius: 2}}
         onClick={() => setShowPalette(show => !show)}
         title={`${showPalette ? 'Hide' : 'Show'} color palette [c]`}
+      />
+      <IoSettingsOutline 
+        className={iconStyle}
+        onClick={() => setShowSettingsDialog(true)}
+        title='Settings'
       />
       <div className="m-1 hover:cursor-pointer">
         {isSignedIn && <div className="size-6">
@@ -429,6 +434,11 @@ export default withNoSSR(function Home() {
               </Panel>
               
               {showPalette && <PaletteEditor color={color} changeCallback={setColor}/>}
+              {showSettingsDialog && <SettingsDialog 
+                slideShowPeriod={slideShowPeriod} 
+                setSlideShowPeriod={setSlideShowPeriod} 
+                close={() => setShowSettingsDialog(false)}
+              />}
             
             </PanelGroup>
           </Panel>
