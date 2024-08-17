@@ -25,6 +25,7 @@ import { inject } from '@vercel/analytics';
 import useUserProvider from "~/logic/userProvider";
 import UserFilter from "~/components/UserFilter";
 import ProgressIndicator from "~/components/ProgressIndicator";
+import { getMs } from "~/math/util";
 
 /*
   Todo:
@@ -76,9 +77,9 @@ export default withNoSSR(function Home() {
   const storeToHistory = useCallback(() => fractalHistory.store({form: form, color: color}), [fractalHistory, form, color]);
 
   const [slideShow, setSlideShow] = useState(false);
-  const [slideShowInterval, setSlideShowInterval] = useState(0);
-  const [slideShowCounter, setSlideShowCounter] = useState(0);
-  const slideShowCount = 160;
+  const [slideShowTimerId, setSlideShowTimerId] = useState(0);
+  const [slideShowProgress, setSlideShowProgress] = useState(0);
+  const [slideShowPeriod, setSlideShowPeriod] = useState(3000);
 
   const selectFractal = useCallback((fractal: Fractal) => {
     setSelectedFractal(fractal);
@@ -89,8 +90,8 @@ export default withNoSSR(function Home() {
 
   const stopSlideShow = useCallback(() => {
     setSlideShow(false);
-    window.clearInterval(slideShowInterval);
-  }, [slideShowInterval]);
+    window.clearInterval(slideShowTimerId);
+  }, [slideShowTimerId]);
 
   const selectPreviousFractal = useCallback(() => {
     stopSlideShow();
@@ -124,17 +125,25 @@ export default withNoSSR(function Home() {
   }, [fractals, selectFractal, selectedFractal, storeToHistory]);
 
   const startSlideShow = useCallback(() => {
-    setSlideShowCounter(1);
     setSlideShow(true);
-    setSlideShowInterval(window.setInterval(() => { 
-      setSlideShowCounter(cnt => { 
-        cnt += 1;
-        if (cnt == slideShowCount - 1) selectNextSlideRef.current();
-        if (cnt > slideShowCount) cnt = 1;
-        return cnt;
-      })
-    }, 50));
-  }, []);
+    setSlideShowProgress(0);
+    let changed = false;
+    let startMs = getMs();
+    const onSlideShowTimer = () => { 
+      const elapsed = getMs() - startMs;
+      const exceeded = elapsed - slideShowPeriod;
+      if (exceeded > -50 && !changed) {
+        selectNextSlideRef.current();
+        changed = true;
+      }
+      if (exceeded > 0) {
+        changed = false;
+        startMs = getMs() + exceeded;
+      }
+      setSlideShowProgress(elapsed / slideShowPeriod);
+    };
+    setSlideShowTimerId(window.setInterval(onSlideShowTimer, 50));
+  }, [slideShowPeriod]);
 
   useEffect(() => {
     window.addEventListener('mouseup', storeToHistory)
@@ -342,7 +351,7 @@ export default withNoSSR(function Home() {
                 title="Go to previous fractal [Left]"
               />
               {slideShow && <ProgressIndicator 
-                progress={slideShowCounter / slideShowCount} 
+                progress={slideShowProgress} 
                 color={oppositeBackgroundColor(color)} 
                 onclick={stopSlideShow}
                 title="Stop slideshow"
