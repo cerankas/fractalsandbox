@@ -67,10 +67,19 @@ export default class IndexedDBManager<T> {
   async delete(key: string) {
     const objectStore = await this.getObjectStore("readwrite");
     return new Promise<void>((resolve, reject) => {
-      const request = objectStore.delete(key)
+      const request = objectStore.delete(key);
       request.onerror = () => reject(Error('Failed to delete data in IndexedDB'));
       request.onsuccess = () => resolve();
     });
+  }
+  
+  async clearStore() {
+    const objectStore = await this.getObjectStore("readwrite");
+    return new Promise<void>((resolve, reject) => {
+      const request = objectStore.clear();
+      request.onerror = () => reject(Error('Failed to clear store in IndexedDB'));
+      request.onsuccess = () => resolve();
+    });    
   }
 
 }

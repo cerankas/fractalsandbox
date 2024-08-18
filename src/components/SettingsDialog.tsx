@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { iconStyle } from "./browserUtils";
+import FractalRenderer from "~/math/fractalRenderer";
 
 export default function SettingsDialog(props: {slideShowPeriod: number, setSlideShowPeriod: (interval: number) => void, close: () => void}) {
   useEffect(() => {
@@ -38,6 +39,12 @@ export default function SettingsDialog(props: {slideShowPeriod: number, setSlide
           value="Clear fractal cache"
           className={buttonStyle}
           onClick={() => { localStorage.removeItem("fractalCache"); location.reload(); }}
+        />
+        <input
+          type="button"
+          value="Clear image cache"
+          className={buttonStyle}
+          onClick={() => void FractalRenderer.imageCache.clearStore().then(() => location.reload())}
         />
       </div>
     </div>

@@ -75,5 +75,9 @@ export default class ImageCache {
         reject(Error('Image not cached'));
     });
   }
+
+  async clearStore() {
+    await this.imageDbManager.clearStore();
+  }
   
 };
