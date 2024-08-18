@@ -1,21 +1,14 @@
 import { useUser } from "@clerk/nextjs";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { TbUsers } from "react-icons/tb";
 import { type User } from "~/logic/userProvider";
+import ModalPanel from "./ModalPanel";
 
 export default function UserFilter(props: {users: User[], filteredUserId: string, setFilteredUserId: (userId: string) => void}) {
   const [expanded, setExpanded] = useState(false);
   const filteredUser = useMemo(() => props.users.find(user => user.id === props.filteredUserId), [props.filteredUserId, props.users]);
   const selectUser = (userId: string) => { props.setFilteredUserId(userId); setExpanded(false); };
   const { user: signedInUser } = useUser();
-
-  useEffect(() => {
-    if (expanded) {
-      const setExpandedFalse = (e: KeyboardEvent) => { setExpanded(false); e.stopPropagation(); }
-      document.addEventListener('keydown', setExpandedFalse, true);
-      return () => document.removeEventListener('keydown', setExpandedFalse, true);
-    }
-  }, [expanded]);
 
   return <div className="relative">
     {filteredUser !== undefined ? 
@@ -40,8 +33,7 @@ export default function UserFilter(props: {users: User[], filteredUserId: string
         />
       </span>
     }
-    {expanded && <div className="fixed inset-0 z-40 bg-black opacity-50" onClick={() => setExpanded(false)}/>}
-    {expanded && <div className="absolute left-0 top-0 flex flex-col rounded z-50 border-2 bg-white border-black">
+    {expanded && <ModalPanel style="absolute left-0 top-0 flex flex-col p-0" close={() => setExpanded(false)}>
       <div style={props.filteredUserId === '' ? {backgroundColor:'lightgray', borderRadius: 2} : {}}>
         <span className="flex m-1 rounded-full bg-gray-300 size-6 justify-center items-center cursor-pointer">
           <TbUsers
@@ -74,6 +66,6 @@ export default function UserFilter(props: {users: User[], filteredUserId: string
           />
         </div>
       )}
-    </div>}
+    </ModalPanel>}
   </div>;
 }
