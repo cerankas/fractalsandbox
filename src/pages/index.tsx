@@ -27,6 +27,7 @@ import UserFilter from "~/components/UserFilter";
 import ProgressIndicator from "~/components/ProgressIndicator";
 import { getMs } from "~/math/util";
 import SettingsDialog from "~/components/SettingsDialog";
+import DownloadImage from "~/components/DownloadImage";
 
 /*
   Todo:
@@ -156,6 +157,7 @@ export default withNoSSR(function Home() {
 
   const [showPalette, setShowPalette] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [showDownloadDialog, setShowDownloadDialog] = useState(false);
 
   const isHorizontal = useHorizontal();
   const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
@@ -187,10 +189,11 @@ export default withNoSSR(function Home() {
 
   const [fractalCanvas, setFractalCanvas] = useState<HTMLCanvasElement | null>(null);
   const downloadRef = useRef<HTMLAnchorElement>(null);
-  const downloadImage = useCallback(() => {
-    downloadRef.current!.href = fractalCanvas!.toDataURL('image/png');
-    downloadRef.current!.click();
-  }, [fractalCanvas]);
+  const downloadCanvas = useCallback((canvas: HTMLCanvasElement | null) => {
+    if (!canvas || !downloadRef.current) return;
+    downloadRef.current.href = canvas.toDataURL('image/png');
+    downloadRef.current.click();
+  }, []);
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
@@ -198,14 +201,14 @@ export default withNoSSR(function Home() {
       if (e.key === "c") setShowPalette(show => !show);
       if (e.key === "z") fractalHistory.back();
       if (e.key === "y") fractalHistory.forward(); 
-      if (e.key === "s") downloadImage(); 
+      if (e.key === "s") downloadCanvas(fractalCanvas); 
       if (e.key === 'ArrowLeft') selectPreviousFractal();
       if (e.key === 'ArrowRight') selectNextFractal();
       stopSlideShow();
     };
     document.addEventListener('keydown', keyDownHandler);
     return () => { document.removeEventListener('keydown', keyDownHandler); }
-  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory, selectPreviousFractal, selectNextFractal, stopSlideShow, downloadImage]);
+  }, [fullscreen, enterFullscreen, exitFullscreen, fractalHistory, selectPreviousFractal, selectNextFractal, stopSlideShow, downloadCanvas, fractalCanvas]);
 
   const modified = form !== selectedFractal?.form || color != selectedFractal?.color;
 
@@ -276,9 +279,18 @@ export default withNoSSR(function Home() {
       />}
       <AiOutlinePicture
         className={iconStyle} 
-        onClick={downloadImage}
-        title="Save image [s]"
+        onPointerDown={(e) => {
+          if (e.button == 0) downloadCanvas(fractalCanvas);
+          if (e.button == 2) setShowDownloadDialog(true);
+        }}
+        title="Save image [s], right-click to customize"
       />
+      {showDownloadDialog && <DownloadImage
+        form={form}
+        color={color}
+        download={downloadCanvas}
+        close={() => setShowDownloadDialog(false)}
+      />}
       <BiUndo
         className={iconStyle} 
         onClick={() => fractalHistory.back()}
