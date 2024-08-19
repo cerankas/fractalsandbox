@@ -5,9 +5,9 @@ import { useCallback, useMemo, useState } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
 
 export default function DownloadImage(props: {form: string, color: string, download: (canvas: HTMLCanvasElement) => void, close: () => void}) {
-  const [width, setWidth] = useLocalStorage('customSaveWidth', '1920');
-  const [height, setHeight] = useLocalStorage('customSaveHeight', '1080');
-  const [quality, setQuality] = useLocalStorage('customSaveQuality', '100');
+  const [width, setWidth] = useLocalStorage('customSaveWidth', 1920);
+  const [height, setHeight] = useLocalStorage('customSaveHeight', 1080);
+  const [quality, setQuality] = useLocalStorage('customSaveQuality', 100);
   const [progress, setProgress] = useState(0);
   const canvas = useMemo(() => document.createElement('canvas'), []);
   const onProgress = useCallback((progress: number) => {
@@ -35,7 +35,7 @@ export default function DownloadImage(props: {form: string, color: string, downl
           type="number" min={10}
           className={inputStyle}
           value={width}
-          onChange={(e) => setWidth(e.target.value)}
+          onChange={(e) => setWidth(parseInt(e.target.value))}
         />
       </label>
       <label>
@@ -44,7 +44,7 @@ export default function DownloadImage(props: {form: string, color: string, downl
           type="number" min={10}
           className={inputStyle}
           value={height}
-          onChange={(e) => setHeight(e.target.value)}
+          onChange={(e) => setHeight(parseInt(e.target.value))}
         />
       </label>
     </div>
@@ -54,7 +54,7 @@ export default function DownloadImage(props: {form: string, color: string, downl
         type="number" min={10}
         className={inputStyle}
         value={quality}
-        onChange={(e) => setQuality(e.target.value)}
+        onChange={(e) => setQuality(parseInt(e.target.value))}
       />
     </label>
     <div>{progress ? `Rendering: ${Math.round(progress * 100)}%` : <>&nbsp;</>}</div>
@@ -74,9 +74,9 @@ export default function DownloadImage(props: {form: string, color: string, downl
         className={inputStyle}
         disabled={!!renderer.pointsCount && !renderer.isFinished()}
         onClick={() => { 
-          canvas.width = parseFloat(width);
-          canvas.height = parseFloat(height);
-          renderer.densityPerImage = parseFloat(quality);
+          canvas.width = width;
+          canvas.height = height;
+          renderer.densityPerImage = quality;
           renderer.setCtx(canvas.getContext('2d')!);
           renderer.setColor(props.color);
           renderer.setForm(props.form);

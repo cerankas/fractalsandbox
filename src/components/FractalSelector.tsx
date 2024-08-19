@@ -14,7 +14,7 @@ export default function FractalSelector(props: {
   menu: React.ReactNode, 
   filter: React.ReactNode
 }) {
-  const [tileSize, setTileSize] = useLocalStorage('tileSize', '180');
+  const [tileSize, setTileSize] = useLocalStorage('tileSize', 180);
   const loaderRef = useRef<HTMLDivElement>(null);
   const [loaderVisible, setLoaderVisible] = useState(false);
 
@@ -44,8 +44,8 @@ export default function FractalSelector(props: {
             min={75}
             max={300}
             value={tileSize}
-            onChange={(e) => { setTileSize(e.target.value); localStorage.tileSize = e.target.value; }}
-            onFocus={(e) => e.target.blur()}
+            onChange={e => setTileSize(parseInt(e.target.value))}
+            onFocus={e => e.target.blur()}
             tabIndex={-1}
             title="Tile size"
           />
@@ -64,7 +64,7 @@ export default function FractalSelector(props: {
             <FractalTile 
               fractal={f}
               user={props.users.find(user => user.id === f.authorId)}
-              size={parseInt(tileSize) ?? 300} 
+              size={tileSize} 
               onmousedown={props.onmousedown}
               onAuthorClick={props.onAuthorClick}
               selected={f.id == props.selected}

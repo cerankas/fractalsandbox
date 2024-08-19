@@ -4,14 +4,16 @@ export const isBrowser = typeof window != 'undefined';
 
 export const useBrowserLayoutEffect = isBrowser ? useLayoutEffect : useEffect;
 
-export function useLocalStorage(key: string, initialValue: string): [string, (value: string) => void] {
-  const [storedValue, setStoredValue] = useState(() => 
-    isBrowser ? window.localStorage.getItem(key) ?? initialValue : initialValue
-  );
+export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  const [storedValue, setStoredValue] = useState(() => {
+    const item = isBrowser ? window.localStorage.getItem(key) : null;
+    try { return item ? JSON.parse(item) as T : initialValue; }
+    catch { return initialValue; }
+  });
   
-  const setValue = useCallback((value: string) => {
+  const setValue = useCallback((value: T) => {
     setStoredValue(value);
-    window.localStorage.setItem(key, value);
+    window.localStorage.setItem(key, JSON.stringify(value));
   }, [key]);
   
   return [storedValue, setValue];

@@ -31,13 +31,10 @@ import DownloadImage from "~/components/DownloadImage";
 
 /*
   Todo:
-  - configuration dialog with cache options and build date
   - improve FormulaEditor selection and add vertex action icons
   - FormulaEditor value editor (x/y offset/scale/rotation, intensity)
   - FormulaEditor group actions / whole fractal rotation
   - FormulaEditor triangle size/offset normalization
-  - set render quality
-  - image download with options: image size, render quality
   
   - import / export / edit textual definition
   - video: animate triangles and parameters along curves
@@ -79,7 +76,7 @@ export default withNoSSR(function Home() {
   const [slideShow, setSlideShow] = useState(false);
   const [slideShowTimerId, setSlideShowTimerId] = useState(0);
   const [slideShowProgress, setSlideShowProgress] = useState(0);
-  const [slideShowPeriod, setSlideShowPeriod] = useState(3000);
+  const [slideShowPeriod, setSlideShowPeriod] = useLocalStorage("slideShowPeriod", 3000);
 
   const selectFractal = useCallback((fractal: Fractal) => {
     setSelectedFractal(fractal);
