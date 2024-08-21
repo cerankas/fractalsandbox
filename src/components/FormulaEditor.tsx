@@ -194,30 +194,39 @@ class FormulaEditorGUI extends Viewport {
     }
   }
 
-  getFormulaPoints(formulaIndex: number) {
-    const formula = this.formulas[formulaIndex]!;
-    const formulaPoints = [];
-    const formulaVectors: vec2[] = [
+  getFormulaPoints(formula: Formula) {
+    const points: vec2[] = [
       [ 0, 0],
       [ 0, 1],
       [ 1, 0],
       [-1, 0]
     ];
-    for (const vector of formulaVectors) {
-      formulaPoints.push(formula.iterate(vector));
-    }
-    return formulaPoints;
+    return points.map(point => formula.iterate(point))
   }
   
   getFractalPoints() {
-    const fractalPoints = [];
-    for (let formulaIndex = 0; formulaIndex < this.formulas.length; formulaIndex++) {
-      const formulaPoints = this.getFormulaPoints(formulaIndex);
-      for (let pointIndex = 0; pointIndex < formulaPoints.length; pointIndex++) {
-        fractalPoints.push(formulaPoints[pointIndex]!.concat([formulaIndex, pointIndex]));
-      }
-    }
-    return fractalPoints;
+    return this.formulas.map((formula, formulaIndex) => 
+      this.getFormulaPoints(formula).map((point, pointIndex) => 
+        point.concat([formulaIndex, pointIndex])
+      )
+    )
+    .flat();
+  }
+
+  getFormulaSegments(formula: Formula) {
+    const pts = this.getFormulaPoints(formula);
+    return [
+      [pts[0]!, pts[1]!],
+      [pts[1]!, pts[2]!],
+      [pts[2]!, pts[3]!],
+      [pts[3]!, pts[0]!]
+    ];
+  }
+  
+  getFractalSegments() {
+    return this.formulas
+    .map(formula => this.getFormulaSegments(formula))
+    .flat();
   }
 
   resizeFormulas() {
@@ -253,7 +262,7 @@ class FormulaEditorGUI extends Viewport {
       ctx.lineWidth = 3;
       th.drawCircle(point!, 1);
     }
-    const dataPoints = this.getFormulaPoints(formulaIndex);
+    const dataPoints = this.getFormulaPoints(this.formulas[formulaIndex]!);
     const screenPoints: vec2[] = [];
     for (const dataPoint of dataPoints) {
       screenPoints.push(this.toScreen(dataPoint));
