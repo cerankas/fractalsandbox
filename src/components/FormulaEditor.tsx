@@ -151,7 +151,7 @@ class FormulaEditorGUI extends Viewport {
     if (this.selectedPoint == 0) {
       tmpFormula.shift(vec2mul(deltaStartMouse, [e.ctrlKey?0:1, e.shiftKey?0:1]));
       }
-    if (this.selectedPoint == 2) {
+    if (this.selectedPoint == 3) {
       if (!e.shiftKey) tmpFormula.rotate([angle, angle]);
       if (!e.ctrlKey) tmpFormula.rescale([scale, scale]);
     }
@@ -159,7 +159,7 @@ class FormulaEditorGUI extends Viewport {
       if (!e.shiftKey) tmpFormula.rotate([0, angle]);
       if (!e.ctrlKey) tmpFormula.rescale([1, scale]);
     }
-    if (this.selectedPoint == 3) {
+    if (this.selectedPoint == 2) {
       if (!e.shiftKey) tmpFormula.rotate([angle, 0]);
       if (!e.ctrlKey) tmpFormula.rescale([scale, 1]);
     }
@@ -239,18 +239,18 @@ class FormulaEditorGUI extends Viewport {
     this.drawBaseFormula();
     for (let i = 0; i < this.formulas.length; i++) {
       if (i != this.selectedFormula)
-      this.drawFormula(i, false, 0);
+      this.drawFormula(i, false, null);
     }
-    this.drawFormula(this.selectedFormula, true, this.selectedPoint!);
+    this.drawFormula(this.selectedFormula, true, this.selectedPoint);
   }
 
-  drawFormula(formulaIndex: number, isSelected: boolean, selectedPoint: number) {
+  drawFormula(formulaIndex: number, isSelected: boolean, selectedPoint: number | null) {
     if (!this.ctx) return;
-    function drawEndPoint(th: FormulaEditorGUI, pointIndex: number, size: number) {
+    function drawEndPoint(th: FormulaEditorGUI, pointIndex: number) {
       const point = screenPoints[pointIndex];
       ctx.strokeStyle = (pointIndex == selectedPoint) ? 'red' : 'orange';
-      ctx.lineWidth = 2;
-      th.drawCircle(point!, 1 + size);
+      ctx.lineWidth = 3;
+      th.drawCircle(point!, 1);
     }
     const dataPoints = this.getFormulaPoints(formulaIndex);
     const screenPoints: vec2[] = [];
@@ -261,10 +261,10 @@ class FormulaEditorGUI extends Viewport {
     ctx.strokeStyle = isSelected ? 'orange' : 'black';
     this.drawTriangle(screenPoints);
     if (isSelected) {
-      drawEndPoint(this, 0, 1);
-      drawEndPoint(this, 1, 0);
-      drawEndPoint(this, 2, 1);
-      drawEndPoint(this, 3, 0);
+      drawEndPoint(this, 0);
+      drawEndPoint(this, 1);
+      drawEndPoint(this, 2);
+      drawEndPoint(this, 3);
     }
   }
   
@@ -278,12 +278,19 @@ class FormulaEditorGUI extends Viewport {
     ]);
   }
 
-  drawTriangle(points: vec2[]) {
+  drawTriangle(points: vec2[], hovered = false) {
+    this.ctx!.lineWidth = hovered ? 2 : 1;
     this.ctx!.beginPath();
+    this.ctx!.setLineDash([1,3]);
     this.moveTo(points[0]!);
+    this.lineTo(points[3]!);
     this.lineTo(points[1]!);
     this.lineTo(points[2]!);
-    this.lineTo(points[3]!);
+    this.ctx!.stroke();
+    this.ctx!.beginPath();
+    this.ctx!.setLineDash([]);
+    this.moveTo(points[2]!);
+    this.lineTo(points[0]!);
     this.lineTo(points[1]!);
     this.ctx!.stroke();
   }
