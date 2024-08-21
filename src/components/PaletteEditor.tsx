@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PaletteKey, createPaletteFromKeys, paletteKeysFromString, paletteKeysToString, rgbToHex,hexToRGB,  PALETTE_LENGTH } from "~/math/palette";
-import { findNearestPoint, getMs } from "~/math/util";
+import { getMs } from "~/math/util";
+import { findNearestPoint } from "~/math/nearest";
 import { HexColorPicker } from "react-colorful"
 import { useResizeObserver } from "./browserUtils";
 

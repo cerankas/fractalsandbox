@@ -12,21 +12,6 @@ export function getCanvasCtx(id: string) {
   return canvas.getContext('2d')!;
 }
 
-export function findNearestPoint(points: number[][], point: number[], distanceThreshold: number) {
-  function pointDistanceSquared(p1: vec2, p2: vec2) { 
-    const dx = p2[0] - p1[0];
-    const dy = p2[1] - p1[1];
-    return dx * dx + dy * dy;
-  }
-  let nearestDistance = distanceThreshold * distanceThreshold;
-  let nearestIndex = null;
-  for (let i = 0; i < points.length; i++) {
-    const distance = pointDistanceSquared(points[i] as vec2, point as vec2);
-    if (distance < nearestDistance) { nearestDistance = distance; nearestIndex = i; } 
-  }
-  return nearestIndex;
-}
-
 export function getBoundingBoxFrom2DArray(points: number[][]): [min: vec2, max: vec2] {
   let [minx, miny] = [ Infinity,  Infinity];
   let [maxx, maxy] = [-Infinity, -Infinity];

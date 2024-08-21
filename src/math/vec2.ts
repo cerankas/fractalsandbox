@@ -33,12 +33,22 @@ export function vec2angleDifference(u: vec2, v: vec2) {
   return angle;
 }
 
-export function vec2magnitude(v: vec2) {
+export function vec2magnitudeSquared(v: vec2) {
   const x = v[0];
   const y = v[1];
-  return Math.sqrt(x * x + y * y);
+  return x * x + y * y;
+}
+
+export function vec2magnitude(v: vec2) {
+  const magnitudeSquared = vec2magnitudeSquared(v);
+  return Math.sqrt(magnitudeSquared);
 }
 
 export function vec2magnitudeRatio(u: vec2, v: vec2) {
   return vec2magnitude(v) / vec2magnitude(u) || 1;
+}
+
+export function vec2dotProduct(u: vec2, v: vec2) {
+  const w = vec2mul(u, v);
+  return w[0] + w[1];
 }

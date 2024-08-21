@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from "react";
 import { TbTriangleMinus, TbTrianglePlus } from "react-icons/tb";
 import Formula from "~/math/formula";
-import { findNearestPoint, getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY, getMs } from "~/math/util";
+import { getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY, getMs } from "~/math/util";
+import { findNearestPoint } from "~/math/nearest";
 import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
 import { iconStyle, useResizeObserver } from "./browserUtils";
@@ -183,7 +184,7 @@ class FormulaEditorGUI extends Viewport {
 
   selectNearestFormula(point: vec2) {
     const fractalPoints = this.getFractalPoints();
-    const nearestIndex = findNearestPoint(fractalPoints, point, 20 / this.scale);
+    const nearestIndex = findNearestPoint(fractalPoints as vec2[], point, 20 / this.scale);
     if (nearestIndex != null) {
       this.selectedFormula = fractalPoints[nearestIndex]![2]!;
       this.selectedPoint   = fractalPoints[nearestIndex]![3]!;
