@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { TbTriangleMinus, TbTrianglePlus } from "react-icons/tb";
 import Formula from "~/math/formula";
 import { getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY, getMs } from "~/math/util";
-import { findNearestPoint } from "~/math/nearest";
+import { findNearestPoint, findNearestSegment } from "~/math/nearest";
 import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
 import Viewport from "~/math/viewport";
 import { iconStyle, useResizeObserver } from "./browserUtils";
@@ -50,8 +50,9 @@ export default function FormulaEditor(props: { form: string, changeCallback: (fo
 
 class FormulaEditorGUI extends Viewport {
   formulas: Formula[] = [];
-  selectedFormula = 0;
-  selectedPoint: number | null = null;
+  activeFormula: number | null = null;
+  activePoint: number | null = null;
+  selectedFormulas: number[] = [];
   ctx: CanvasRenderingContext2D | null = null;
   isDragging = false;
   dragStart: vec2 = [0, 0];
@@ -91,11 +92,26 @@ class FormulaEditorGUI extends Viewport {
     if (e.button == 0) {
       const screenMousePoint = getEventOffsetXY(e);
       const dataMousePoint = this.fromScreen(screenMousePoint);
-      this.selectNearestFormula(dataMousePoint);
-      if (this.selectedPoint != null) {
-        this.isDragging = true;
-        this.dragStart = dataMousePoint;
-        this.draggedFormula = this.formulas[this.selectedFormula]!.clone();
+      this.selectActiveFormula(dataMousePoint);
+      if (this.activeFormula != null) {
+        if (e.ctrlKey) {
+          if (!this.selectedFormulas.includes(this.activeFormula))
+            this.selectedFormulas.push(this.activeFormula);
+          else
+            this.selectedFormulas.splice(this.selectedFormulas.indexOf(this.activeFormula), 1);
+          this.draw();
+        }
+        else {
+          if (!this.selectedFormulas.includes(this.activeFormula)) {
+            this.selectedFormulas = [this.activeFormula];
+            this.draw();
+          }
+          if (this.activeFormula != null && this.activePoint != null) {
+            this.isDragging = true;
+            this.dragStart = dataMousePoint;
+            this.draggedFormula = this.formulas[this.activeFormula]!.clone();
+          }
+        }
       }
       else {
         this.isDragging = true;
@@ -111,11 +127,11 @@ class FormulaEditorGUI extends Viewport {
 
   onPointerMove = (e: MouseEvent) => {
     if (this.isDragging || e.buttons) return;
-    const lastSelectedFormula = this.selectedFormula;
-    const lastSelectedPoint = this.selectedPoint;
+    const lastActiveFormula = this.activeFormula;
+    const lastActivePoint = this.activePoint;
     const dataMousePoint = this.fromScreen(getEventOffsetXY(e));
-    this.selectNearestFormula(dataMousePoint);
-    if (lastSelectedFormula === this.selectedFormula && lastSelectedPoint === this.selectedPoint) return;
+    this.selectActiveFormula(dataMousePoint);
+    if (lastActiveFormula === this.activeFormula && lastActivePoint === this.activePoint) return;
     this.draw();
   }
 
@@ -142,6 +158,7 @@ class FormulaEditorGUI extends Viewport {
   }
 
   doDragFormula(dataMousePoint: vec2, e: MouseEvent) {
+    if (this.activeFormula == null) return;
     const tmpFormula = this.draggedFormula!.clone();
     const basePoint = tmpFormula.iterate([0, 0]);
     const deltaStartMouse = vec2sub(dataMousePoint, this.dragStart);
@@ -149,22 +166,22 @@ class FormulaEditorGUI extends Viewport {
     const deltaBaseStart = vec2sub(basePoint, this.dragStart);
     const angle = vec2angleDifference(deltaBaseStart, deltaBaseMouse);
     const scale = vec2magnitudeRatio(deltaBaseStart, deltaBaseMouse);
-    if (this.selectedPoint == 0) {
+    if (this.activePoint == 0) {
       tmpFormula.shift(vec2mul(deltaStartMouse, [e.ctrlKey?0:1, e.shiftKey?0:1]));
       }
-    if (this.selectedPoint == 3) {
+    if (this.activePoint == 3) {
       if (!e.shiftKey) tmpFormula.rotate([angle, angle]);
       if (!e.ctrlKey) tmpFormula.rescale([scale, scale]);
     }
-    if (this.selectedPoint == 1) {
+    if (this.activePoint == 1) {
       if (!e.shiftKey) tmpFormula.rotate([0, angle]);
       if (!e.ctrlKey) tmpFormula.rescale([1, scale]);
     }
-    if (this.selectedPoint == 2) {
+    if (this.activePoint == 2) {
       if (!e.shiftKey) tmpFormula.rotate([angle, 0]);
       if (!e.ctrlKey) tmpFormula.rescale([scale, 1]);
     }
-    this.formulas[this.selectedFormula] = tmpFormula;
+    this.formulas[this.activeFormula] = tmpFormula;
   }
 
   callChangeCallback() {
@@ -176,22 +193,37 @@ class FormulaEditorGUI extends Viewport {
   loadFormulas(formulaString: string) {
     if (this.isDragging || getMs() - this.lastChangeCallbackTime < 100) return;
     this.formulas = Formula.fromString(formulaString);
-    this.selectedFormula = this.formulas.length - 1;
-    this.selectedPoint = null;
+    this.activeFormula = null;
+    this.activePoint = null;
+    this.selectedFormulas = [];
     this.resetToAuto();
     this.resizeFormulas();
   }
 
-  selectNearestFormula(point: vec2) {
-    const fractalPoints = this.getFractalPoints();
-    const nearestIndex = findNearestPoint(fractalPoints as vec2[], point, 20 / this.scale);
-    if (nearestIndex != null) {
-      this.selectedFormula = fractalPoints[nearestIndex]![2]!;
-      this.selectedPoint   = fractalPoints[nearestIndex]![3]!;
+  selectActiveFormula(point: vec2) {
+    if (this.isDragging) return;
+    
+    if (this.selectedFormulas.length != 0) {
+      const points = this.selectedFormulas.map(formula => this.getFormulaPoints(this.formulas[formula]!)).flat();
+      const hoveredPoint = findNearestPoint(points, point, 20 / this.scale); 
+      if (hoveredPoint != null) {
+        this.activeFormula = this.selectedFormulas[hoveredPoint / 4 | 0]!;
+        this.activePoint = hoveredPoint % 4;
+        return;
+      }
     }
-    else {
-      this.selectedPoint = null;
+
+    const segments = this.getFractalSegments();
+    const hoveredSegment = findNearestSegment(segments as [vec2, vec2][], point, 20 / this.scale);
+    if (hoveredSegment == null) {
+      this.activeFormula = null;
+      this.activePoint = null;
+      return;
     }
+    this.activeFormula = hoveredSegment / 4 | 0;
+
+    const points = this.getFormulaPoints(this.formulas[this.activeFormula]!);
+    this.activePoint = findNearestPoint(points, point, 20 / this.scale);
   }
 
   getFormulaPoints(formula: Formula) {
@@ -204,29 +236,22 @@ class FormulaEditorGUI extends Viewport {
     return points.map(point => formula.iterate(point))
   }
   
-  getFractalPoints() {
-    return this.formulas.map((formula, formulaIndex) => 
-      this.getFormulaPoints(formula).map((point, pointIndex) => 
-        point.concat([formulaIndex, pointIndex])
-      )
-    )
-    .flat();
-  }
-
   getFormulaSegments(formula: Formula) {
     const pts = this.getFormulaPoints(formula);
     return [
       [pts[0]!, pts[1]!],
       [pts[1]!, pts[2]!],
       [pts[2]!, pts[3]!],
-      [pts[3]!, pts[0]!]
+      [pts[3]!, pts[1]!]
     ];
   }
   
+  getFractalPoints() {
+    return this.formulas.map(formula => this.getFormulaPoints(formula)).flat();
+  }
+
   getFractalSegments() {
-    return this.formulas
-    .map(formula => this.getFormulaSegments(formula))
-    .flat();
+    return this.formulas.map(formula => this.getFormulaSegments(formula)).flat();
   }
 
   resizeFormulas() {
@@ -248,34 +273,39 @@ class FormulaEditorGUI extends Viewport {
     this.ctx.lineWidth = 1;
     this.drawBaseFormula();
     for (let i = 0; i < this.formulas.length; i++) {
-      if (i != this.selectedFormula)
-      this.drawFormula(i, false, null);
+      this.drawFormula(i, this.selectedFormulas.includes(i));
     }
-    this.drawFormula(this.selectedFormula, true, this.selectedPoint);
   }
 
-  drawFormula(formulaIndex: number, isSelected: boolean, selectedPoint: number | null) {
+  drawFormula(formulaIndex: number, isSelected: boolean) {
     if (!this.ctx) return;
-    function drawEndPoint(th: FormulaEditorGUI, pointIndex: number) {
+    const ctx = this.ctx;
+
+    const drawEndPoint = (pointIndex: number) => {
       const point = screenPoints[pointIndex];
-      ctx.strokeStyle = (pointIndex == selectedPoint) ? 'red' : 'orange';
+      ctx.strokeStyle = (formulaIndex == this.activeFormula && pointIndex == this.activePoint) ? 'red' : 'orange';
       ctx.lineWidth = 3;
-      th.drawCircle(point!, 1);
+      this.drawCircle(point!, 2);
     }
+
     const dataPoints = this.getFormulaPoints(this.formulas[formulaIndex]!);
     const screenPoints: vec2[] = [];
     for (const dataPoint of dataPoints) {
       screenPoints.push(this.toScreen(dataPoint));
     }
-    const ctx = this.ctx;
     ctx.strokeStyle = isSelected ? 'orange' : 'black';
-    this.drawTriangle(screenPoints);
+
+    this.drawTriangle(screenPoints, this.activeFormula == formulaIndex);
+    
     if (isSelected) {
-      drawEndPoint(this, 0);
-      drawEndPoint(this, 1);
-      drawEndPoint(this, 2);
-      drawEndPoint(this, 3);
+      drawEndPoint(0);
+      drawEndPoint(1);
+      drawEndPoint(2);
+      drawEndPoint(3);
     }
+
+    if (!isSelected && formulaIndex == this.activeFormula && this.activePoint != null)
+      drawEndPoint(this.activePoint);
   }
   
   drawBaseFormula() {
@@ -321,17 +351,16 @@ class FormulaEditorGUI extends Viewport {
 
   addFormula = () => {
     this.formulas.push(new Formula());
-    this.selectedFormula = this.formulas.length - 1;
-    this.selectedPoint = null;
     this.resizeFormulas();
     this.callChangeCallback();
   }
   
   removeFormula = () => {
-    if (this.formulas.length < 3) return;
-    this.formulas.splice(this.selectedFormula, 1);
-    this.selectedFormula = this.formulas.length - 1;
-    this.selectedPoint = null;
+    if (this.formulas.length - this.selectedFormulas.length < 2) return;
+    this.formulas = this.formulas.filter((_formula, index) => !this.selectedFormulas.includes(index));
+    this.activeFormula = null;
+    this.activePoint = null;
+    this.selectedFormulas = [];
     this.resizeFormulas();
     this.callChangeCallback();
   }
