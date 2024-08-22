@@ -57,7 +57,7 @@ class FormulaEditorGUI extends Viewport {
   ctx: CanvasRenderingContext2D | null = null;
   isDragging = false;
   dragStart: vec2 = [0, 0];
-  draggedFormula: Formula | null = null;
+  draggedFormulas: Formula[] = [];
   lastChangeCallbackTime = 0;
   
   constructor(public changeCallback: (form: string) => void) {
@@ -110,14 +110,14 @@ class FormulaEditorGUI extends Viewport {
           if (this.activeFormula != null && this.activePoint != null) {
             this.isDragging = true;
             this.dragStart = dataMousePoint;
-            this.draggedFormula = this.formulas[this.activeFormula]!.clone();
+            this.draggedFormulas = this.selectedFormulas.map(index => this.formulas[index]!.clone());
           }
         }
       }
       else {
         this.isDragging = true;
         this.dragStart = vec2sub(this.manualShift, screenMousePoint);
-        this.draggedFormula = null;
+        this.draggedFormulas = [];
       }
     }
     if (e.button == 1) {
@@ -146,7 +146,7 @@ class FormulaEditorGUI extends Viewport {
     if (!this.isDragging) return;
     const rect = this.ctx.canvas.getBoundingClientRect();
     const screenMousePoint = vec2sub(getEventPageXY(e), [rect.left, rect.top]);
-    if (this.draggedFormula != null) {
+    if (this.draggedFormulas.length != 0) {
       this.doDragFormula(this.fromScreen(screenMousePoint));
       this.callChangeCallback();
       this.draw();
@@ -165,8 +165,9 @@ class FormulaEditorGUI extends Viewport {
 
   doDragFormula(dataMousePoint: vec2) {
     if (this.activeFormula == null) return;
-    const tmpFormula = this.draggedFormula!.clone();
-    const basePoint = tmpFormula.iterate([0, 0]);
+    const tmpFormulas = this.draggedFormulas.map(formula => formula.clone());
+    const activeFormula = tmpFormulas[this.selectedFormulas.indexOf(this.activeFormula)]!;
+    const basePoint = activeFormula.iterate([0, 0]);
     const deltaStartMouse = vec2sub(dataMousePoint, this.dragStart);
     const deltaBaseMouse = vec2sub(basePoint, dataMousePoint);
     const deltaBaseStart = vec2sub(basePoint, this.dragStart);
@@ -175,21 +176,21 @@ class FormulaEditorGUI extends Viewport {
     const sub1 = this.activeSubPoint != 2;
     const sub2 = this.activeSubPoint != 1;
     if (this.activePoint == 0) {
-      tmpFormula.shift(vec2mul(deltaStartMouse, [sub1?1:0, sub2?1:0]));
+      tmpFormulas.map(f => f.shift(vec2mul(deltaStartMouse, [sub1?1:0, sub2?1:0])));
       }
     if (this.activePoint == 3) {
-      if (sub2) tmpFormula.rotate([angle, angle]);
-      if (sub1) tmpFormula.rescale([scale, scale]);
+      if (sub2) tmpFormulas.map(f => f.rotate([angle, angle]));
+      if (sub1) tmpFormulas.map(f => f.rescale([scale, scale]));
     }
     if (this.activePoint == 1) {
-      if (sub2) tmpFormula.rotate([0, angle]);
-      if (sub1) tmpFormula.rescale([1, scale]);
+      if (sub2) tmpFormulas.map(f => f.rotate([0, angle]));
+      if (sub1) tmpFormulas.map(f => f.rescale([1, scale]));
     }
     if (this.activePoint == 2) {
-      if (sub2) tmpFormula.rotate([angle, 0]);
-      if (sub1) tmpFormula.rescale([scale, 1]);
+      if (sub2) tmpFormulas.map(f => f.rotate([angle, 0]));
+      if (sub1) tmpFormulas.map(f => f.rescale([scale, 1]));
     }
-    this.formulas[this.activeFormula] = tmpFormula;
+    this.selectedFormulas.forEach((selected, index) => this.formulas[selected] = tmpFormulas[index]!)
   }
 
   callChangeCallback() {
@@ -261,7 +262,6 @@ class FormulaEditorGUI extends Viewport {
       const subPoints = [activePoint, vec2add(activePoint, delta), vec2add(activePoint, [-delta[1], delta[0]])];
       this.activeSubPoint = findNearestPoint(subPoints, pointer, scaled20)!;
     }
-    console.log('sub', this.activeSubPoint)
   }
 
   getFormulaPoints(formula: Formula) {
