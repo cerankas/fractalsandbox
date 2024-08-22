@@ -1,19 +1,19 @@
 import { vec2dotProduct, vec2magnitudeSquared, vec2sub, type vec2 } from "./vec2";
 
-export function findNearestPoint(points: vec2[], point: vec2, distanceThreshold: number) {
-  return findNearest<vec2>(points, point, distanceThreshold, pointDistanceSquared);
+export function findNearestPoint(points: vec2[], pointer: vec2, distanceThreshold: number) {
+  return findNearest<vec2>(points, pointer, distanceThreshold, pointDistanceSquared);
 }
 
-export function findNearestSegment(segments: [vec2, vec2][], point: vec2, distanceThreshold: number) {
-  return findNearest<[vec2, vec2]>(segments, point, distanceThreshold, segmentDistanceSquared);
+export function findNearestSegment(segments: [vec2, vec2][], pointer: vec2, distanceThreshold: number) {
+  return findNearest<[vec2, vec2]>(segments, pointer, distanceThreshold, segmentDistanceSquared);
 }
 
-function findNearest<T>(items: T[], point: vec2, distanceThreshold: number, itemDistance: (item: T, point: vec2) => number) {
+function findNearest<T>(items: T[], pointer: vec2, distanceThreshold: number, itemDistance: (item: T, point: vec2) => number) {
   let nearestDistance = distanceThreshold ** 2;
   let nearestIndex = null;
 
   items.forEach((item, i) =>  {
-    const distance = itemDistance(item, point);
+    const distance = itemDistance(item, pointer);
     if (distance < nearestDistance) { 
       nearestDistance = distance; 
       nearestIndex = i; 

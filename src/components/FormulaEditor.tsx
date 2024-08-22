@@ -3,7 +3,7 @@ import { TbTriangleMinus, TbTrianglePlus } from "react-icons/tb";
 import Formula from "~/math/formula";
 import { getBoundingBoxFrom2DArray, getEventOffsetXY, getEventPageXY, getMs } from "~/math/util";
 import { findNearestPoint, findNearestSegment } from "~/math/nearest";
-import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul } from "~/math/vec2";
+import { type vec2, vec2add, vec2sub, vec2angleDifference, vec2magnitudeRatio, vec2mul, vec2magnitude, vec2mul1 } from "~/math/vec2";
 import Viewport from "~/math/viewport";
 import { iconStyle, useResizeObserver } from "./browserUtils";
 
@@ -52,6 +52,7 @@ class FormulaEditorGUI extends Viewport {
   formulas: Formula[] = [];
   activeFormula: number | null = null;
   activePoint: number | null = null;
+  activeSubPoint: number | null = null;
   selectedFormulas: number[] = [];
   ctx: CanvasRenderingContext2D | null = null;
   isDragging = false;
@@ -129,9 +130,14 @@ class FormulaEditorGUI extends Viewport {
     if (this.isDragging || e.buttons) return;
     const lastActiveFormula = this.activeFormula;
     const lastActivePoint = this.activePoint;
+    const lastActiveSubPoint = this.activeSubPoint;
     const dataMousePoint = this.fromScreen(getEventOffsetXY(e));
     this.selectActiveFormula(dataMousePoint);
-    if (lastActiveFormula === this.activeFormula && lastActivePoint === this.activePoint) return;
+    if (
+      lastActiveFormula === this.activeFormula && 
+      lastActivePoint === this.activePoint && 
+      lastActiveSubPoint === this.activeSubPoint
+    ) return;
     this.draw();
   }
 
@@ -141,7 +147,7 @@ class FormulaEditorGUI extends Viewport {
     const rect = this.ctx.canvas.getBoundingClientRect();
     const screenMousePoint = vec2sub(getEventPageXY(e), [rect.left, rect.top]);
     if (this.draggedFormula != null) {
-      this.doDragFormula(this.fromScreen(screenMousePoint), e);
+      this.doDragFormula(this.fromScreen(screenMousePoint));
       this.callChangeCallback();
       this.draw();
     }
@@ -157,7 +163,7 @@ class FormulaEditorGUI extends Viewport {
     this.resizeFormulas();
   }
 
-  doDragFormula(dataMousePoint: vec2, e: MouseEvent) {
+  doDragFormula(dataMousePoint: vec2) {
     if (this.activeFormula == null) return;
     const tmpFormula = this.draggedFormula!.clone();
     const basePoint = tmpFormula.iterate([0, 0]);
@@ -166,20 +172,22 @@ class FormulaEditorGUI extends Viewport {
     const deltaBaseStart = vec2sub(basePoint, this.dragStart);
     const angle = vec2angleDifference(deltaBaseStart, deltaBaseMouse);
     const scale = vec2magnitudeRatio(deltaBaseStart, deltaBaseMouse);
+    const sub1 = this.activeSubPoint != 2;
+    const sub2 = this.activeSubPoint != 1;
     if (this.activePoint == 0) {
-      tmpFormula.shift(vec2mul(deltaStartMouse, [e.ctrlKey?0:1, e.shiftKey?0:1]));
+      tmpFormula.shift(vec2mul(deltaStartMouse, [sub1?1:0, sub2?1:0]));
       }
     if (this.activePoint == 3) {
-      if (!e.shiftKey) tmpFormula.rotate([angle, angle]);
-      if (!e.ctrlKey) tmpFormula.rescale([scale, scale]);
+      if (sub2) tmpFormula.rotate([angle, angle]);
+      if (sub1) tmpFormula.rescale([scale, scale]);
     }
     if (this.activePoint == 1) {
-      if (!e.shiftKey) tmpFormula.rotate([0, angle]);
-      if (!e.ctrlKey) tmpFormula.rescale([1, scale]);
+      if (sub2) tmpFormula.rotate([0, angle]);
+      if (sub1) tmpFormula.rescale([1, scale]);
     }
     if (this.activePoint == 2) {
-      if (!e.shiftKey) tmpFormula.rotate([angle, 0]);
-      if (!e.ctrlKey) tmpFormula.rescale([scale, 1]);
+      if (sub2) tmpFormula.rotate([angle, 0]);
+      if (sub1) tmpFormula.rescale([scale, 1]);
     }
     this.formulas[this.activeFormula] = tmpFormula;
   }
@@ -200,30 +208,60 @@ class FormulaEditorGUI extends Viewport {
     this.resizeFormulas();
   }
 
-  selectActiveFormula(point: vec2) {
+  selectActiveFormula(pointer: vec2) {
     if (this.isDragging) return;
+    const scaled20 = 20 / this.scale;
     
     if (this.selectedFormulas.length != 0) {
       const points = this.selectedFormulas.map(formula => this.getFormulaPoints(this.formulas[formula]!)).flat();
-      const hoveredPoint = findNearestPoint(points, point, 20 / this.scale); 
+      const hoveredPoint = findNearestPoint(points, pointer, 20 / this.scale); 
       if (hoveredPoint != null) {
         this.activeFormula = this.selectedFormulas[hoveredPoint / 4 | 0]!;
         this.activePoint = hoveredPoint % 4;
+        const start = hoveredPoint - hoveredPoint % 4;
+        this.selectActiveSubPoint(points.slice(start, start + 4), pointer);
         return;
       }
     }
 
     const segments = this.getFractalSegments();
-    const hoveredSegment = findNearestSegment(segments as [vec2, vec2][], point, 20 / this.scale);
+    const hoveredSegment = findNearestSegment(segments as [vec2, vec2][], pointer, scaled20);
     if (hoveredSegment == null) {
       this.activeFormula = null;
       this.activePoint = null;
       return;
     }
-    this.activeFormula = hoveredSegment / 4 | 0;
 
+    this.activeFormula = hoveredSegment / 4 | 0;
     const points = this.getFormulaPoints(this.formulas[this.activeFormula]!);
-    this.activePoint = findNearestPoint(points, point, 20 / this.scale);
+    this.activePoint = findNearestPoint(points, pointer, scaled20);
+    this.selectActiveSubPoint(points, pointer);
+  }
+
+  selectActiveSubPoint(points: vec2[], pointer: vec2) {
+    if (this.activePoint == null) return;
+    
+    const activePoint = points[this.activePoint]!;
+    const scaled10 = 10 / this.scale;
+    const scaled20 = 20 / this.scale;
+    
+    if (this.activePoint == 0) {
+      const lx = vec2magnitude(vec2sub(points[2]!, points[0]!));
+      const ly = vec2magnitude(vec2sub(points[1]!, points[0]!));
+      if (lx < scaled20 || ly < scaled20) {
+        this.activeSubPoint = null;
+        return;
+      }
+      const subPoints = [activePoint, vec2add(activePoint, [scaled10, 0]), vec2add(activePoint, [0, scaled10])];
+      this.activeSubPoint = findNearestPoint(subPoints, pointer, scaled20)!;
+    }
+    else {
+      const delta0 = vec2sub(activePoint, points[0]!);
+      const delta = vec2mul1(delta0, scaled10 / vec2magnitude(delta0)); 
+      const subPoints = [activePoint, vec2add(activePoint, delta), vec2add(activePoint, [-delta[1], delta[0]])];
+      this.activeSubPoint = findNearestPoint(subPoints, pointer, scaled20)!;
+    }
+    console.log('sub', this.activeSubPoint)
   }
 
   getFormulaPoints(formula: Formula) {
@@ -272,40 +310,43 @@ class FormulaEditorGUI extends Viewport {
     this.ctx.fillRect(0, 0, this.width, this.height);
     this.ctx.lineWidth = 1;
     this.drawBaseFormula();
-    for (let i = 0; i < this.formulas.length; i++) {
-      this.drawFormula(i, this.selectedFormulas.includes(i));
-    }
+    this.formulas.forEach((_formula, i) => this.drawFormula(i, this.selectedFormulas.includes(i)));
   }
 
   drawFormula(formulaIndex: number, isSelected: boolean) {
-    if (!this.ctx) return;
-    const ctx = this.ctx;
-
-    const drawEndPoint = (pointIndex: number) => {
-      const point = screenPoints[pointIndex];
-      ctx.strokeStyle = (formulaIndex == this.activeFormula && pointIndex == this.activePoint) ? 'red' : 'orange';
-      ctx.lineWidth = 3;
-      this.drawCircle(point!, 2);
-    }
-
     const dataPoints = this.getFormulaPoints(this.formulas[formulaIndex]!);
-    const screenPoints: vec2[] = [];
-    for (const dataPoint of dataPoints) {
-      screenPoints.push(this.toScreen(dataPoint));
-    }
-    ctx.strokeStyle = isSelected ? 'orange' : 'black';
-
+    const screenPoints = dataPoints.map(point => this.toScreen(point));
+    
+    this.ctx!.strokeStyle = isSelected ? 'orange' : 'black';
     this.drawTriangle(screenPoints, this.activeFormula == formulaIndex);
     
     if (isSelected) {
+      const drawEndPoint = (pointIndex: number) => this.drawCircle(
+        screenPoints[pointIndex]!,
+        (formulaIndex == this.activeFormula && pointIndex == this.activePoint) ? 'red' : 'orange'
+      ); 
       drawEndPoint(0);
       drawEndPoint(1);
       drawEndPoint(2);
       drawEndPoint(3);
     }
 
-    if (!isSelected && formulaIndex == this.activeFormula && this.activePoint != null)
-      drawEndPoint(this.activePoint);
+    if (formulaIndex == this.activeFormula && this.activePoint != null) {
+      const pnt = screenPoints[this.activePoint]!;
+      this.drawCircle(pnt, ![1,2].includes(this.activeSubPoint!) ? 'red' : 'orange');
+      if (this.activeSubPoint != null) {
+        let delta: vec2;
+        if (this.activePoint == 0) {
+          delta = [10, 0];
+        }
+        else {
+          const delta0 = vec2sub(pnt, screenPoints[0]!);
+          delta = vec2mul1(delta0, 10 / vec2magnitude(delta0)); 
+        }
+        this.drawCircle(vec2add(pnt, delta), this.activeSubPoint == 1 ? 'red' : 'orange');
+        this.drawCircle(vec2add(pnt, [delta[1], -delta[0]]), this.activeSubPoint == 2 ? 'red' : 'orange');
+      }
+    }
   }
   
   drawBaseFormula() {
@@ -343,9 +384,12 @@ class FormulaEditorGUI extends Viewport {
     this.ctx!.lineTo(point[0], point[1]);
   }
 
-  drawCircle(point: vec2, radius: number) {
+  drawCircle(point: vec2, color: string) {
+    this.ctx!.strokeStyle = 'transparent';
+    this.ctx!.fillStyle = color;
     this.ctx!.beginPath();
-    this.ctx!.arc(point[0], point[1], radius, 0, 2 * Math.PI);
+    this.ctx!.arc(point[0], point[1], 4, 0, 2 * Math.PI);
+    this.ctx!.fill();
     this.ctx!.stroke();
   }
 
