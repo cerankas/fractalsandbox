@@ -13,6 +13,7 @@ import { BiUndo, BiRedo } from "react-icons/bi";
 import { RiGalleryView2 } from "react-icons/ri";
 import { TbTriangles } from "react-icons/tb";
 import { TiArrowLeft, TiArrowRight } from "react-icons/ti";
+import { LiaPhotoVideoSolid } from "react-icons/lia";
 import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { type Fractal } from "@prisma/client";
 import { useHorizontal, useLocalStorage, iconStyle } from "~/components/browserUtils"
@@ -28,16 +29,15 @@ import ProgressIndicator from "~/components/ProgressIndicator";
 import { getMs } from "~/math/util";
 import SettingsDialog from "~/components/SettingsDialog";
 import DownloadImage from "~/components/DownloadImage";
+import InterpolateDialog from "~/components/InterpolateDialog";
+import DownloadVideo from "~/components/DownloadVideo";
 
 /*
   Todo:
-  - improve FormulaEditor selection and add vertex action icons
   - FormulaEditor value editor (x/y offset/scale/rotation, intensity)
-  - FormulaEditor group actions / whole fractal rotation
   - FormulaEditor triangle size/offset normalization
   
   - import / export / edit textual definition
-  - video: animate triangles and parameters along curves
   - explorer
   - randomization
   - only draw selected parts of the fractal (e.g. last formula == (and the formula before last ==))
@@ -155,6 +155,8 @@ export default withNoSSR(function Home() {
   const [showPalette, setShowPalette] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
+  const [showInterpolateDialog, setShowInterpolateDialog] = useState(false);
+  const [showDownloadVideoDialog, setShowDownloadVideoDialog] = useState(false);
 
   const isHorizontal = useHorizontal();
   const primaryDirection = isHorizontal ? 'horizontal' : 'vertical';
@@ -287,6 +289,26 @@ export default withNoSSR(function Home() {
         color={color}
         download={downloadCanvas}
         close={() => setShowDownloadDialog(false)}
+      />}
+      <LiaPhotoVideoSolid
+        className={iconStyle} 
+        onPointerDown={(e) => {
+          if (fractalHistory.stack.length < 2) return;
+          if (e.button == 0) setShowInterpolateDialog(true);
+          if (e.button == 2) setShowDownloadVideoDialog(true);
+        }}
+        title="Preview video (interpolate from last to current fractal), right-click to customize and save"
+      />
+      {showInterpolateDialog && <InterpolateDialog
+        size={{width:fractalCanvas!.width, height:fractalCanvas!.height}}
+        start={{form:fractalHistory.stack.at(-2)!.form, color:fractalHistory.stack.at(-2)!.color}}
+        end={{form:form, color:color}}
+        close={() => setShowInterpolateDialog(false)}
+      />}
+      {showDownloadVideoDialog && <DownloadVideo
+        start={{form:fractalHistory.stack.at(-2)!.form, color:fractalHistory.stack.at(-2)!.color}}
+        end={{form:form, color:color}}
+        close={() => setShowDownloadVideoDialog(false)}
       />}
       <BiUndo
         className={iconStyle} 

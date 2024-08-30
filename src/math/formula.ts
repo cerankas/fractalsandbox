@@ -82,6 +82,18 @@ export default class Formula {
     this.setBD(vec2rotate([0, sy], r[1]));
   }
 
+  get translation(): vec2 {
+    return [
+      this.e,
+      this.f
+    ];
+  }
+
+  set translation(t: vec2) {
+    this.e = t[0];
+    this.f = t[1];
+  }
+
   setAC(v: vec2) {
     this.a = v[0];
     this.c = v[1];
