@@ -3,10 +3,8 @@ import ModalPanel from "./ModalPanel";
 import { iconStyle, useLocalStorage } from "./browserUtils";
 import { useCallback, useMemo, useRef, useState } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
-import { Recorder, RecorderStatus } from "canvas-record";
-import { AVC } from "media-codecs";
 import { interpolateColors, interpolateForms } from "~/math/interpolate";
-// import { WebCodecsEncoder } from "canvas-record/encoder";
+import { Muxer, ArrayBufferTarget } from "mp4-muxer";
 
 let globFrameNumber = 0;
 
@@ -20,28 +18,55 @@ export default function DownloadVideo(props: {start: {form: string, color: strin
   const [frameNumber, setFrameNumber] = useState(0);
   const canvas = useMemo(() => document.createElement('canvas'), []);
   const rendererRef = useRef<FractalRenderer | null>(null);
-  const recorderRef = useRef<Recorder | null>(null);
+  const encoderRef = useRef<VideoEncoder | null>(null);
+  const muxerRef = useRef<Muxer<ArrayBufferTarget> | null>(null);
+
+  const finalize = useCallback(async () => {
+    await encoderRef.current!.flush();
+    muxerRef.current!.finalize();
+  
+    const buffer = muxerRef.current!.target.buffer;
+    const blob = new Blob([buffer]);
+    
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = 'fractalsandbox.mp4';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    props.close();
+  }, [props]);
   
   const onProgress = useCallback((progress: number) => {
-    if (!recorderRef.current) return;
     if (!rendererRef.current) return;
-    if (recorderRef.current.status !== RecorderStatus.Recording) return;
+    if (!encoderRef.current) return;
     setFrameProgress(progress);
-    if (progress >= 1) {      
-      void recorderRef.current.step();
+    if (progress >= 1) {
+      const frame = new VideoFrame(canvas, {
+        timestamp: globFrameNumber * 1e6 / fps,
+        duration: 1e6 / fps
+      });
+    
+      encoderRef.current.encode(frame, { keyFrame: false });
+      frame.close();
+    
       globFrameNumber++;
       setFrameNumber(globFrameNumber);
-      if (globFrameNumber > duration * fps) {
-        props.close();
-      }
-      else {
+
+      if (globFrameNumber <= duration * fps) {
         const phase = globFrameNumber / duration / fps;
         rendererRef.current.setForm(interpolateForms(props.start.form, props.end.form, phase));
         rendererRef.current.setColor(interpolateColors(props.start.color, props.end.color, phase));        
         rendererRef.current.render();
       }
+      else {
+        void finalize();
+      }
     }
-  }, [duration, fps, props]);
+  }, [canvas, duration, finalize, fps, props]);
   
   const inputStyle = "border w-16 rounded m-2 cursor-pointer"
 
@@ -126,16 +151,31 @@ export default function DownloadVideo(props: {start: {form: string, color: strin
           rendererRef.current.setForm(props.start.form);
           rendererRef.current.render();
 
-          recorderRef.current = new Recorder(rendererRef.current.ctx!, {
-            name: "canvas-record-example",
-            duration: duration,
-            frameRate: fps,
-            encoderOptions: {
-              codec: AVC.getCodec({ profile: "Main", level: "5.2" }),
+
+          muxerRef.current = new Muxer({
+            target: new ArrayBufferTarget(),
+        
+            video: {
+              codec: 'avc',
+              width: canvas.width,
+              height: canvas.height,
+              frameRate: fps
             },
+            fastStart: 'in-memory',
           });
-            
-          void recorderRef.current.start();
+        
+          encoderRef.current = new VideoEncoder({
+            output: (chunk, meta) => muxerRef.current!.addVideoChunk(chunk, meta),
+            error: e => console.error(e)
+          });
+
+          encoderRef.current.configure({
+            codec: 'avc1.42002a',
+            width: canvas.width,
+            height: canvas.height,
+            bitrate: 1e7
+          });
+          
          }}
       />
     </div>
