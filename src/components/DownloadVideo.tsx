@@ -173,7 +173,7 @@ export default function DownloadVideo(props: {start: {form: string, color: strin
             codec: 'avc1.42002a',
             width: canvas.width,
             height: canvas.height,
-            bitrate: 1e7
+            bitrate: 1e8
           });
           
          }}
