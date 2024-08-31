@@ -13,7 +13,7 @@ export default function DownloadVideo(props: {start: {form: string, color: strin
   const [height, setHeight] = useLocalStorage('videoHeight', 1080);
   const [quality, setQuality] = useLocalStorage('videoQuality', 100);
   const [duration, setDuration] = useLocalStorage('videoDuration', 5);
-  const [fps, setFps] = useLocalStorage('videoFps', 25);
+  const [fps, setFps] = useLocalStorage('videoFps', 30);
   const [frameProgress, setFrameProgress] = useState(0);
   const [frameNumber, setFrameNumber] = useState(0);
   const canvas = useMemo(() => document.createElement('canvas'), []);
