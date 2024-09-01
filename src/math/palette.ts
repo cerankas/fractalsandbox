@@ -1,6 +1,6 @@
 import { floatToShortString } from "./util";
 
-export const PALETTE_LENGTH = 10000;
+export const PALETTE_MAX_INDEX = 10000;
 
 export class PaletteKey {
   
@@ -34,7 +34,7 @@ export function createPaletteFromKeys(keys: PaletteKey[]) {
       ]));
     }
   }
-  for (let i = lastKey.level + 1; i < PALETTE_LENGTH; i++)
+  for (let i = lastKey.level + 1; i <= PALETTE_MAX_INDEX; i++)
     palette.push(mergeRGBA(lastKey.rgb));
   return palette;
 }
@@ -58,7 +58,7 @@ export function hexToRGB(hex: string): [number, number, number] {
 export function paletteKeysFromString(paletteString: string) {
   return paletteString.split(';').map(s => {
     const [indstr, rgbstr] = s.split(',') as [string, string];
-    const ind = (parseFloat(indstr) * PALETTE_LENGTH) | 0;
+    const ind = (parseFloat(indstr) * PALETTE_MAX_INDEX) | 0;
     const rgb = hexToRGB(rgbstr);
     return new PaletteKey(ind, rgb);
   });
@@ -68,7 +68,7 @@ export function paletteKeysToString(paletteKeys: PaletteKey[]) {
   return [...paletteKeys]
     .sort((a: PaletteKey, b: PaletteKey) => a.level == b.level ? 0 : (a.level < b.level ? - 1: 1))
     .map(key => {
-      const index = floatToShortString(key.level / PALETTE_LENGTH);
+      const index = floatToShortString(key.level / PALETTE_MAX_INDEX);
       const color = rgbToHex(key.rgb);
       return `${index},${color}`;
     })

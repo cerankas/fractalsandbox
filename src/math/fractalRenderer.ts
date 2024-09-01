@@ -1,5 +1,5 @@
 import Formula from "./formula";
-import { createPaletteFromKeys, paletteKeysFromString, PALETTE_LENGTH } from "./palette";
+import { createPaletteFromKeys, paletteKeysFromString, PALETTE_MAX_INDEX } from "./palette";
 import FractalSummator from "./fractalSummator";
 import { getMs } from "./util";
 import BackgroundScheduler from "~/logic/scheduler";
@@ -251,7 +251,7 @@ export default class FractalRenderer extends FractalSummator {
       }
     }
     const palData = new Int32Array(this.imageData.data.buffer);
-    const palmul = (PALETTE_LENGTH - 1) / this.maxSum;
+    const palmul = PALETTE_MAX_INDEX / this.maxSum;
     for (let i = this.sums.length - 1; i >= 0; i--) {
       palData[i] = this.palette[(this.sums[i]! * palmul) | 0]!;
     }

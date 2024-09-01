@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PaletteKey, createPaletteFromKeys, paletteKeysFromString, paletteKeysToString, rgbToHex,hexToRGB,  PALETTE_LENGTH } from "~/math/palette";
+import { PaletteKey, createPaletteFromKeys, paletteKeysFromString, paletteKeysToString, rgbToHex,hexToRGB,  PALETTE_MAX_INDEX } from "~/math/palette";
 import { getMs } from "~/math/util";
 import { findNearestPoint } from "~/math/nearest";
 import { HexColorPicker } from "react-colorful"
@@ -17,7 +17,7 @@ export default function PaletteEditor(props: { color: string, changeCallback: (c
   return (<>
     {selectedKeyIndex !== null && selectedKeyIndex < gui.paletteKeys.length && <div 
       className="absolute bottom-10"
-      style={{left: gui.m + (window.innerWidth - 160 - 2*gui.m) * gui.paletteKeys[selectedKeyIndex]!.level / PALETTE_LENGTH}}
+      style={{left: gui.m + (window.innerWidth - 160 - 2*gui.m) * gui.paletteKeys[selectedKeyIndex]!.level / PALETTE_MAX_INDEX}}
       >
       <HexColorPicker
         color={'#' + rgbToHex(gui.paletteKeys[selectedKeyIndex]!.rgb)}
@@ -94,12 +94,12 @@ class PaletteEditorGUI {
 
   getLevelFromX(x: number) {
     if (x < this.m) x = this.m;
-    if (x >= this.mx) x = this.mx;
-    return ((x - this.m) * PALETTE_LENGTH / (this.mx - this.m)) | 0;
+    if (x > this.mx) x = this.mx;
+    return ((x - this.m) * PALETTE_MAX_INDEX / (this.mx - this.m)) | 0;
   }
 
   getXFromLevel(i: number) {
-    return this.m + (this.mx - this.m) * i / PALETTE_LENGTH;
+    return this.m + (this.mx - this.m) * i / PALETTE_MAX_INDEX;
   }  
   
   addColor(level: number) {
@@ -185,7 +185,7 @@ class PaletteEditorGUI {
     const ctx = this.ctx;
     if (!ctx) return;
     const m = this.m;
-    this.mx = ctx.canvas.width - m;
+    this.mx = ctx.canvas.width - m - 1;
     ctx.lineWidth = 1;
     
     ctx.fillStyle = '#6b7280';
