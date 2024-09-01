@@ -1,10 +1,8 @@
 import Formula from "./formula";
-import { PaletteKey, paletteKeysFromString, paletteKeysToString } from "./palette";
+import { createPaletteFromKeys, linearCombination, mergeRGBA, paletteKeysFromString, splitRGBA } from "./palette";
 import { type vec2 } from "./vec2";
 
-export const interpolateValues = (v1: number, v2: number, phase: number) => v1 * (1 - phase) + v2 * phase;
-
-export const interpolateArrays = (a1: number[], a2: number[], phase: number) => a1.map((a, i) => interpolateValues(a, a2[i]!, phase));
+export const interpolateArrays = (a1: number[], a2: number[], phase: number) => a1.map((a, i) => linearCombination(a, a2[i]!, phase));
 
 export function interpolateForms(form1: string, form2: string, phase: number) {
   const ff1 = Formula.fromString(form1);
@@ -23,15 +21,10 @@ export function interpolateForms(form1: string, form2: string, phase: number) {
 }
 
 export function interpolateColors(color1: string, color2: string, phase: number) {
-  const cc1 = paletteKeysFromString(color1);
-  const cc2 = paletteKeysFromString(color2);
+  const p1 = createPaletteFromKeys(paletteKeysFromString(color1)).map(v => splitRGBA(v));
+  const p2 = createPaletteFromKeys(paletteKeysFromString(color2)).map(v => splitRGBA(v));
 
-  if (cc1.length != cc2.length) throw Error('Trying to interpolate palettes with different numbers of color keys')
-
-  return paletteKeysToString(cc1.map((c1, i) => new PaletteKey(
-    interpolateValues(c1.level, cc2[i]!.level, phase),
-    interpolateArrays(c1.rgb, cc2[i]!.rgb, phase).map(v => v | 0) as [number, number, number]
-  )));
+  return p1.map((p, i) => interpolateArrays(p, p2[i]!, phase)).map(v => mergeRGBA(v as [number, number, number]));
 }
 
 export function interpolateFractals(start: {form: string, color: string}, end: {form: string, color: string}, phase: number) {

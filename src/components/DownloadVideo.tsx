@@ -59,7 +59,7 @@ export default function DownloadVideo(props: {start: {form: string, color: strin
       if (globFrameNumber <= duration * fps) {
         const phase = globFrameNumber / duration / fps;
         rendererRef.current.setForm(interpolateForms(props.start.form, props.end.form, phase));
-        rendererRef.current.setColor(interpolateColors(props.start.color, props.end.color, phase));        
+        rendererRef.current.setPalette(interpolateColors(props.start.color, props.end.color, phase));
         rendererRef.current.render();
       }
       else {

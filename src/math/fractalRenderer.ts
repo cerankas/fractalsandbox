@@ -88,6 +88,11 @@ export default class FractalRenderer extends FractalSummator {
     this.palette = createPaletteFromKeys(paletteKeysFromString(color));
     this.mustRedraw = true;
   }
+  
+  setPalette(palette: number[]) {
+    this.palette = palette;
+    this.mustRedraw = true;
+  }
 
   shouldCacheProgress() {
     if (!this.cached || !this.pointsCount || this.renderTime < 200 || this.isFinished()) return false;

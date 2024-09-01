@@ -10,32 +10,26 @@ export default function InterpolateDialog(props: {size: {width: number, height: 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderer = useMemo(() => new FractalRenderer({initPriority: 0, drawPriority: 2, cached: true}), []);
   const [phase, setPhase] = useState(0);
-  const [form, setForm] = useState(props.start.form);
-  const [color, setColor] = useState(props.start.color);
 
   useEffect(() => () => renderer.releaseTask(), [renderer]);
 
   useEffect(() => {
     renderer.setCtx(canvasRef.current!.getContext('2d')!);
-  }, [renderer]);
-
-  useEffect(() => {
-    renderer.setForm(form);
-    renderer.setColor(color);
-    console.log(color)
+    renderer.setForm(props.start.form);
+    renderer.setColor(props.start.color);
     renderer.render();
-  }, [renderer, form, color]);
+  }, [renderer, props.start.form, props.start.color]);
   
   return <ModalPanel style="fixed left-0 top-0 border-0" close={props.close}>
     <canvas className="relative size-full"
-      style={{backgroundColor: backgroundColor(color)}}
+      style={{backgroundColor: backgroundColor(props.start.color)}}
       ref={canvasRef}
       width={props.size.width}
       height={props.size.height}
     />
     <IoCloseCircleOutline
       className={iconStyle + " absolute right-0 top-0 m-2"}
-      style={{color:oppositeBackgroundColor(color)}}
+      style={{color:oppositeBackgroundColor(props.start.color)}}
       onClick={props.close}
     />
     <input
@@ -48,8 +42,9 @@ export default function InterpolateDialog(props: {size: {width: number, height: 
       onChange={e => {
         const phase = parseFloat(e.target.value);
         setPhase(phase);
-        setForm(interpolateForms(props.start.form, props.end.form, phase));
-        setColor(interpolateColors(props.start.color, props.end.color, phase));
+        renderer.setForm(interpolateForms(props.start.form, props.end.form, phase));
+        renderer.setPalette(interpolateColors(props.start.color, props.end.color, phase));
+        renderer.render();
       }}
       onFocus={e => e.target.blur()}
       tabIndex={-1}

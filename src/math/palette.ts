@@ -10,9 +10,13 @@ export class PaletteKey {
   ) {}
 }
 
+export const linearCombination = (v1: number, v2: number, coeff: number) => v1 * (1 - coeff) + v2 * coeff;
+
+export const splitRGBA = (c: number) => [c & 0xff, (c >> 8) & 0xff, (c >> 16) & 0xff, (c >> 24) & 0xff];
+
+export const mergeRGBA = (c: [number, number, number]) => (c[0] << 0) + (c[1] << 8) + (c[2] << 16) + (0xff << 24);
+
 export function createPaletteFromKeys(keys: PaletteKey[]) {
-  function linearCombination(v1: number, v2: number, coeff: number) { return v1 * (1 - coeff) + v2 * coeff; }
-  function mergeRGBA(c: [number, number, number]) { return (c[0] << 0) + (c[1] << 8) + (c[2] << 16) + (0xff << 24); }
   const sortedKeys = [...keys].sort((a: PaletteKey, b: PaletteKey) => a.level == b.level ? 0 : (a.level < b.level ? - 1: 1));
   const palette = [];
   const firstKey = sortedKeys[0]!;
