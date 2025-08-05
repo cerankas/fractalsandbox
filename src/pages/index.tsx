@@ -78,12 +78,18 @@ export default withNoSSR(function Home() {
   const [slideShowProgress, setSlideShowProgress] = useState(0);
   const [slideShowPeriod, setSlideShowPeriod] = useLocalStorage("slideShowPeriod", 3000);
 
+  const loadMoreIfNearEnd = useCallback(() => {
+    if (fractals.findIndex(f => selectedFractal?.id === f.id) > fractals.length - 5)
+      loadMore();
+    }, [fractals, loadMore, selectedFractal?.id]);
+
   const selectFractal = useCallback((fractal: Fractal) => {
     setSelectedFractal(fractal);
     setForm(fractal.form);
     setColor(fractal.color);
     storeToHistory();
-  }, [setColor, setForm, storeToHistory])
+    loadMoreIfNearEnd();
+  }, [setForm, setColor, storeToHistory, loadMoreIfNearEnd])
 
   const stopSlideShow = useCallback(() => {
     setSlideShow(false);
