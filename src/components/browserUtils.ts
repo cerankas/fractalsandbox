@@ -32,7 +32,7 @@ export function useHorizontal() {
   return isHorizontal;
 }
 
-export function useResizeObserver(canvasRef: RefObject<HTMLCanvasElement>, callback: (ctx: CanvasRenderingContext2D) => void) {
+export function useResizeObserver(canvasRef: RefObject<HTMLCanvasElement | null>, callback: (ctx: CanvasRenderingContext2D) => void) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
