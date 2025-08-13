@@ -1,12 +1,13 @@
-/** @type {import("eslint").Linter.Config} */
-const config = {
+import tsEslint from "@typescript-eslint/eslint-plugin";
+
+export default [{
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": true
   },
-  "plugins": [
-    "@typescript-eslint"
-  ],
+  "plugins": {
+    "@typescript-eslint": tsEslint
+  },
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended-type-checked",
@@ -38,5 +39,4 @@ const config = {
       }
     ]
   }
-}
-module.exports = config;
+}];
