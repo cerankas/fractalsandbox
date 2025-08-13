@@ -4,7 +4,7 @@ import FractalRenderer from "~/math/fractalRenderer";
 import ModalPanel from "./ModalPanel";
 
 export default function SettingsDialog(props: {slideShowPeriod: number, setSlideShowPeriod: (interval: number) => void, close: () => void}) {
-  const buttonStyle = "border w-40 rounded m-2"
+  const buttonStyle = "border w-40 rounded-sm m-2"
 
   return <ModalPanel style="fixed inset-24 flex flex-col" close={props.close}>
     <IoCloseCircleOutline

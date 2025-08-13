@@ -59,7 +59,7 @@ export default function FractalSelector(props: {
             key={f.id} 
             data-id={f.id}
             ref={f.id === props.fractals.at(-1)?.id ? loaderRef : null} 
-            className="flex flex-grow"
+            className="flex grow"
           >
             <FractalTile 
               fractal={f}

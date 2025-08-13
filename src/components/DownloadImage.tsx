@@ -19,7 +19,7 @@ export default function DownloadImage(props: {form: string, color: string, downl
   }, [canvas, props]);
   const renderer = useMemo(() => new FractalRenderer({initPriority: 0, drawPriority: 0, cached: false, onprogress: onProgress}), [onProgress]);
 
-  const inputStyle = "border w-16 rounded m-2 cursor-pointer"
+  const inputStyle = "border w-16 rounded-sm m-2 cursor-pointer"
 
   return <ModalPanel style="fixed flex flex-col w-80 text-black" close={props.close}>
     <IoCloseCircleOutline

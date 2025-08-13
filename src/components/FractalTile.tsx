@@ -55,7 +55,7 @@ export default function FractalTile(props: {
   const iconSize = props.size > 180 ? 24 : 24 * props.size / 180;
 
   return (
-    <div className={`fractal-tile relative flex flex-grow justify-center border-2 ${borderStyle} ${hoverStyle}`}
+    <div className={`fractal-tile relative flex grow justify-center border-2 ${borderStyle} ${hoverStyle}`}
       style={{
         backgroundColor: backgroundColor(props.fractal.color),
         width: `${props.size + 4}px`,

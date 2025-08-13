@@ -68,7 +68,7 @@ export default function DownloadVideo(props: {start: {form: string, color: strin
     }
   }, [canvas, duration, finalize, fps, props]);
   
-  const inputStyle = "border w-16 rounded m-2 cursor-pointer"
+  const inputStyle = "border w-16 rounded-sm m-2 cursor-pointer"
 
   return <ModalPanel style="fixed flex flex-col w-80 text-black" close={props.close}>
     <IoCloseCircleOutline
