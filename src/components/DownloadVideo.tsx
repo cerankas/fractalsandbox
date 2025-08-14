@@ -4,7 +4,7 @@ import { iconStyle, useLocalStorage } from "./browserUtils";
 import { useCallback, useMemo, useRef, useState } from "react";
 import FractalRenderer from "~/math/fractalRenderer";
 import { interpolateColors, interpolateForms } from "~/math/interpolate";
-import { Muxer, ArrayBufferTarget } from "mp4-muxer";
+import { Output, Mp4OutputFormat, BufferTarget, EncodedVideoPacketSource, EncodedPacket } from 'mediabunny';
 
 let globFrameNumber = 0;
 
@@ -19,13 +19,15 @@ export default function DownloadVideo(props: {start: {form: string, color: strin
   const canvas = useMemo(() => document.createElement('canvas'), []);
   const rendererRef = useRef<FractalRenderer | null>(null);
   const encoderRef = useRef<VideoEncoder | null>(null);
-  const muxerRef = useRef<Muxer<ArrayBufferTarget> | null>(null);
+  const outputRef = useRef<Output<Mp4OutputFormat, BufferTarget> | null>(null);
 
   const finalize = useCallback(async () => {
     await encoderRef.current!.flush();
-    muxerRef.current!.finalize();
+    await outputRef.current!.finalize();
   
-    const buffer = muxerRef.current!.target.buffer;
+    const buffer = outputRef.current?.target.buffer;
+    if (!buffer) return;
+
     const blob = new Blob([buffer]);
     
     const url = window.URL.createObjectURL(blob);
@@ -152,20 +154,19 @@ export default function DownloadVideo(props: {start: {form: string, color: strin
           rendererRef.current.render();
 
 
-          muxerRef.current = new Muxer({
-            target: new ArrayBufferTarget(),
-        
-            video: {
-              codec: 'avc',
-              width: canvas.width,
-              height: canvas.height,
-              frameRate: fps
-            },
-            fastStart: 'in-memory',
+          outputRef.current = new Output({
+            target: new BufferTarget(),
+            format: new Mp4OutputFormat(),
           });
-        
+
+          const videoSource = new EncodedVideoPacketSource('avc');
+          
+          outputRef.current.addVideoTrack(videoSource, { frameRate: fps });
+
+          void outputRef.current.start();
+
           encoderRef.current = new VideoEncoder({
-            output: (chunk, meta) => muxerRef.current!.addVideoChunk(chunk, meta),
+            output: (chunk, meta) => void videoSource.add(EncodedPacket.fromEncodedChunk(chunk), meta),
             error: e => console.error(e)
           });
 
