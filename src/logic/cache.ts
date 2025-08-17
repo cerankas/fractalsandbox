@@ -64,6 +64,31 @@ export default class IndexedDBManager<T> {
     });
   }
   
+  async getUsage() {
+    const objectStore = await this.getObjectStore("readonly");
+    return new Promise<{size:number, cnt:number}>((resolve, reject) => {
+      const request = objectStore.openCursor();
+      let size = 0;
+      let cnt = 0;
+      request.onerror = () => reject(Error('Failed to get all keys from IndexedDB'));
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (cursor) {
+          const data = cursor.value.data;
+          if (data?.size) size += data.size;
+          if (data?.data?.length) size += data.data.length;
+          if (data?.ley?.length) size += data.key.length;
+          size += cursor.value.key.length;
+          cnt += 1;
+          cursor.continue();
+        } else {
+          console.log('count size', this.dbName, cnt, size)
+          resolve({size, cnt});
+        }
+      }
+    });
+  }
+  
   async delete(key: string) {
     const objectStore = await this.getObjectStore("readwrite");
     return new Promise<void>((resolve, reject) => {

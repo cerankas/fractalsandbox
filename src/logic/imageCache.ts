@@ -80,4 +80,8 @@ export default class ImageCache {
     await this.imageDbManager.clearStore();
   }
   
+  async getUsage() {
+    return await this.imageDbManager.getUsage();
+  }
+
 };

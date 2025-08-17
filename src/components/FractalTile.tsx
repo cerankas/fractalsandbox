@@ -7,7 +7,7 @@ import { type User } from "~/logic/userProvider";
 import FractalRenderer from "~/math/fractalRenderer";
 import { backgroundColor, oppositeBackgroundColor } from "~/math/palette";
 
-const thumbnailCache = new IndexedDBManager<Blob>("thumbnails", 1);
+export const thumbnailCache = new IndexedDBManager<Blob>("thumbnails", 1);
 
 export default function FractalTile(props: { 
   fractal: Fractal, 
