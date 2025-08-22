@@ -14,6 +14,7 @@ import { RiGalleryView2 } from "react-icons/ri";
 import { TbTriangles } from "react-icons/tb";
 import { TiArrowLeft, TiArrowRight } from "react-icons/ti";
 import { LiaPhotoVideoSolid } from "react-icons/lia";
+import { LuCircleHelp } from "react-icons/lu";
 import { type ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { type Fractal } from "@prisma/client";
 import { useHorizontal, useLocalStorage, iconStyle } from "~/components/browserUtils"
@@ -31,6 +32,7 @@ import SettingsDialog from "~/components/SettingsDialog";
 import DownloadImage from "~/components/DownloadImage";
 import InterpolateDialog from "~/components/InterpolateDialog";
 import DownloadVideo from "~/components/DownloadVideo";
+import HelpDialog from "~/components/HelpDialog";
 
 /*
   Todo:
@@ -158,6 +160,7 @@ export default withNoSSR(function Home() {
     return () => clearTimeout(timeout);
   }, [storeToHistory]);
 
+  const [showHelp, setShowHelp] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
@@ -258,6 +261,11 @@ export default withNoSSR(function Home() {
         className={iconStyle}
         onClick={() => setShowSettingsDialog(true)}
         title='Settings'
+      />
+      <LuCircleHelp
+        className={iconStyle}
+        onClick={() => setShowHelp(true)}
+        title='Help'
       />
       <div className="m-1 hover:cursor-pointer">
         {isSignedIn && <div className="size-6">
@@ -471,10 +479,15 @@ export default withNoSSR(function Home() {
               </Panel>
               
               {showPalette && <PaletteEditor color={color} changeCallback={setColor}/>}
+              
               {showSettingsDialog && <SettingsDialog 
                 slideShowPeriod={slideShowPeriod} 
                 setSlideShowPeriod={setSlideShowPeriod} 
                 close={() => setShowSettingsDialog(false)}
+                />}
+
+              {showHelp && <HelpDialog
+                close={() => setShowHelp(false)}
               />}
             
             </PanelGroup>
