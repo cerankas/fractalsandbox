@@ -380,12 +380,20 @@ export default withNoSSR(function Home() {
     e.preventDefault();
   }, []);
 
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js");
+    }
+  }, []);
+
   return (
     <>
       <Head>
         <title>Fractal Sandbox</title>
         <meta name="description" content="interactive fractal generator" />
         <meta name="author" content="Szymon Ceranka" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
       </Head>
       
       <main className="bg-gray-500 h-screen v-screen" onContextMenu={e => e.preventDefault()} onPointerDown={pointerDownHandler}>
