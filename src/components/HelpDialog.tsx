@@ -34,7 +34,7 @@ export default function HelpDialog(props: {close: () => void}) {
     />
 
     <div><b>Help</b></div>
-    <div>This is Fractal Sandbox, a web app for exploring and creating <a href="https://en.wikipedia.org/wiki/Iterated_function_system" target="_blank">IFS</a> <a href="https://en.wikipedia.org/wiki/Iterated_function_system" target="_blank">fractals</a>.</div>
+    <div>This is Fractal Sandbox, a web app for exploring and creating <a href="https://en.wikipedia.org/wiki/Iterated_function_system" target="_blank">IFS</a> <a href="https://en.wikipedia.org/wiki/Fractal" target="_blank">fractals</a>.</div>
     {/* <div>(App build {process.env.NEXT_PUBLIC_BUILD_TIMESTAMP?.slice(0,10)})</div> */}
     <br/>
     
@@ -91,6 +91,10 @@ export default function HelpDialog(props: {close: () => void}) {
     <div><b>General</b></div>
     <div>Drag panel separator to resize panels.</div>
     <div>Right-click a separator to restore 1:1 division ratio.</div>
+    <br/>
+
+    <div><b>About</b></div>
+    <div>Build {process.env.NEXT_PUBLIC_BUILD_TIMESTAMP?.slice(0,10)}. <a href="https://github.com/cerankas/fractalsandbox" target="_blank">Source code on github</a>.</div>
 
  </ModalPanel>;
 }

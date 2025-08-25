@@ -26,12 +26,12 @@ export default function SettingsDialog(props: {slideShowPeriod: number, setSlide
     .catch(err => console.error("Error estimating DB size:", err));
   }, []);
 
-  return <ModalPanel style="fixed inset-24 flex flex-col" close={props.close}>
+  return <ModalPanel style="fixed inset-[8vmin] flex flex-col" close={props.close}>
     <IoCloseCircleOutline
       className={iconStyle + " absolute right-0 top-0"}
       onClick={props.close}
     />
-    Settings (build {process.env.NEXT_PUBLIC_BUILD_TIMESTAMP?.slice(0,10)})
+    <b>Settings</b>
     <label>
       Slideshow period (in seconds):
       <input

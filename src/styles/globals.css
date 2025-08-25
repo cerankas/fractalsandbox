@@ -30,3 +30,7 @@ body .react-colorful__hue {
   height: 10px;
   border-radius: 0;
 }
+
+a {
+  text-decoration: underline;
+}
